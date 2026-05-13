@@ -1,15 +1,15 @@
 :root {
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --accent-color: #00ffcc;
-    --text-primary: #ffffff;
-    --text-secondary: #b0b0b0;
+    --bg-black: #050505;
+    --neon-blue: #00e5ff;
+    --neon-red: #ff0055;
+    --neon-green: #39ff14;
+    --border-gray: #1a1a1a;
 }
 
-body.dark-mode {
-    background-color: var(--bg-color);
-    color: var(--text-primary);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+body {
+    background-color: var(--bg-black);
+    color: var(--neon-blue);
+    font-family: 'Courier New', Courier, monospace;
     margin: 0;
     display: flex;
     justify-content: center;
@@ -17,51 +17,54 @@ body.dark-mode {
 
 #app-wrapper {
     width: 100%;
-    max-width: 450px;
-    padding: 20px;
+    max-width: 500px;
+    border: 1px solid var(--neon-blue);
+    margin-top: 20px;
 }
 
-.view.hidden { display: none; }
+.main-header {
+    border-bottom: 1px solid var(--neon-blue);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    font-size: 0.75rem;
+}
 
-/* Landing Page Design */
-#landing-page {
+.logo-section { display: flex; align-items: center; }
+
+.nav-icon {
+    width: 35px; 
+    height: 35px;
+    margin-right: 12px;
+    border-radius: 4px;
+}
+
+.active-indicator { color: var(--neon-green); font-weight: bold; }
+
+.list-row {
+    display: grid;
+    grid-template-columns: 45px 1fr 45px;
+    border-bottom: 1px solid var(--border-gray);
+    height: 45px;
+    align-items: center;
+}
+
+.rank {
+    color: var(--neon-red);
     text-align: center;
-    margin-top: 100px;
-}
-
-.app-icon {
-    width: 80px;
-    height: 80px;
-    background: var(--accent-color);
-    color: var(--bg-color);
-    font-weight: bold;
-    font-size: 2.5rem;
+    border-right: 1px solid var(--border-gray);
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 15px;
-    margin: 0 auto 20px;
 }
 
-#enter-button {
-    background: transparent;
-    border: 2px solid var(--accent-color);
-    color: var(--accent-color);
-    padding: 12px 30px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-size: 1rem;
-    margin-top: 40px;
-}
+.item-content { padding-left: 15px; color: var(--neon-green); font-size: 0.85rem; }
 
-/* Specific Category Card Styling */
-.category-card {
-    background: var(--card-bg);
-    margin-bottom: 15px;
-    padding: 20px;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: transform 0.2s;
+.status-block {
+    width: 25px;
+    height: 25px;
+    margin: auto;
+    background-color: var(--neon-blue); /* Default color */
 }
-
-.category-card:hover { transform: scale(1.02); }
