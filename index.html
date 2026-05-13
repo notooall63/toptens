@@ -6,9 +6,33 @@
     <title>Top Tens</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="category-list-view">
-        <!-- app.js will fill this with categories from schema.json -->
+<body class="dark-mode">
+    <div id="app-wrapper">
+        <!-- Landing Page Section -->
+        <div id="landing-page" class="view">
+            <div class="brand-container">
+                <div class="app-icon">10</div>
+                <h1>Top Tens</h1>
+            </div>
+            <button id="enter-button">Enter App</button>
+        </div>
+
+        <!-- Category List View -->
+        <div id="category-view" class="view hidden">
+            <header>
+                <h2>Categories</h2>
+            </header>
+            <div class="category-list-view"></div>
+        </div>
+
+        <!-- Items Grid View -->
+        <div id="grid-view" class="view hidden">
+            <header>
+                <button class="back-link">← Categories</button>
+                <h2 id="grid-title">Category Name</h2>
+            </header>
+            <div class="items-grid-view"></div>
+        </div>
     </div>
     <script src="app.js"></script>
 </body>
