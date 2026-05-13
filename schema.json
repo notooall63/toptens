@@ -1,0 +1,18 @@
+{
+  "lists": [
+    {
+      "id": "unique-uuid-001",
+      "title": "My First Top Ten",
+      "category": "General",
+      "created_at": "2026-05-13",
+      "items": [
+        {
+          "rank": 1,
+          "name": "Item Name",
+          "note": "Why it's #1",
+          "metadata": {}
+        }
+      ]
+    }
+  ]
+}
