@@ -48,7 +48,6 @@ function loadStateFromStorage() {
             if (!state.items) state.items = {...defaultState.items};
             if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
             
-            // Safety patch: ensure legacy setups clear "Coffee Shops" and run "Hottest ?" cleanly
             const index9 = state.categories.findIndex(c => c.id === 'cat-9');
             if (index9 !== -1 && state.categories[index9].title !== 'Hottest ?') {
                 state.categories[index9].title = 'Hottest ?';
@@ -95,7 +94,6 @@ const DOM = {
     addItemBtn: document.getElementById('add-item-btn'),
     rankedItemsList: document.getElementById('ranked-items-list'),
     
-    // Control Drawer Matrix Reference Fields
     drawerOverlay: document.getElementById('settings-drawer-overlay'),
     closeDrawerBtn: document.getElementById('close-drawer-btn'),
     displayUsername: document.getElementById('display-username'),
@@ -115,7 +113,6 @@ const DOM = {
 // 3. Side-Drawer Interactive Shell Engine & Password Validation Pipeline
 // ==========================================================================
 function validatePassword(password) {
-    // 8-20 characters, at least 1 uppercase letter, 1 number, and 1 special symbol
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-\[\]{}|;:',.<>?\/]).{8,20}$/;
     return passwordRegex.test(password);
 }
@@ -165,7 +162,6 @@ DOM.drawerOverlay.addEventListener('click', (e) => {
     if (e.target === DOM.drawerOverlay) closeSettingsDrawer();
 });
 
-// Secure Registration Validation Event Action
 DOM.btnActionSignup.addEventListener('click', () => {
     const email = DOM.authEmail.value.trim();
     const pass = DOM.authPassword.value;
@@ -177,27 +173,25 @@ DOM.btnActionSignup.addEventListener('click', () => {
     }
 
     if (!validatePassword(pass)) {
-        hintBox.style.color = '#f85149'; // Direct visibility attention accent
+        hintBox.style.color = '#f85149'; 
         alert("Password failed rule check. Requirements detailed below password entry field.");
         return;
     }
 
-    hintBox.style.color = '#8b949e'; // Restore default text rule tone
+    hintBox.style.color = '#8b949e'; 
     
-    // Transition viewport interface shell to pending state
     DOM.authLoggedOutView.classList.add('hidden');
     DOM.authPendingView.classList.remove('hidden');
     
     console.log(`Verification URL engine string generated. Token payload route: ${email}`);
     
-    // Simulate user verification click action directly
     setTimeout(() => {
         state.userProfile.username = email.split('@')[0];
         state.userProfile.email = email;
         state.userProfile.isAuthenticated = true;
         saveStateToStorage();
         syncDrawerUIFields();
-        alert("Email auto-verified via loop packet! Secure backend data sync is now online.");
+        alert("Email auto-verified via loop packet! Secure cloud data sync is now online.");
     }, 4000);
 });
 
@@ -368,7 +362,7 @@ DOM.newItemMedia.addEventListener('change', function(e) {
             if (videoElement.duration > 6.0) {
                 alert(`System Error: Selected video duration is ${videoElement.duration.toFixed(1)}s.\nVideos must be strictly 6 seconds or less.`);
                 DOM.newItemMedia.value = '';
-                DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video ≤ 6s)";
+                DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video <= 6s)";
                 DOM.mediaStatusLabel.className = "media-label error-state";
             } else {
                 DOM.mediaStatusLabel.textContent = `Video Loaded (${videoElement.duration.toFixed(1)}s)`;
@@ -483,7 +477,7 @@ DOM.addItemBtn.addEventListener('click', () => {
         DOM.newItemUrl.value = '';
         DOM.newItemMedia.value = '';
         DOM.alignmentControlSandbox.classList.add('hidden');
-        DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video ≤ 6s)";
+        DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video <= 6s)";
         DOM.mediaStatusLabel.className = "media-label";
         activeCroppingImage = null;
 
