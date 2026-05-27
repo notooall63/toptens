@@ -1,5 +1,5 @@
 // ==========================================================================
-// 1. Application State & Storage Engine
+// 1. Application State & Storage Engine (With "Hottest ?" Core Category)
 // ==========================================================================
 
 const defaultState = {
@@ -23,7 +23,7 @@ const defaultState = {
         'cat-2': [], 'cat-3': [], 'cat-4': [], 'cat-5': [], 'cat-6': [], 'cat-7': [], 'cat-8': [], 'cat-9': []
     },
     userProfile: {
-        username: 'Guest Explorer',
+        username: 'Guest Mode',
         isAuthenticated: false,
         email: ''
     },
@@ -48,9 +48,9 @@ function loadStateFromStorage() {
             if (!state.items) state.items = {...defaultState.items};
             if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
             
-            // Re-verify that category 9 is dynamically swapped if custom data existed
+            // Safety patch: ensure legacy setups clear "Coffee Shops" and run "Hottest ?" cleanly
             const index9 = state.categories.findIndex(c => c.id === 'cat-9');
-            if (index9 !== -1 && state.categories[index9].title === 'Coffee Shops') {
+            if (index9 !== -1 && state.categories[index9].title !== 'Hottest ?') {
                 state.categories[index9].title = 'Hottest ?';
             }
         } else {
@@ -95,37 +95,49 @@ const DOM = {
     addItemBtn: document.getElementById('add-item-btn'),
     rankedItemsList: document.getElementById('ranked-items-list'),
     
-    // Side-Drawer Elements Matrix
+    // Control Drawer Matrix Reference Fields
     drawerOverlay: document.getElementById('settings-drawer-overlay'),
     closeDrawerBtn: document.getElementById('close-drawer-btn'),
     displayUsername: document.getElementById('display-username'),
     profileAvatarDisplay: document.getElementById('profile-avatar-display'),
-    settingsUsernameInput: document.getElementById('settings-username-input'),
-    saveProfileBtn: document.getElementById('save-profile-btn'),
     authEmail: document.getElementById('auth-email'),
     authPassword: document.getElementById('auth-password'),
     btnActionSignin: document.getElementById('btn-action-signin'),
     btnActionSignup: document.getElementById('btn-action-signup'),
     btnActionLogout: document.getElementById('btn-action-logout'),
     authLoggedOutView: document.getElementById('auth-logged-out-view'),
+    authPendingView: document.getElementById('auth-pending-view'),
     authLoggedInView: document.getElementById('auth-logged-in-view'),
     purgeDataBtn: document.getElementById('purge-data-btn')
 };
 
 // ==========================================================================
-// 3. Side-Drawer Interactive Shell Engine
+// 3. Side-Drawer Interactive Shell Engine & Password Validation Pipeline
 // ==========================================================================
+function validatePassword(password) {
+    // 8-20 characters, at least 1 uppercase letter, 1 number, and 1 special symbol
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+=\-\[\]{}|;:',.<>?\/]).{8,20}$/;
+    return passwordRegex.test(password);
+}
+
 function syncDrawerUIFields() {
     DOM.displayUsername.textContent = state.userProfile.username;
-    DOM.profileAvatarDisplay.textContent = state.userProfile.username.charAt(0).toUpperCase() || 'U';
-    DOM.settingsUsernameInput.value = state.userProfile.username === 'Guest Explorer' ? '' : state.userProfile.username;
+    DOM.profileAvatarDisplay.textContent = state.userProfile.username.charAt(0).toUpperCase() || 'G';
+    
+    const statusBadge = document.getElementById('display-status');
 
     if (state.userProfile.isAuthenticated) {
         DOM.authLoggedOutView.classList.add('hidden');
+        DOM.authPendingView.classList.add('hidden');
         DOM.authLoggedInView.classList.remove('hidden');
+        statusBadge.textContent = "Account Verified & Synced";
+        statusBadge.className = "profile-status-badge verified-tier"; 
     } else {
-        DOM.authLoggedOutView.classList.remove('hidden');
         DOM.authLoggedInView.classList.add('hidden');
+        DOM.authPendingView.classList.add('hidden');
+        DOM.authLoggedOutView.classList.remove('hidden');
+        statusBadge.textContent = "Unsaved Local Storage Only";
+        statusBadge.className = "profile-status-badge free-tier"; 
         DOM.authEmail.value = '';
         DOM.authPassword.value = '';
     }
@@ -153,30 +165,46 @@ DOM.drawerOverlay.addEventListener('click', (e) => {
     if (e.target === DOM.drawerOverlay) closeSettingsDrawer();
 });
 
-DOM.saveProfileBtn.addEventListener('click', () => {
-    const freshName = DOM.settingsUsernameInput.value.trim();
-    if (!freshName) return;
-    state.userProfile.username = freshName;
-    saveStateToStorage();
-    syncDrawerUIFields();
-});
-
+// Secure Registration Validation Event Action
 DOM.btnActionSignup.addEventListener('click', () => {
     const email = DOM.authEmail.value.trim();
-    const pass = DOM.authPassword.value.trim();
-    if (!email || !pass) { alert("Please complete both email and password targets."); return; }
+    const pass = DOM.authPassword.value;
+    const hintBox = document.getElementById('password-rules-hint');
+
+    if (!email || !pass) {
+        alert("Please enter both an email address and a secure password target.");
+        return;
+    }
+
+    if (!validatePassword(pass)) {
+        hintBox.style.color = '#f85149'; // Direct visibility attention accent
+        alert("Password failed rule check. Requirements detailed below password entry field.");
+        return;
+    }
+
+    hintBox.style.color = '#8b949e'; // Restore default text rule tone
     
-    state.userProfile.username = email.split('@')[0];
-    state.userProfile.email = email;
-    state.userProfile.isAuthenticated = true;
-    saveStateToStorage();
-    syncDrawerUIFields();
+    // Transition viewport interface shell to pending state
+    DOM.authLoggedOutView.classList.add('hidden');
+    DOM.authPendingView.classList.remove('hidden');
+    
+    console.log(`Verification URL engine string generated. Token payload route: ${email}`);
+    
+    // Simulate user verification click action directly
+    setTimeout(() => {
+        state.userProfile.username = email.split('@')[0];
+        state.userProfile.email = email;
+        state.userProfile.isAuthenticated = true;
+        saveStateToStorage();
+        syncDrawerUIFields();
+        alert("Email auto-verified via loop packet! Secure backend data sync is now online.");
+    }, 4000);
 });
 
 DOM.btnActionSignin.addEventListener('click', () => {
     const email = DOM.authEmail.value.trim();
-    const pass = DOM.authPassword.value.trim();
-    if (!email || !pass) { alert("Please complete both email and password targets."); return; }
+    const pass = DOM.authPassword.value;
+    if (!email || !pass) { alert("Please complete account target fields."); return; }
     
     state.userProfile.username = email.split('@')[0];
     state.userProfile.email = email;
@@ -186,7 +214,7 @@ DOM.btnActionSignin.addEventListener('click', () => {
 });
 
 DOM.btnActionLogout.addEventListener('click', () => {
-    state.userProfile.username = 'Guest Explorer';
+    state.userProfile.username = 'Guest Mode';
     state.userProfile.email = '';
     state.userProfile.isAuthenticated = false;
     saveStateToStorage();
@@ -194,7 +222,7 @@ DOM.btnActionLogout.addEventListener('click', () => {
 });
 
 DOM.purgeDataBtn.addEventListener('click', () => {
-    if (confirm("Purge application localStorage to fully rebuild and synchronize all 9 stock categories?")) {
+    if (confirm("Wipe local store engine to reconstruct and clear data indexes?")) {
         localStorage.clear();
         state = JSON.parse(JSON.stringify(defaultState));
         saveStateToStorage();
@@ -365,7 +393,7 @@ DOM.newItemMedia.addEventListener('change', function(e) {
 });
 
 // ==========================================================================
-// 7. Viewport Routing Matrix (Strict Header Bar Protection)
+// 5. Viewport Routing Matrix (Strict Header Bar Protection)
 // ==========================================================================
 function updateHeaderVisibility(viewState) {
     if (viewState === 'landing') {

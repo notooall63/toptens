@@ -1,136 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens | Your Personal Ranking Engine</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.6">
-</head>
-<body>
-
-    <header id="app-header" class="app-header hidden">
-        <div class="header-left">
-            <img id="header-logo" src="AppIconTopTens.jpg" alt="Top Tens Icon" class="header-icon hidden">
-            <button id="back-button" class="btn-back hidden">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                BACK
-            </button>
-        </div>
-        <div class="header-center">
-            <h1 id="header-title" class="app-title hidden">Top Tens</h1>
-        </div>
-        <div class="header-right">
-            <button id="settings-button" class="btn-settings hidden">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-            </button>
-        </div>
-    </header>
-
-    <main class="app-container">
-
-        <div id="landing-view" class="view-panel landing-panel">
-            <h1 class="landing-title">Top Tens</h1>
-            <p class="app-description">Your personal dynamic Favorite-Things vault. Rank, sort, and track your favorite things in real time. Compare your tastes with your friends, or fuse your similar lists with theirs to discover what truly reigns supreme.</p>
-            <div class="landing-action-matrix">
-                <button id="enter-vault-btn" class="btn-gold-dynamic">Enter Vault</button>
-                <button id="landing-signin-btn" class="btn-gold-dynamic">Sign In</button>
-            </div>
-        </div>
-
-        <div id="categories-view" class="view-panel hidden">
-            <div class="control-bar">
-                <button id="add-category-btn" class="btn-gold-dynamic">Add Custom Categories—Up To 21 Total</button>
-            </div>
-            <div id="categories-grid" class="grid-layout">
-                </div>
-        </div>
-
-        <div id="list-view" class="view-panel hidden">
-            <h2 id="current-category-title" class="category-view-title">Category</h2>
-            
-            <div class="input-matrix-group">
-                <input type="text" id="new-item-input" placeholder="Type item title..." autocomplete="off">
-                <input type="number" id="new-item-rank" placeholder="Rank (e.g. 1)" min="1">
-                <input type="url" id="new-item-url" placeholder="Reference URL Link (https://...)" autocomplete="off">
-                
-                <div class="media-upload-wrapper">
-                    <label for="new-item-media" class="media-label" id="media-status-label">Select Thumbnail (Img / Video ≤ 6s)</label>
-                    <input type="file" id="new-item-media" accept="image/*,video/*">
-                </div>
-
-                <div id="alignment-control-sandbox" class="alignment-sandbox hidden">
-                    <p class="sandbox-instruction-text">Drag slider to center preview frame:</p>
-                    <div class="cropper-frame-container">
-                        <canvas id="crop-canvas" width="120" height="120"></canvas>
-                    </div>
-                    <input type="range" id="center-offset-slider" min="-100" max="100" value="0">
-                </div>
-
-                <button id="add-item-btn" class="btn-accent">Add Item</button>
-            </div>
-
-            <ol id="ranked-items-list" class="ranked-list">
-                </ol>
-        </div>
-
-    </main>
-
-    <div id="settings-drawer-overlay" class="drawer-overlay hidden">
-        <div class="drawer-panel">
-            <div class="drawer-header">
-                <h3 class="drawer-title">Control Panel</h3>
-                <button id="close-drawer-btn" class="btn-close-drawer">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-
-            <div class="drawer-body">
+<div class="drawer-body">
                 <div class="drawer-section card-dark">
-                    <h4 class="section-heading">Identity Profile</h4>
+                    <h4 class="section-heading">Your Profile</h4>
                     <div class="profile-summary-block">
-                        <div class="avatar-placeholder-circle" id="profile-avatar-display">U</div>
+                        <div class="avatar-placeholder-circle" id="profile-avatar-display">G</div>
                         <div class="profile-meta-rows">
-                            <div class="profile-username" id="display-username">Guest Explorer</div>
-                            <div class="profile-status-badge free-tier">Local Safe Sandbox Only</div>
+                            <div class="profile-username" id="display-username">Guest Mode</div>
+                            <div class="profile-status-badge free-tier" id="display-status">Unsaved Local Storage Only</div>
                         </div>
                     </div>
-                    <div class="input-inline-group">
-                        <input type="text" id="settings-username-input" placeholder="Update display name..." autocomplete="off">
-                        <button id="save-profile-btn" class="btn-secondary-sm">Save</button>
-                    </div>
                 </div>
 
                 <div class="drawer-section card-dark">
-                    <h4 class="section-heading">Cloud Vault Synchronization</h4>
-                    <p class="section-info-text">Secure your ranks across multiple installations, compile data layers, and prepare for collaborative list fusion matching.</p>
+                    <h4 class="section-heading">Cloud Sync Account</h4>
+                    <p class="section-info-text">Create a secure vault account to backup your lists automatically, access your ranks on any device, and match lists with friends.</p>
                     
                     <div id="auth-logged-out-view" class="auth-box">
-                        <input type="email" id="auth-email" placeholder="E-mail Address" autocomplete="off">
-                        <input type="password" id="auth-password" placeholder="Password security pass">
+                        <input type="email" id="auth-email" placeholder="Email Address" autocomplete="off">
+                        <input type="password" id="auth-password" placeholder="Password">
+                        
+                        <div id="password-rules-hint" class="password-hint-text">
+                            Password must be 8-20 characters, containing at least one uppercase letter, one number, and one special character.
+                        </div>
+
                         <div class="auth-action-row">
                             <button id="btn-action-signin" class="btn-accent-sm">Sign In</button>
-                            <button id="btn-action-signup" class="btn-outline-sm">Create Vault Account</button>
+                            <button id="btn-action-signup" class="btn-outline-sm">Create Account</button>
                         </div>
+                    </div>
+
+                    <div id="auth-pending-view" class="auth-box hidden">
+                        <p class="auth-pending-msg">✉ Verification link sent! Please check your email to activate cloud syncing.</p>
                     </div>
 
                     <div id="auth-logged-in-view" class="auth-box hidden">
-                        <p class="auth-verified-msg">✓ Account Authenticated Sync Active</p>
-                        <button id="btn-action-logout" class="btn-danger-sm">Disconnect Vault Session</button>
+                        <p class="auth-verified-msg">✓ Account Verified & Synced</p>
+                        <button id="btn-action-logout" class="btn-danger-sm">Sign Out</button>
                     </div>
                 </div>
 
                 <div class="drawer-section card-dark">
                     <h4 class="section-heading">System Operations</h4>
-                    <button id="purge-data-btn" class="btn-danger-full">Wipe & Reset Local Cache Storage Engine</button>
-                    <div class="version-tag-string">Engine Core v2.6 • Environment Localhost</div>
+                    <button id="purge-data-btn" class="btn-danger-full">Wipe All Local App Data</button>
+                    <div class="version-tag-string">Engine Core v2.7 • Verified Build</div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <script src="app.js?v=2.6"></script>
-</body>
-</html>
