@@ -1,19 +1,65 @@
 // ==========================================================================
-// 1. Application State & Storage Engine
+// 1. Application State & Storage Engine (9 Hydrated Stock Categories)
 // ==========================================================================
 
 const defaultState = {
     categories: [
         { id: 'cat-1', title: 'Shoes' },
         { id: 'cat-2', title: 'Movies' },
-        { id: 'cat-3', title: 'Restaurants' }
+        { id: 'cat-3', title: 'Restaurants' },
+        { id: 'cat-4', title: 'Travel Destinations' },
+        { id: 'cat-5', title: 'Books' },
+        { id: 'cat-6', title: 'Albums' },
+        { id: 'cat-7', title: 'Video Games' },
+        { id: 'cat-8', title: 'Tech Gadgets' },
+        { id: 'cat-9', title: 'Coffee Shops' }
     ],
     items: {
         'cat-1': [
-            { title: 'adidas adiprene', link: 'https://adidas.com', media: null }
+            { title: 'adidas adiprene', link: 'https://adidas.com', media: null },
+            { title: 'Nike Air Max', link: 'https://nike.com', media: null },
+            { title: 'New Balance 990v6', link: 'https://newbalance.com', media: null }
         ],
-        'cat-2': [],
-        'cat-3': []
+        'cat-2': [
+            { title: 'Inception', link: 'https://www.warnerbros.com/movies/inception', media: null },
+            { title: 'The Matrix', link: 'https://www.warnerbros.com/movies/matrix', media: null },
+            { title: 'Interstellar', link: 'https://www.warnerbros.com/movies/interstellar', media: null }
+        ],
+        'cat-3': [
+            { title: 'Taco Hub', link: 'https://tacohub.example.com', media: null },
+            { title: 'Burger Joint', link: 'https://burgerjoint.example.com', media: null },
+            { title: 'Pizza Place', link: 'https://pizzaplace.example.com', media: null }
+        ],
+        'cat-4': [
+            { title: 'Tokyo, Japan', link: 'https://page.travel/tokyo', media: null },
+            { title: 'London, UK', link: 'https://page.travel/london', media: null },
+            { title: 'Kyoto, Japan', link: 'https://page.travel/kyoto', media: null }
+        ],
+        'cat-5': [
+            { title: 'Neuromancer', link: 'https://www.penguinrandomhouse.com', media: null },
+            { title: 'Snow Crash', link: 'https://www.penguinrandomhouse.com', media: null },
+            { title: 'Dune', link: 'https://www.macmillanpublishers.com', media: null }
+        ],
+        'cat-6': [
+            { title: 'Random Access Memories', link: 'https://www.daftpunk.com', media: null },
+            { title: 'Dark Side of the Moon', link: 'https://www.pinkfloyd.com', media: null },
+            { title: 'Discovery', link: 'https://www.daftpunk.com', media: null }
+        ],
+        'cat-7': [
+            { title: 'Elden Ring', link: 'https://www.bandainamcoent.com', media: null },
+            { title: 'Cyberpunk 2077', link: 'https://www.cyberpunk.net', media: null },
+            { title: 'The Witcher 3', link: 'https://www.thewitcher.com', media: null }
+        ],
+        'cat-8': [
+            { title: 'Travel Chromebook', link: 'https://google.com/chromebook', media: null },
+            { title: 'Mechanical Keyboard', link: 'https://keychron.com', media: null },
+            { title: 'Wireless ANC Earbuds', link: 'https://sony.com', media: null }
+        ],
+        'cat-9': [
+            { title: 'The Espresso Lab', link: 'https://espressolab.example.com', media: null },
+            { title: 'Monarch Coffee', link: 'https://monarch.example.com', media: null },
+            { title: 'Roaster Vault', link: 'https://roastervault.example.com', media: null }
+        ]
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -28,14 +74,25 @@ function loadStateFromStorage() {
         if (storedData) {
             state = JSON.parse(storedData);
             
-            // Clean up state parameters for consistency
+            // Clean up state runtime parameters dynamically
             state.currentView = 'landing';
             state.activeCategoryId = null;
             state.maxCategories = 21;
             
-            // Re-map fallback lists if array targets are missing
-            if (!state.categories) state.categories = [...defaultState.categories];
-            if (!state.items) state.items = {...defaultState.items};
+            // Re-verify that items matrices align with all category definitions
+            if (!state.categories || state.categories.length === 0) {
+                state.categories = [...defaultState.categories];
+            }
+            if (!state.items) {
+                state.items = {...defaultState.items};
+            } else {
+                // Ensure legacy items mapping doesn't swallow new stock profiles
+                state.categories.forEach(cat => {
+                    if (!state.items[cat.id]) {
+                        state.items[cat.id] = defaultState.items[cat.id] || [];
+                    }
+                });
+            }
         } else {
             state = JSON.parse(JSON.stringify(defaultState));
         }
@@ -88,8 +145,10 @@ function renderCategories() {
         card.className = 'category-card';
         card.textContent = category.title;
         
-        // Safe mapping to route details smoothly
-        card.addEventListener('click', () => {
+        // Dynamic interception point for all stock and added buttons
+        card.removeAttribute('onclick'); 
+        card.addEventListener('click', (e) => {
+            e.preventDefault();
             navigateToList(category.id);
         });
         DOM.categoriesGrid.appendChild(card);
@@ -116,31 +175,40 @@ function renderItems(categoryId) {
         const li = document.createElement('li');
         li.className = 'ranked-item-row';
 
-        // 1. Hashtag Position Badging Matrix (#1)
-        const rankBadge = document.createElement('div');
-        rankBadge.className = 'rank-badge-number';
-        rankBadge.textContent = `#${index + 1}`;
+        // 1. Prominent hashtag element
+        const hashBadge = document.createElement('span');
+        hashBadge.className = 'item-hash-symbol';
+        hashBadge.textContent = '#';
+
+        // 2. Continuous individual rank counter number
+        const numBadge = document.createElement('span');
+        numBadge.className = 'item-numerical-rank';
+        numBadge.textContent = `${index + 1}`;
+
+        // 3. Item Name Node Block
+        const nameBadge = document.createElement('span');
+        nameBadge.className = 'item-name-string';
+        nameBadge.textContent = item.title;
         
-        // 2. Central Reference Text Layout Engine
-        const textContainer = document.createElement('div');
-        textContainer.className = 'item-text-container';
-        
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'item-title-text';
-        
+        // 4. Dedicated Link Button / Icon Element Box
+        const linkWrapper = document.createElement('div');
+        linkWrapper.className = 'item-link-container';
         if (item.link && item.link.trim() !== '') {
             const anchor = document.createElement('a');
             anchor.href = item.link;
             anchor.target = '_blank';
             anchor.rel = 'noopener noreferrer';
-            anchor.textContent = item.title;
-            titleSpan.appendChild(anchor);
+            anchor.className = 'item-external-anchor';
+            anchor.textContent = 'Visit Link';
+            linkWrapper.appendChild(anchor);
         } else {
-            titleSpan.textContent = item.title;
+            const noLink = document.createElement('span');
+            noLink.className = 'item-no-link-text';
+            noLink.textContent = '—';
+            linkWrapper.appendChild(noLink);
         }
-        textContainer.appendChild(titleSpan);
 
-        // 3. Trailing Circular Media Layout Canvas Block
+        // 5. Appended Circular Media Frame Matrix
         const mediaContainer = document.createElement('div');
         mediaContainer.className = 'item-thumbnail-container';
         
@@ -164,9 +232,11 @@ function renderItems(categoryId) {
             mediaContainer.appendChild(placeholder);
         }
 
-        // Linear Layout Appends: Rank -> Title/Link -> Media Card
-        li.appendChild(rankBadge);
-        li.appendChild(textContainer);
+        // Sequential Structural Mount Matrix
+        li.appendChild(hashBadge);
+        li.appendChild(numBadge);
+        li.appendChild(nameBadge);
+        li.appendChild(linkWrapper);
         li.appendChild(mediaContainer);
         
         DOM.rankedItemsList.appendChild(li);
@@ -186,7 +256,7 @@ function updateHeaderDecorations(viewState) {
         DOM.headerLogo.classList.remove('hidden');
         DOM.headerTitle.classList.remove('hidden');
         DOM.settingsButton.classList.remove('hidden');
-        DOM.backButton.classList.remove('hidden'); // Force visibility on all inner views
+        DOM.backButton.classList.remove('hidden'); 
     }
 }
 
@@ -319,17 +389,15 @@ DOM.addItemBtn.addEventListener('click', () => {
     }
 });
 
-DOM.newItemInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') DOM.addItemBtn.click();
-});
-
 DOM.backButton.addEventListener('click', () => {
     window.history.back();
 });
 
 DOM.settingsButton.addEventListener('click', () => {
-    if(confirm("Reset System Storage to default categories to fix legacy links?")) {
+    if(confirm("Purge application localStorage to fully rebuild and synchronize all 9 stock categories?")) {
         localStorage.clear();
+        state = JSON.parse(JSON.stringify(defaultState));
+        saveStateToStorage();
         location.reload();
     }
 });

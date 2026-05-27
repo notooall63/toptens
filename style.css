@@ -283,7 +283,7 @@ body {
 .input-matrix-group input[type="file"] { display: none; }
 
 /* ==========================================================================
-   7. Corrected Linear Layout Grid Row (Rank -> Text/Link -> Media)
+   7. Rebuilt Linear Row Component Matrix (Hashtag -> Num -> Name -> Link -> Thumbnail)
    ========================================================================== */
 .ranked-list { list-style: none; }
 
@@ -292,38 +292,74 @@ body {
     border: 1px solid #30363d;
     border-radius: 8px;
     margin-bottom: 12px;
-    padding: 12px 20px;
+    padding: 14px 20px;
     display: flex;
     align-items: center;
-    justify-content: space-between; /* Spreads out components linearly */
-    gap: 16px;
+    gap: 0; 
 }
 
-.rank-badge-number {
-    font-size: 1.3rem;
+/* Prominent gold hashtag icon */
+.item-hash-symbol {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #aa771c;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* Numerical position index counter */
+.item-numerical-rank {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
     font-weight: 800;
     color: #bf953f;
-    min-width: 45px;
-    font-family: 'Cinzel', serif;
+    min-width: 40px;
+    margin-right: 12px;
+    flex-shrink: 0;
 }
 
-.item-text-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-}
-
-.item-title-text {
+/* Text item name block */
+.item-name-string {
     font-size: 1.1rem;
     font-weight: 600;
     color: #f0f6fc;
+    flex: 2; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 16px;
 }
-.item-title-text a { color: #58a6ff; text-decoration: none; }
-.item-title-text a:hover { text-decoration: underline; color: #79c0ff; }
 
+/* Centered explicit anchor tracking element */
+.item-link-container {
+    flex: 1;
+    display: flex;
+    justify-content: flex-start;
+    padding-right: 16px;
+}
+
+.item-external-anchor {
+    color: #58a6ff;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: color 0.15s ease;
+}
+.item-external-anchor:hover {
+    text-decoration: underline;
+    color: #79c0ff;
+}
+
+.item-no-link-text {
+    color: #484f58;
+    font-weight: 400;
+}
+
+/* Trailing circular multimedia engine */
 .item-thumbnail-container {
-    width: 56px;
-    height: 56px;
+    width: 54px;
+    height: 54px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -332,6 +368,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-left: auto; 
 }
 .item-thumbnail-container img, 
 .item-thumbnail-container video {
