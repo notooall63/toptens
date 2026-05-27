@@ -7,11 +7,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.5">
+    <link rel="stylesheet" href="style.css?v=2.6">
 </head>
 <body>
 
-    <header class="app-header">
+    <header id="app-header" class="app-header hidden">
         <div class="header-left">
             <img id="header-logo" src="AppIconTopTens.jpg" alt="Top Tens Icon" class="header-icon hidden">
             <button id="back-button" class="btn-back hidden">
@@ -34,7 +34,10 @@
         <div id="landing-view" class="view-panel landing-panel">
             <h1 class="landing-title">Top Tens</h1>
             <p class="app-description">Your personal dynamic Favorite-Things vault. Rank, sort, and track your favorite things in real time. Compare your tastes with your friends, or fuse your similar lists with theirs to discover what truly reigns supreme.</p>
-            <button id="enter-vault-btn" class="btn-gold-dynamic">Enter Vault</button>
+            <div class="landing-action-matrix">
+                <button id="enter-vault-btn" class="btn-gold-dynamic">Enter Vault</button>
+                <button id="landing-signin-btn" class="btn-gold-dynamic">Sign In</button>
+            </div>
         </div>
 
         <div id="categories-view" class="view-panel hidden">
@@ -122,12 +125,12 @@
                 <div class="drawer-section card-dark">
                     <h4 class="section-heading">System Operations</h4>
                     <button id="purge-data-btn" class="btn-danger-full">Wipe & Reset Local Cache Storage Engine</button>
-                    <div class="version-tag-string">Engine Core v2.5 • Environment Localhost</div>
+                    <div class="version-tag-string">Engine Core v2.6 • Environment Localhost</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=2.5"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 </html>

@@ -12,7 +12,7 @@ const defaultState = {
         { id: 'cat-6', title: 'Albums' },
         { id: 'cat-7', title: 'Video Games' },
         { id: 'cat-8', title: 'Tech Gadgets' },
-        { id: 'cat-9', title: 'Coffee Shops' }
+        { id: 'cat-9', title: 'Hottest ?' }
     ],
     items: {
         'cat-1': [
@@ -47,6 +47,12 @@ function loadStateFromStorage() {
             if (!state.categories || state.categories.length === 0) state.categories = [...defaultState.categories];
             if (!state.items) state.items = {...defaultState.items};
             if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
+            
+            // Re-verify that category 9 is dynamically swapped if custom data existed
+            const index9 = state.categories.findIndex(c => c.id === 'cat-9');
+            if (index9 !== -1 && state.categories[index9].title === 'Coffee Shops') {
+                state.categories[index9].title = 'Hottest ?';
+            }
         } else {
             state = JSON.parse(JSON.stringify(defaultState));
         }
@@ -65,6 +71,7 @@ function saveStateToStorage() {
 // 2. DOM Interface Reference Matrix
 // ==========================================================================
 const DOM = {
+    appHeader: document.getElementById('app-header'),
     backButton: document.getElementById('back-button'),
     headerLogo: document.getElementById('header-logo'),
     headerTitle: document.getElementById('header-title'),
@@ -73,6 +80,7 @@ const DOM = {
     categoriesView: document.getElementById('categories-view'),
     listView: document.getElementById('list-view'),
     enterVaultBtn: document.getElementById('enter-vault-btn'),
+    landingSigninBtn: document.getElementById('landing-signin-btn'),
     categoriesGrid: document.getElementById('categories-grid'),
     addCategoryBtn: document.getElementById('add-category-btn'),
     currentCategoryTitle: document.getElementById('current-category-title'),
@@ -116,8 +124,8 @@ function syncDrawerUIFields() {
         DOM.authLoggedOutView.classList.add('hidden');
         DOM.authLoggedInView.classList.remove('hidden');
     } else {
-        DOM.authLoggedInView.classList.add('hidden');
         DOM.authLoggedOutView.classList.remove('hidden');
+        DOM.authLoggedInView.classList.add('hidden');
         DOM.authEmail.value = '';
         DOM.authPassword.value = '';
     }
@@ -126,7 +134,6 @@ function syncDrawerUIFields() {
 function openSettingsDrawer() {
     syncDrawerUIFields();
     DOM.drawerOverlay.classList.remove('hidden');
-    // Microtask timeout context toggle allows the slide transform transition to execute smoothly
     setTimeout(() => {
         DOM.drawerOverlay.classList.add('active');
     }, 10);
@@ -140,12 +147,12 @@ function closeSettingsDrawer() {
 }
 
 DOM.settingsButton.addEventListener('click', openSettingsDrawer);
+DOM.landingSigninBtn.addEventListener('click', openSettingsDrawer);
 DOM.closeDrawerBtn.addEventListener('click', closeSettingsDrawer);
 DOM.drawerOverlay.addEventListener('click', (e) => {
     if (e.target === DOM.drawerOverlay) closeSettingsDrawer();
 });
 
-// Profile Metadata Mutation Trigger
 DOM.saveProfileBtn.addEventListener('click', () => {
     const freshName = DOM.settingsUsernameInput.value.trim();
     if (!freshName) return;
@@ -154,7 +161,6 @@ DOM.saveProfileBtn.addEventListener('click', () => {
     syncDrawerUIFields();
 });
 
-// Mock Authentication Protocol Pipeline
 DOM.btnActionSignup.addEventListener('click', () => {
     const email = DOM.authEmail.value.trim();
     const pass = DOM.authPassword.value.trim();
@@ -295,9 +301,6 @@ function renderItems(categoryId) {
     });
 }
 
-// ==========================================================================
-// 5. Canvas Centering Processing Engine
-// ==========================================================================
 function redrawCanvasPreview() {
     if (!activeCroppingImage) return;
     const ctx = DOM.cropCanvas.getContext('2d');
@@ -320,9 +323,6 @@ function redrawCanvasPreview() {
 
 DOM.centerOffsetSlider.addEventListener('input', redrawCanvasPreview);
 
-// ==========================================================================
-// 6. Media Interception Validation Guardrail
-// ==========================================================================
 DOM.newItemMedia.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -365,15 +365,17 @@ DOM.newItemMedia.addEventListener('change', function(e) {
 });
 
 // ==========================================================================
-// 7. Viewport Routing Matrix
+// 7. Viewport Routing Matrix (Strict Header Bar Protection)
 // ==========================================================================
-function updateHeaderDecorations(viewState) {
+function updateHeaderVisibility(viewState) {
     if (viewState === 'landing') {
+        DOM.appHeader.classList.add('hidden');
         DOM.backButton.classList.add('hidden');
         DOM.headerLogo.classList.add('hidden');
         DOM.headerTitle.classList.add('hidden');
         DOM.settingsButton.classList.add('hidden');
     } else {
+        DOM.appHeader.classList.remove('hidden');
         DOM.headerLogo.classList.remove('hidden');
         DOM.headerTitle.classList.remove('hidden');
         DOM.settingsButton.classList.remove('hidden');
@@ -387,7 +389,7 @@ function navigateToLanding(isBackAction = false) {
     DOM.categoriesView.classList.add('hidden');
     DOM.listView.classList.add('hidden');
     DOM.landingView.classList.remove('hidden');
-    updateHeaderDecorations('landing');
+    updateHeaderVisibility('landing');
     if (!isBackAction) history.pushState({ view: 'landing' }, '', ' ');
 }
 
@@ -398,7 +400,7 @@ function navigateToCategories(isBackAction = false) {
     DOM.landingView.classList.add('hidden');
     DOM.listView.classList.add('hidden');
     DOM.categoriesView.classList.remove('hidden');
-    updateHeaderDecorations('categories');
+    updateHeaderVisibility('categories');
     if (!isBackAction) history.pushState({ view: 'categories' }, '', '#categories');
 }
 
@@ -412,13 +414,10 @@ function navigateToList(categoryId, isBackAction = false) {
     DOM.landingView.classList.add('hidden');
     DOM.categoriesView.classList.add('hidden');
     DOM.listView.classList.remove('hidden');
-    updateHeaderDecorations('list');
+    updateHeaderVisibility('list');
     if (!isBackAction) history.pushState({ view: 'list', categoryId: categoryId }, '', `#list-${categoryId}`);
 }
 
-// ==========================================================================
-// 8. Data Mutation Interceptors
-// ==========================================================================
 DOM.enterVaultBtn.addEventListener('click', () => navigateToCategories());
 
 DOM.addCategoryBtn.addEventListener('click', () => {
