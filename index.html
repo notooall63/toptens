@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=2.4">
+    <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body>
 
@@ -75,6 +75,59 @@
 
     </main>
 
-    <script src="app.js?v=2.4"></script>
+    <div id="settings-drawer-overlay" class="drawer-overlay hidden">
+        <div class="drawer-panel">
+            <div class="drawer-header">
+                <h3 class="drawer-title">Control Panel</h3>
+                <button id="close-drawer-btn" class="btn-close-drawer">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+
+            <div class="drawer-body">
+                <div class="drawer-section card-dark">
+                    <h4 class="section-heading">Identity Profile</h4>
+                    <div class="profile-summary-block">
+                        <div class="avatar-placeholder-circle" id="profile-avatar-display">U</div>
+                        <div class="profile-meta-rows">
+                            <div class="profile-username" id="display-username">Guest Explorer</div>
+                            <div class="profile-status-badge free-tier">Local Safe Sandbox Only</div>
+                        </div>
+                    </div>
+                    <div class="input-inline-group">
+                        <input type="text" id="settings-username-input" placeholder="Update display name..." autocomplete="off">
+                        <button id="save-profile-btn" class="btn-secondary-sm">Save</button>
+                    </div>
+                </div>
+
+                <div class="drawer-section card-dark">
+                    <h4 class="section-heading">Cloud Vault Synchronization</h4>
+                    <p class="section-info-text">Secure your ranks across multiple installations, compile data layers, and prepare for collaborative list fusion matching.</p>
+                    
+                    <div id="auth-logged-out-view" class="auth-box">
+                        <input type="email" id="auth-email" placeholder="E-mail Address" autocomplete="off">
+                        <input type="password" id="auth-password" placeholder="Password security pass">
+                        <div class="auth-action-row">
+                            <button id="btn-action-signin" class="btn-accent-sm">Sign In</button>
+                            <button id="btn-action-signup" class="btn-outline-sm">Create Vault Account</button>
+                        </div>
+                    </div>
+
+                    <div id="auth-logged-in-view" class="auth-box hidden">
+                        <p class="auth-verified-msg">✓ Account Authenticated Sync Active</p>
+                        <button id="btn-action-logout" class="btn-danger-sm">Disconnect Vault Session</button>
+                    </div>
+                </div>
+
+                <div class="drawer-section card-dark">
+                    <h4 class="section-heading">System Operations</h4>
+                    <button id="purge-data-btn" class="btn-danger-full">Wipe & Reset Local Cache Storage Engine</button>
+                    <div class="version-tag-string">Engine Core v2.5 • Environment Localhost</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=2.5"></script>
 </body>
 </html>

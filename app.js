@@ -22,13 +22,18 @@ const defaultState = {
         ],
         'cat-2': [], 'cat-3': [], 'cat-4': [], 'cat-5': [], 'cat-6': [], 'cat-7': [], 'cat-8': [], 'cat-9': []
     },
+    userProfile: {
+        username: 'Guest Explorer',
+        isAuthenticated: false,
+        email: ''
+    },
     currentView: 'landing',
     activeCategoryId: null,
     maxCategories: 21
 };
 
 let state = {};
-let activeCroppingImage = null; // Memory tracking node for dynamic offset transforms
+let activeCroppingImage = null;
 
 function loadStateFromStorage() {
     try {
@@ -41,6 +46,7 @@ function loadStateFromStorage() {
             
             if (!state.categories || state.categories.length === 0) state.categories = [...defaultState.categories];
             if (!state.items) state.items = {...defaultState.items};
+            if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
         } else {
             state = JSON.parse(JSON.stringify(defaultState));
         }
@@ -79,11 +85,119 @@ const DOM = {
     cropCanvas: document.getElementById('crop-canvas'),
     centerOffsetSlider: document.getElementById('center-offset-slider'),
     addItemBtn: document.getElementById('add-item-btn'),
-    rankedItemsList: document.getElementById('ranked-items-list')
+    rankedItemsList: document.getElementById('ranked-items-list'),
+    
+    // Side-Drawer Elements Matrix
+    drawerOverlay: document.getElementById('settings-drawer-overlay'),
+    closeDrawerBtn: document.getElementById('close-drawer-btn'),
+    displayUsername: document.getElementById('display-username'),
+    profileAvatarDisplay: document.getElementById('profile-avatar-display'),
+    settingsUsernameInput: document.getElementById('settings-username-input'),
+    saveProfileBtn: document.getElementById('save-profile-btn'),
+    authEmail: document.getElementById('auth-email'),
+    authPassword: document.getElementById('auth-password'),
+    btnActionSignin: document.getElementById('btn-action-signin'),
+    btnActionSignup: document.getElementById('btn-action-signup'),
+    btnActionLogout: document.getElementById('btn-action-logout'),
+    authLoggedOutView: document.getElementById('auth-logged-out-view'),
+    authLoggedInView: document.getElementById('auth-logged-in-view'),
+    purgeDataBtn: document.getElementById('purge-data-btn')
 };
 
 // ==========================================================================
-// 3. UI Presentation Core Pipeline
+// 3. Side-Drawer Interactive Shell Engine
+// ==========================================================================
+function syncDrawerUIFields() {
+    DOM.displayUsername.textContent = state.userProfile.username;
+    DOM.profileAvatarDisplay.textContent = state.userProfile.username.charAt(0).toUpperCase() || 'U';
+    DOM.settingsUsernameInput.value = state.userProfile.username === 'Guest Explorer' ? '' : state.userProfile.username;
+
+    if (state.userProfile.isAuthenticated) {
+        DOM.authLoggedOutView.classList.add('hidden');
+        DOM.authLoggedInView.classList.remove('hidden');
+    } else {
+        DOM.authLoggedInView.classList.add('hidden');
+        DOM.authLoggedOutView.classList.remove('hidden');
+        DOM.authEmail.value = '';
+        DOM.authPassword.value = '';
+    }
+}
+
+function openSettingsDrawer() {
+    syncDrawerUIFields();
+    DOM.drawerOverlay.classList.remove('hidden');
+    // Microtask timeout context toggle allows the slide transform transition to execute smoothly
+    setTimeout(() => {
+        DOM.drawerOverlay.classList.add('active');
+    }, 10);
+}
+
+function closeSettingsDrawer() {
+    DOM.drawerOverlay.classList.remove('active');
+    setTimeout(() => {
+        DOM.drawerOverlay.classList.add('hidden');
+    }, 300);
+}
+
+DOM.settingsButton.addEventListener('click', openSettingsDrawer);
+DOM.closeDrawerBtn.addEventListener('click', closeSettingsDrawer);
+DOM.drawerOverlay.addEventListener('click', (e) => {
+    if (e.target === DOM.drawerOverlay) closeSettingsDrawer();
+});
+
+// Profile Metadata Mutation Trigger
+DOM.saveProfileBtn.addEventListener('click', () => {
+    const freshName = DOM.settingsUsernameInput.value.trim();
+    if (!freshName) return;
+    state.userProfile.username = freshName;
+    saveStateToStorage();
+    syncDrawerUIFields();
+});
+
+// Mock Authentication Protocol Pipeline
+DOM.btnActionSignup.addEventListener('click', () => {
+    const email = DOM.authEmail.value.trim();
+    const pass = DOM.authPassword.value.trim();
+    if (!email || !pass) { alert("Please complete both email and password targets."); return; }
+    
+    state.userProfile.username = email.split('@')[0];
+    state.userProfile.email = email;
+    state.userProfile.isAuthenticated = true;
+    saveStateToStorage();
+    syncDrawerUIFields();
+});
+
+DOM.btnActionSignin.addEventListener('click', () => {
+    const email = DOM.authEmail.value.trim();
+    const pass = DOM.authPassword.value.trim();
+    if (!email || !pass) { alert("Please complete both email and password targets."); return; }
+    
+    state.userProfile.username = email.split('@')[0];
+    state.userProfile.email = email;
+    state.userProfile.isAuthenticated = true;
+    saveStateToStorage();
+    syncDrawerUIFields();
+});
+
+DOM.btnActionLogout.addEventListener('click', () => {
+    state.userProfile.username = 'Guest Explorer';
+    state.userProfile.email = '';
+    state.userProfile.isAuthenticated = false;
+    saveStateToStorage();
+    syncDrawerUIFields();
+});
+
+DOM.purgeDataBtn.addEventListener('click', () => {
+    if (confirm("Purge application localStorage to fully rebuild and synchronize all 9 stock categories?")) {
+        localStorage.clear();
+        state = JSON.parse(JSON.stringify(defaultState));
+        saveStateToStorage();
+        location.reload();
+    }
+});
+
+// ==========================================================================
+// 4. UI Presentation Core Pipeline
 // ==========================================================================
 function renderCategories() {
     if (!DOM.categoriesGrid) return;
@@ -114,7 +228,6 @@ function renderCategories() {
 function renderItems(categoryId) {
     if (!DOM.rankedItemsList) return;
     DOM.rankedItemsList.innerHTML = '';
-    
     const itemList = state.items[categoryId] || [];
     
     itemList.forEach((item, index) => {
@@ -178,38 +291,29 @@ function renderItems(categoryId) {
         li.appendChild(nameBadge);
         li.appendChild(linkWrapper);
         li.appendChild(mediaContainer);
-        
         DOM.rankedItemsList.appendChild(li);
     });
 }
 
 // ==========================================================================
-// 4. Canvas Centering Processing Engine
+// 5. Canvas Centering Processing Engine
 // ==========================================================================
 function redrawCanvasPreview() {
     if (!activeCroppingImage) return;
     const ctx = DOM.cropCanvas.getContext('2d');
     const width = DOM.cropCanvas.width;
     const height = DOM.cropCanvas.height;
-    
     ctx.clearRect(0, 0, width, height);
     
-    // Calculate scaling calculations to keep aspect ratios clean
     const scale = Math.max(width / activeCroppingImage.width, height / activeCroppingImage.height);
     const imgWidth = activeCroppingImage.width * scale;
     const imgHeight = activeCroppingImage.height * scale;
-    
-    // Read offset adjustments directly out of slider calculations
     const sliderVal = parseInt(DOM.centerOffsetSlider.value, 10);
     
     let dx = (width - imgWidth) / 2;
     let dy = (height - imgHeight) / 2;
-    
-    if (imgWidth > imgHeight) {
-        dx += sliderVal; // Horizontal positioning shift
-    } else {
-        dy += sliderVal; // Vertical positioning shift
-    }
+    if (imgWidth > imgHeight) dx += sliderVal;
+    else dy += sliderVal;
     
     ctx.drawImage(activeCroppingImage, dx, dy, imgWidth, imgHeight);
 }
@@ -217,13 +321,12 @@ function redrawCanvasPreview() {
 DOM.centerOffsetSlider.addEventListener('input', redrawCanvasPreview);
 
 // ==========================================================================
-// 5. Media Interception & Guardrail Logic
+// 6. Media Interception Validation Guardrail
 // ==========================================================================
 DOM.newItemMedia.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Guardrail Block: Video duration strict runtime constraint inspection
     if (file.type.startsWith('video/')) {
         DOM.alignmentControlSandbox.classList.add('hidden');
         activeCroppingImage = null;
@@ -244,9 +347,7 @@ DOM.newItemMedia.addEventListener('change', function(e) {
                 DOM.mediaStatusLabel.className = "media-label verified-state";
             }
         };
-    } 
-    // Image Handling Block: Render into interactive positioning engine sandbox
-    else if (file.type.startsWith('image/')) {
+    } else if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(event) {
             activeCroppingImage = new Image();
@@ -264,7 +365,7 @@ DOM.newItemMedia.addEventListener('change', function(e) {
 });
 
 // ==========================================================================
-// 6. Viewport Routing Matrix
+// 7. Viewport Routing Matrix
 // ==========================================================================
 function updateHeaderDecorations(viewState) {
     if (viewState === 'landing') {
@@ -316,7 +417,7 @@ function navigateToList(categoryId, isBackAction = false) {
 }
 
 // ==========================================================================
-// 7. Data Mutation Interceptors
+// 8. Data Mutation Interceptors
 // ==========================================================================
 DOM.enterVaultBtn.addEventListener('click', () => navigateToCategories());
 
@@ -363,7 +464,6 @@ DOM.addItemBtn.addEventListener('click', () => {
         renderItems(state.activeCategoryId);
     }
 
-    // Canvas image commit stream vs standard native file stream
     if (activeCroppingImage) {
         commitItem(DOM.cropCanvas.toDataURL('image/jpeg', 0.85));
     } else if (file) {
@@ -376,14 +476,6 @@ DOM.addItemBtn.addEventListener('click', () => {
 });
 
 DOM.backButton.addEventListener('click', () => window.history.back());
-DOM.settingsButton.addEventListener('click', () => {
-    if(confirm("Purge application localStorage to fully rebuild and synchronize all 9 stock categories?")) {
-        localStorage.clear();
-        state = JSON.parse(JSON.stringify(defaultState));
-        saveStateToStorage();
-        location.reload();
-    }
-});
 
 window.addEventListener('popstate', (event) => {
     if (event.state) {
