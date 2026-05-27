@@ -13,7 +13,7 @@ const defaultState = {
         'cat-2': ['Inception', 'The Matrix', 'Interstellar'],
         'cat-3': ['Tokyo', 'London', 'New York']
     },
-    currentView: 'landing',
+    currentView: 'landing', // 'landing' | 'categories' | 'list'
     activeCategoryId: null,
     maxCategories: 21
 };
@@ -59,7 +59,9 @@ function saveStateToStorage() {
 const DOM = {
     backButton: document.getElementById('back-button'),
     landingView: document.getElementById('landing-view'),
-    detailView: document.getElementById('detail-view'),
+    categoriesView: document.getElementById('categories-view'),
+    listView: document.getElementById('list-view'),
+    enterVaultBtn: document.getElementById('enter-vault-btn'),
     categoriesGrid: document.getElementById('categories-grid'),
     addCategoryBtn: document.getElementById('add-category-btn'),
     currentCategoryTitle: document.getElementById('current-category-title'),
@@ -79,11 +81,10 @@ function renderCategories() {
         const card = document.createElement('div');
         card.className = 'category-card';
         card.textContent = category.title;
-        card.addEventListener('click', () => navigateToDetail(category.id));
+        card.addEventListener('click', () => navigateToList(category.id));
         DOM.categoriesGrid.appendChild(card);
     });
 
-    // Handle button classes dynamically via the primary responsive class
     if (state.categories.length >= state.maxCategories) {
         DOM.addCategoryBtn.disabled = true;
         DOM.addCategoryBtn.className = 'btn-primary limited';
@@ -108,30 +109,14 @@ function renderItems(categoryId) {
 }
 
 // ==========================================================================
-// 4. Viewport Routing Matrix
+// 4. Viewport Routing Matrix (Three Distinct Stages)
 // ==========================================================================
-function navigateToDetail(categoryId) {
-    const category = state.categories.find(c => c.id === categoryId);
-    if (!category) return;
-
-    state.currentView = 'detail';
-    state.activeCategoryId = categoryId;
-
-    DOM.currentCategoryTitle.textContent = category.title;
-    renderItems(categoryId);
-
-    DOM.landingView.classList.add('hidden');
-    DOM.detailView.classList.remove('hidden');
-    DOM.backButton.classList.remove('hidden');
-
-    history.pushState({ view: 'detail', categoryId: categoryId }, '', `#category-${categoryId}`);
-}
-
 function navigateToLanding(isBackAction = false) {
     state.currentView = 'landing';
     state.activeCategoryId = null;
 
-    DOM.detailView.classList.add('hidden');
+    DOM.categoriesView.classList.add('hidden');
+    DOM.listView.classList.add('hidden');
     DOM.landingView.classList.remove('hidden');
     DOM.backButton.classList.add('hidden');
 
@@ -140,9 +125,49 @@ function navigateToLanding(isBackAction = false) {
     }
 }
 
+function navigateToCategories(isBackAction = false) {
+    state.currentView = 'categories';
+    state.activeCategoryId = null;
+
+    renderCategories();
+
+    DOM.landingView.classList.add('hidden');
+    DOM.listView.classList.add('hidden');
+    DOM.categoriesView.classList.remove('hidden');
+    DOM.backButton.classList.remove('hidden');
+
+    if (!isBackAction) {
+        history.pushState({ view: 'categories' }, '', '#categories');
+    }
+}
+
+function navigateToList(categoryId, isBackAction = false) {
+    const category = state.categories.find(c => c.id === categoryId);
+    if (!category) return;
+
+    state.currentView = 'list';
+    state.activeCategoryId = categoryId;
+
+    DOM.currentCategoryTitle.textContent = category.title;
+    renderItems(categoryId);
+
+    DOM.landingView.classList.add('hidden');
+    DOM.categoriesView.classList.add('hidden');
+    DOM.listView.classList.remove('hidden');
+    DOM.backButton.classList.remove('hidden');
+
+    if (!isBackAction) {
+        history.pushState({ view: 'list', categoryId: categoryId }, '', `#list-${categoryId}`);
+    }
+}
+
 // ==========================================================================
-// 5. User Interaction & Data Mutation Interceptors
+// 5. User Interaction Interceptors
 // ==========================================================================
+DOM.enterVaultBtn.addEventListener('click', () => {
+    navigateToCategories();
+});
+
 DOM.addCategoryBtn.addEventListener('click', () => {
     if (state.categories.length >= state.maxCategories) {
         alert('System Limit: You cannot create more than 21 custom categories.');
@@ -184,18 +209,24 @@ DOM.backButton.addEventListener('click', () => {
 });
 
 window.addEventListener('popstate', (event) => {
-    if (event.state && event.state.view === 'detail') {
-        navigateToDetail(event.state.categoryId);
+    if (event.state) {
+        if (event.state.view === 'list') {
+            navigateToList(event.state.categoryId, true);
+        } else if (event.state.view === 'categories') {
+            navigateToCategories(true);
+        } else {
+            navigateToLanding(true);
+        }
     } else {
         navigateToLanding(true);
     }
 });
 
 // ==========================================================================
-// 6. Application Lifecycle Initialization Execution
+// 6. Application Lifecycle Initialization
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadStateFromStorage();
     history.replaceState({ view: 'landing' }, '', ' ');
-    renderCategories();
+    navigateToLanding(true);
 });

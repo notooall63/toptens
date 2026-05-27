@@ -16,19 +16,20 @@
             </button>
         </div>
         <div class="header-center">
-            <img src="AppIconTopTens.jpg" alt="Top Tens Logo" class="app-logo">
             <h1 class="app-title">Top Tens</h1>
         </div>
         <div class="header-right"></div>
     </header>
 
-    <section class="app-intro">
-        <p class="app-description">Your personal dynamic list hub. Rank and sort your favorite things values securely across device sandboxes. Create as many categories as you like up to your strict limit.</p>
-    </section>
-
     <main class="app-container">
 
-        <div id="landing-view" class="view-panel">
+        <div id="landing-view" class="view-panel center-panel">
+            <img src="AppIconTopTens.jpg" alt="Top Tens Logo" class="landing-logo">
+            <p class="app-description">Your personal dynamic list hub. Rank and sort your favorite things values securely across device sandboxes. Create as many categories as you like up to your strict limit.</p>
+            <button id="enter-vault-btn" class="btn-primary" style="margin-top: 30px;">Enter Vault</button>
+        </div>
+
+        <div id="categories-view" class="view-panel hidden">
             <div class="control-bar">
                 <button id="add-category-btn" class="btn-primary">Add Custom Categories—Up To 21 Total</button>
             </div>
@@ -36,7 +37,7 @@
                 </div>
         </div>
 
-        <div id="detail-view" class="view-panel hidden">
+        <div id="list-view" class="view-panel hidden">
             <h2 id="current-category-title" style="color: #bf953f; margin-bottom: 20px; font-weight: 700; text-align: center;">Category</h2>
             
             <div class="input-group">

@@ -14,95 +14,92 @@ body {
     line-height: 1.6;
     padding-bottom: 40px;
     width: 100%;
-    overflow-x: hidden; /* Prevent horizontal side-scrolling entirely */
+    overflow-x: hidden;
 }
 
 /* ==========================================================================
-   2. Layout Header Grid (Responsive Columns)
+   2. Layout Header Grid & Dynamic Gold Glimmer
    ========================================================================== */
 .app-header {
     background-color: #161b22;
     border-bottom: 1px solid #30363d;
     display: grid;
-    /* Use flexible fractional columns instead of rigid pixel widths */
-    grid-template-columns: auto 1fr auto; 
+    grid-template-columns: 1fr auto 1fr; 
     align-items: center;
-    gap: 15px;
     padding: 15px 20px;
     position: sticky;
     top: 0;
     z-index: 100;
+    height: 70px;
 }
 
 .header-left, .header-right {
-    min-width: 60px; /* Ensures balanced spacing for back button actions */
     display: flex;
     align-items: center;
 }
 
-.header-center {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    width: 100%;
-}
+.header-left { justify-content: flex-start; }
+.header-right { justify-content: flex-end; }
+.header-center { text-align: center; }
 
-.app-logo {
-    max-height: 48px;
-    max-width: 100%; /* Prevents raw imagery from blowing out containers */
-    height: auto;
-    margin-bottom: 6px;
-    object-fit: contain;
-}
-
-/* Gold Dynamic Glimmer Animation */
+/* Dynamic Gold Glimmer Title Rule */
 .app-title {
-    font-size: 1.8rem; /* Scaled down slightly for mobile safety */
+    font-size: 1.8rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
     background: linear-gradient(
         90deg,
-        #bf953f 0%,
-        #fcf6ba 25%,
-        #b38728 50%,
-        #fbf5b7 75%,
+        #aa771c 0%,
+        #bf953f 25%,
+        #fcf6ba 50%,
+        #b38728 75%,
         #aa771c 100%
     );
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: goldGlimmer 6s linear infinite;
-    word-wrap: break-word;
-    max-width: 100%;
+    background-clip: text;
+    animation: goldGlimmer 4s linear infinite;
+    display: inline-block;
 }
 
 @keyframes goldGlimmer {
     0% { background-position: 0% center; }
-    100% { background-position: 200% center; }
+    100% { background-position: -200% center; }
 }
 
 /* ==========================================================================
-   3. Custom Accent Blue Sub-Description
+   3. Landing View Specific Styling
    ========================================================================== */
-.app-intro {
+.center-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
-    padding: 20px 15px 10px 15px;
-    max-width: 100%;
+    padding: 40px 20px !important;
+}
+
+.landing-logo {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+    border-radius: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
 }
 
 .app-description {
     color: #58a6ff;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 500;
-    word-wrap: break-word; /* Forces elegant text wrapping on mobile devices */
+    line-height: 1.6;
     margin: 0 auto;
     max-width: 600px;
+    word-wrap: break-word;
 }
 
 /* ==========================================================================
-   4. Navigation & Action Systems
+   4. Navigation & Action Control Systems
    ========================================================================== */
 .btn-back {
     background: none;
@@ -112,19 +109,18 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
     transition: color 0.2s ease;
 }
 
-.btn-back:hover {
-    color: #58a6ff;
-}
+.btn-back:hover { color: #58a6ff; }
 
 .control-bar {
     display: flex;
-    justify-content: center; /* Center the action item on compact viewports */
-    margin-bottom: 20px;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 24px;
 }
 
 .btn-primary {
@@ -133,18 +129,18 @@ body {
     border-radius: 6px;
     color: #ffffff;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    padding: 10px 16px;
-    transition: background-color 0.2s ease;
-    width: 100%; /* Let the primary button span nicely on mobile rails */
-    max-width: 340px;
+    padding: 12px 24px;
+    transition: background-color 0.2s cubic-bezier(0.3, 0, 0, 1);
+    width: 100%;
+    max-width: 360px;
     text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.btn-primary:hover {
-    background-color: #2ea043;
-}
+.btn-primary:hover { background-color: #2ea043; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; background-color: #21262d; }
 
 .btn-accent {
     background-color: #21262d;
@@ -154,7 +150,7 @@ body {
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 600;
-    padding: 10px 16px;
+    padding: 10px 18px;
 }
 
 .btn-accent:hover {
@@ -163,28 +159,28 @@ body {
 }
 
 /* ==========================================================================
-   5. Component Containers & Layout Engine
+   5. Component Layout Grid Containers
    ========================================================================== */
 .app-container {
     width: 100%;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 12px; /* Adaptive tighter mobile padding */
+    max-width: 850px;
+    margin: 30px auto 0 auto;
+    padding: 0 16px;
 }
 
 .view-panel {
     background-color: #161b22;
     border: 1px solid #30363d;
     border-radius: 8px;
-    padding: 16px;
+    padding: 24px;
+    width: 100%;
 }
 
 .grid-layout {
     display: grid;
-    /* Fluid single-column baseline that scales beautifully */
-    grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); 
-    gap: 12px;
-    margin-top: 15px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    width: 100%;
 }
 
 .category-card {
@@ -192,20 +188,24 @@ body {
     border: 1px solid #30363d;
     border-radius: 6px;
     cursor: pointer;
-    padding: 16px;
+    padding: 20px;
     text-align: center;
-    transition: border-color 0.2s ease, transform 0.1s ease;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #f0f6fc;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .category-card:hover {
     border-color: #58a6ff;
+    background-color: #1f242c;
 }
 
 .input-group {
     display: flex;
-    flex-direction: column; /* Stack input on top of button for mobile dimensions */
-    gap: 10px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
 .input-group input {
@@ -224,8 +224,7 @@ body {
 }
 
 .ranked-list {
-    margin-left: 0;
-    list-style: none; /* Reset raw item offsets */
+    list-style: none;
     counter-reset: top-ten-counter;
 }
 
@@ -233,11 +232,12 @@ body {
     background-color: #0d1117;
     border: 1px solid #30363d;
     border-radius: 6px;
-    margin-bottom: 8px;
-    padding: 12px 16px;
+    margin-bottom: 10px;
+    padding: 14px 18px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
+    font-size: 1.05rem;
 }
 
 .ranked-list li::before {
@@ -248,38 +248,20 @@ body {
 }
 
 /* ==========================================================================
-   6. Media Queries (Expands beautifully on Chromebook screens / Desktops)
+   6. Responsive Screen Scale Overrides
    ========================================================================== */
-@media (min-width: 480px) {
-    .app-title {
-        font-size: 2.2rem;
-    }
-    
-    .app-container {
-        padding: 20px;
-    }
-    
-    .view-panel {
-        padding: 25px;
-    }
-    
-    .grid-layout {
-        /* Multi-column grid pops back in on wider device windows */
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    }
-    
-    .input-group {
-        flex-direction: row; /* Horizontal input row layout when width permits */
-    }
-    
-    .control-bar {
-        justify-content: flex-end;
-    }
+@media (min-width: 550px) {
+    .app-title { font-size: 2.2rem; }
+    .grid-layout { grid-template-columns: repeat(2, 1fr); }
+    .input-group { flex-direction: row; }
+    .input-group input { flex: 1; }
+}
+
+@media (min-width: 800px) {
+    .grid-layout { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ==========================================================================
-   7. Visibility Utilities
+   7. Visibility Architectural Utilities
    ========================================================================== */
-.hidden {
-    display: none !important;
-}
+.hidden { display: none !important; }
