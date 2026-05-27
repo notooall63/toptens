@@ -25,7 +25,9 @@ const defaultState = {
     userProfile: {
         username: 'Guest Mode',
         isAuthenticated: false,
-        email: ''
+        isVerified: false, // Strict flag tracker for verification email loop
+        email: '',
+        passwordHash: ''   // Basic simulation storage for matching credentials
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -47,6 +49,7 @@ function loadStateFromStorage() {
             if (!state.categories || state.categories.length === 0) state.categories = [...defaultState.categories];
             if (!state.items) state.items = {...defaultState.items};
             if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
+            if (state.userProfile.isVerified === undefined) state.userProfile.isVerified = state.userProfile.isAuthenticated;
             
             const index9 = state.categories.findIndex(c => c.id === 'cat-9');
             if (index9 !== -1 && state.categories[index9].title !== 'Hottest ?') {
@@ -123,12 +126,18 @@ function syncDrawerUIFields() {
     
     const statusBadge = document.getElementById('display-status');
 
-    if (state.userProfile.isAuthenticated) {
+    if (state.userProfile.isAuthenticated && state.userProfile.isVerified) {
         DOM.authLoggedOutView.classList.add('hidden');
         DOM.authPendingView.classList.add('hidden');
         DOM.authLoggedInView.classList.remove('hidden');
         statusBadge.textContent = "Account Verified & Synced";
         statusBadge.className = "profile-status-badge verified-tier"; 
+    } else if (state.userProfile.email && !state.userProfile.isVerified) {
+        DOM.authLoggedOutView.classList.add('hidden');
+        DOM.authPendingView.classList.remove('hidden');
+        DOM.authLoggedInView.classList.add('hidden');
+        statusBadge.textContent = "Verification Pending";
+        statusBadge.className = "profile-status-badge free-tier";
     } else {
         DOM.authLoggedInView.classList.add('hidden');
         DOM.authPendingView.classList.add('hidden');
@@ -180,15 +189,22 @@ DOM.btnActionSignup.addEventListener('click', () => {
 
     hintBox.style.color = '#8b949e'; 
     
-    DOM.authLoggedOutView.classList.add('hidden');
-    DOM.authPendingView.classList.remove('hidden');
+    // Register credentials locally for checking on future login actions
+    state.userProfile.email = email;
+    state.userProfile.passwordHash = btoa(pass); // Simple string obfuscation for state demo
+    state.userProfile.username = email.split('@')[0];
+    state.userProfile.isAuthenticated = false;
+    state.userProfile.isVerified = false;
+    
+    saveStateToStorage();
+    syncDrawerUIFields();
     
     console.log(`Verification URL engine string generated. Token payload route: ${email}`);
     
+    // Automated simulation of verification link response delay loop
     setTimeout(() => {
-        state.userProfile.username = email.split('@')[0];
-        state.userProfile.email = email;
         state.userProfile.isAuthenticated = true;
+        state.userProfile.isVerified = true;
         saveStateToStorage();
         syncDrawerUIFields();
         alert("Email auto-verified via loop packet! Secure cloud data sync is now online.");
@@ -200,8 +216,24 @@ DOM.btnActionSignin.addEventListener('click', () => {
     const pass = DOM.authPassword.value;
     if (!email || !pass) { alert("Please complete account target fields."); return; }
     
-    state.userProfile.username = email.split('@')[0];
-    state.userProfile.email = email;
+    // Validate whether an account profile matching this email string exists
+    if (!state.userProfile.email || state.userProfile.email !== email) {
+        alert("Authentication Failure: No account matches this email record. Please choose 'Create Account' first.");
+        return;
+    }
+    
+    // Validate credentials match correctly
+    if (state.userProfile.passwordHash !== btoa(pass)) {
+        alert("Authentication Failure: The password entered does not match our local records.");
+        return;
+    }
+    
+    // Enforce active verification loop block checks
+    if (!state.userProfile.isVerified) {
+        alert("Access Suspended: This account profile is pending validation. Please wait for the email verification packet loop to complete.");
+        return;
+    }
+    
     state.userProfile.isAuthenticated = true;
     saveStateToStorage();
     syncDrawerUIFields();
@@ -209,8 +241,8 @@ DOM.btnActionSignin.addEventListener('click', () => {
 
 DOM.btnActionLogout.addEventListener('click', () => {
     state.userProfile.username = 'Guest Mode';
-    state.userProfile.email = '';
     state.userProfile.isAuthenticated = false;
+    // Keep email registration data so users can re-verify login flows
     saveStateToStorage();
     syncDrawerUIFields();
 });
