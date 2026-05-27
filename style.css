@@ -1,47 +1,121 @@
-/* Header Bar Layout Matrix Arrangement */
+/* ==========================================================================
+   1. System Architecture Core Variables & Resets
+   ========================================================================== */
+:root {
+    --bg-dark-primary: #0d1117;
+    --bg-dark-secondary: #161b22;
+    --bg-dark-tertiary: #21262d;
+    --border-subtle: #30363d;
+    --border-active: #8b949e;
+    --text-primary: #c9d1d9;
+    --text-muted: #8b949e;
+    --text-link: #58a6ff;
+    --gold-solid: #d4af37;
+    --gold-gradient: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fbf5b7 75%, #aa771c 100%);
+    --accent-red: #f85149;
+    --accent-green: #238636;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark-primary);
+    color: var(--text-primary);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   2. Global App Bar Layout Matrix
+   ========================================================================== */
 .global-app-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
     height: 64px;
-    background-color: #0d1117;
-    border-bottom: 1px solid #21262d;
+    background-color: var(--bg-dark-primary);
+    border-bottom: 1px solid var(--border-subtle);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
-/* Left-side arrangement cluster */
 .header-left-cluster {
     display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 100px;
+    gap: 16px;
+    min-width: 120px;
 }
 
-/* Right-side arrangement cluster */
 .header-right-cluster {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-width: 100px;
+    min-width: 120px;
     justify-content: flex-end;
 }
 
-/* Header User Avatar Badge Positioning */
+.bar-title-string {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text-primary);
+    text-align: center;
+    flex-grow: 1;
+}
+
+.bar-nav-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.bar-nav-action-btn:hover {
+    background-color: var(--bg-dark-tertiary);
+    color: var(--text-primary);
+}
+
+.bar-brand-logo {
+    width: 28px;
+    height: 28px;
+    background: var(--gold-gradient);
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(179, 135, 40, 0.3);
+}
+
 .header-user-avatar {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #30363d;
-    color: #c9d1d9;
+    background-color: var(--bg-dark-tertiary);
+    color: var(--text-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 14px;
     font-weight: 600;
-    border: 1.5px solid #8b949e;
+    border: 1.5px solid var(--border-active);
     transition: all 0.25s ease;
 }
 
@@ -51,23 +125,563 @@
 }
 
 .header-user-avatar.verified-tier {
-    border-color: #238636;
+    border-color: var(--accent-green);
     box-shadow: 0 0 6px rgba(35, 134, 54, 0.45);
 }
 
-/* Typography Alert Formatting Overrides */
-.verification-status-alert-box {
-    background-color: rgba(31, 111, 235, 0.1);
-    border: 1px solid #1f6feb;
-    border-radius: 6px;
-    padding: 12px;
-    margin: 16px 0;
+/* ==========================================================================
+   3. Viewport Containment Framework
+   ========================================================================== */
+#app-viewport-container {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
 }
 
-.alert-text-message {
-    color: #58a6ff;
-    font-size: 13px;
-    line-height: 1.5;
-    margin: 0;
+.viewport-deck {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.view-scroll-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+}
+
+/* ==========================================================================
+   4. View 1: Immersive Core Wallpaper Landing Deck
+   ========================================================================== */
+#landing-view {
+    background: linear-gradient(rgba(13, 17, 23, 0.78), rgba(13, 17, 23, 0.88)), 
+                url('AppIconTopTens.jpg') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.landing-hero-branding-wrapper {
+    max-width: 640px;
+    padding: 40px;
     text-align: center;
 }
+
+.landing-main-title {
+    font-family: 'Cinzel', serif;
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    background: var(--gold-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+}
+
+.landing-hero-subtitle {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 16px;
+    color: var(--text-link);
+    line-height: 1.6;
+    margin-bottom: 32px;
+}
+
+.landing-interactive-action-cluster {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ==========================================================================
+   5. Interactive Button Typologies
+   ========================================================================== */
+.btn-gold-dynamic {
+    font-family: 'Cinzel', serif;
+    background: var(--gold-gradient);
+    color: #161b22;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+}
+
+.btn-gold-dynamic:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(179, 135, 40, 0.4);
+}
+
+.btn-gold-dynamic:disabled, .btn-gold-dynamic.limited {
+    background: var(--bg-dark-tertiary);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-green-action {
+    background-color: var(--accent-green);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-green-action:hover {
+    background-color: #2ea44f;
+}
+
+.btn-danger-action-block {
+    background-color: rgba(248, 81, 73, 0.1);
+    color: var(--accent-red);
+    border: 1px solid rgba(248, 81, 73, 0.2);
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.btn-danger-action-block:hover {
+    background-color: var(--accent-red);
+    color: #fff;
+    border-color: var(--accent-red);
+}
+
+/* ==========================================================================
+   6. View 2: Multi-Category Dashboard Matrix
+   ========================================================================== */
+.dashboard-action-ribbon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 32px;
+}
+
+.categories-responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.category-card {
+    background-color: var(--bg-dark-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 32px 24px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s, background-color 0.2s;
+}
+
+.category-card:hover {
+    border-color: var(--gold-solid);
+    transform: translateY(-4px);
+    background-color: var(--bg-dark-tertiary);
+}
+
+/* ==========================================================================
+   7. View 3: Granular Ranked Splice Item List Studio
+   ========================================================================== */
+.category-focus-heading {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 12px;
+}
+
+.item-insertion-panel {
+    background-color: var(--bg-dark-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 32px;
+    max-width: 800px;
+}
+
+.input-row-primary, .input-row-secondary {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.input-row-primary input[type="text"] { flex: 3; }
+.input-row-primary input[type="number"] { flex: 1; }
+.input-row-secondary input[type="url"] { flex: 2; }
+.input-row-secondary .file-uploader-proxy { flex: 2; }
+
+input[type="text"], input[type="number"], input[type="url"], input[type="email"], input[type="password"] {
+    background-color: var(--bg-dark-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--gold-solid);
+}
+
+.hidden-native-input {
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.media-label {
+    display: block;
+    background-color: var(--bg-dark-primary);
+    border: 1px dashed var(--border-subtle);
+    color: var(--text-muted);
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.media-label:hover {
+    border-color: var(--border-active);
+}
+
+.media-label.verified-state {
+    border-color: var(--accent-green);
+    color: #58a6ff;
+    background-color: rgba(56, 139, 253, 0.05);
+}
+
+.media-label.error-state {
+    border-color: var(--accent-red);
+    color: #f85149;
+}
+
+.canvas-alignment-sandbox {
+    background-color: var(--bg-dark-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.canvas-frame-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid var(--gold-solid);
+}
+
+.slider-control-hub {
+    width: 100%;
+    max-width: 300px;
+}
+
+.slider-data-tag {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+input[type="range"] {
+    width: 100%;
+    accent-color: var(--gold-solid);
+}
+
+.structured-ordered-list-view {
+    list-style: none;
+    max-width: 800px;
+}
+
+.ranked-item-row {
+    background-color: var(--bg-dark-secondary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-hash-symbol {
+    color: var(--gold-solid);
+    font-weight: 700;
+}
+
+.item-numerical-rank {
+    font-size: 18px;
+    font-weight: 800;
+    min-width: 24px;
+}
+
+.item-name-string {
+    font-weight: 600;
+    flex: 3;
+}
+
+.item-link-container {
+    flex: 2;
+}
+
+.item-external-anchor {
+    color: var(--text-link);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.item-external-anchor:hover {
+    text-decoration: underline;
+}
+
+.item-no-link-text {
+    color: var(--border-subtle);
+}
+
+.item-thumbnail-container {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: var(--bg-dark-primary);
+    border: 1px solid var(--border-subtle);
+}
+
+.item-thumbnail-container img, .item-thumbnail-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--bg-dark-tertiary) 0%, var(--bg-dark-secondary) 100%);
+}
+
+/* ==========================================================================
+   8. Sliding Control Panel Overlay Shell
+   ========================================================================== */
+.drawer-modal-shield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.drawer-modal-shield.active {
+    opacity: 1;
+}
+
+.drawer-interior-chassis {
+    position: absolute;
+    top: 0;
+    right: -360px;
+    width: 360px;
+    height: 100%;
+    background-color: var(--bg-dark-secondary);
+    border-left: 1px solid var(--border-subtle);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawer-modal-shield.active .drawer-interior-chassis {
+    right: 0;
+}
+
+.drawer-panel-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.drawer-title-tag {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold-solid);
+    letter-spacing: 1px;
+}
+
+.drawer-dismiss-action {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.drawer-dismiss-action:hover {
+    color: var(--text-primary);
+}
+
+.drawer-scrollable-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.drawer-card-module {
+    background-color: var(--bg-dark-primary);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.module-section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+}
+
+.profile-identity-strip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-dark-tertiary);
+    border: 1px solid var(--border-active);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.profile-text-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.username-string-text {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.profile-status-badge {
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.profile-status-badge.free-tier { color: #db8e00; }
+.profile-status-badge.verified-tier { color: var(--accent-green); }
+
+.module-explanatory-prose {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 16px;
+}
+
+.form-input-vertical-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.input-rule-prose-caption {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
+
+.form-action-horizontal-row {
+    display: flex;
+    gap: 10px;
+}
+
+.form-action-horizontal-row button { flex: 1; }
+
+.btn-form-primary {
+    background-color: var(--accent-green);
+    color: #fff;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-form-secondary {
+    background-color: var(--bg-dark-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    padding: 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.engine-signature-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--border-subtle);
+    margin-top: 12px;
+    font-family: monospace;
+}
+
+@media (min-width: 600px) {
+    .categories-responsive-grid { grid-template-columns: repeat(2, 1fr); }
+    .landing-main-title { font-size: 64px; }
+    .landing-action-matrix { flex-direction: row; gap: 20px; }
+}
+
+@media (min-width: 850px) { .categories-responsive-grid { grid-template-columns: repeat(3, 1fr); } }
