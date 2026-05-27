@@ -25,9 +25,9 @@ const defaultState = {
     userProfile: {
         username: 'Guest Mode',
         isAuthenticated: false,
-        isVerified: false, // Strict flag tracker for verification email loop
+        isVerified: false, 
         email: '',
-        passwordHash: ''   // Basic simulation storage for matching credentials
+        passwordHash: ''   
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -49,7 +49,6 @@ function loadStateFromStorage() {
             if (!state.categories || state.categories.length === 0) state.categories = [...defaultState.categories];
             if (!state.items) state.items = {...defaultState.items};
             if (!state.userProfile) state.userProfile = {...defaultState.userProfile};
-            if (state.userProfile.isVerified === undefined) state.userProfile.isVerified = state.userProfile.isAuthenticated;
             
             const index9 = state.categories.findIndex(c => c.id === 'cat-9');
             if (index9 !== -1 && state.categories[index9].title !== 'Hottest ?') {
@@ -189,9 +188,9 @@ DOM.btnActionSignup.addEventListener('click', () => {
 
     hintBox.style.color = '#8b949e'; 
     
-    // Register credentials locally for checking on future login actions
+    // Set user data but keep verified and authenticated flags false
     state.userProfile.email = email;
-    state.userProfile.passwordHash = btoa(pass); // Simple string obfuscation for state demo
+    state.userProfile.passwordHash = btoa(pass); 
     state.userProfile.username = email.split('@')[0];
     state.userProfile.isAuthenticated = false;
     state.userProfile.isVerified = false;
@@ -199,38 +198,44 @@ DOM.btnActionSignup.addEventListener('click', () => {
     saveStateToStorage();
     syncDrawerUIFields();
     
-    console.log(`Verification URL engine string generated. Token payload route: ${email}`);
-    
-    // Automated simulation of verification link response delay loop
-    setTimeout(() => {
-        state.userProfile.isAuthenticated = true;
-        state.userProfile.isVerified = true;
-        saveStateToStorage();
-        syncDrawerUIFields();
-        alert("Email auto-verified via loop packet! Secure cloud data sync is now online.");
-    }, 4000);
+    console.log(`\n============================ DEMO AUTH GATEWAY ============================`);
+    console.log(`Verification link generated for: ${email}`);
+    console.log(`To simulate clicking the email link, type this command and press Enter:`);
+    console.log(`   verifyEmail()`);
+    console.log(`============================================================================\n`);
 });
+
+// Exposed global function to manual mock clicking the verification email link
+window.verifyEmail = function() {
+    if (!state.userProfile.email) {
+        console.error("No account creation sequence is active to verify.");
+        return "Error: Create an account first.";
+    }
+    state.userProfile.isAuthenticated = true;
+    state.userProfile.isVerified = true;
+    saveStateToStorage();
+    syncDrawerUIFields();
+    alert("Email verification successful! Secure cloud data sync is now active.");
+    return "Verification loop finalized successfully.";
+};
 
 DOM.btnActionSignin.addEventListener('click', () => {
     const email = DOM.authEmail.value.trim();
     const pass = DOM.authPassword.value;
     if (!email || !pass) { alert("Please complete account target fields."); return; }
     
-    // Validate whether an account profile matching this email string exists
     if (!state.userProfile.email || state.userProfile.email !== email) {
         alert("Authentication Failure: No account matches this email record. Please choose 'Create Account' first.");
         return;
     }
     
-    // Validate credentials match correctly
     if (state.userProfile.passwordHash !== btoa(pass)) {
         alert("Authentication Failure: The password entered does not match our local records.");
         return;
     }
     
-    // Enforce active verification loop block checks
     if (!state.userProfile.isVerified) {
-        alert("Access Suspended: This account profile is pending validation. Please wait for the email verification packet loop to complete.");
+        alert("Access Suspended: This account profile is pending validation. Use verifyEmail() in the dev console to pass.");
         return;
     }
     
@@ -242,7 +247,6 @@ DOM.btnActionSignin.addEventListener('click', () => {
 DOM.btnActionLogout.addEventListener('click', () => {
     state.userProfile.username = 'Guest Mode';
     state.userProfile.isAuthenticated = false;
-    // Keep email registration data so users can re-verify login flows
     saveStateToStorage();
     syncDrawerUIFields();
 });
