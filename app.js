@@ -77,6 +77,7 @@ const DOM = {
     headerLogo: document.getElementById('header-logo'),
     headerTitle: document.getElementById('header-title'),
     settingsButton: document.getElementById('settings-button'),
+    headerProfileBadge: document.getElementById('header-profile-badge'),
     landingView: document.getElementById('landing-view'),
     categoriesView: document.getElementById('categories-view'),
     listView: document.getElementById('list-view'),
@@ -120,8 +121,11 @@ function validatePassword(password) {
 }
 
 function syncDrawerUIFields() {
+    const userChar = state.userProfile.username.charAt(0).toUpperCase() || 'G';
     DOM.displayUsername.textContent = state.userProfile.username;
-    DOM.profileAvatarDisplay.textContent = state.userProfile.username.charAt(0).toUpperCase() || 'G';
+    DOM.profileAvatarDisplay.textContent = userChar;
+    
+    DOM.headerProfileBadge.textContent = userChar;
     
     const statusBadge = document.getElementById('display-status');
 
@@ -131,18 +135,21 @@ function syncDrawerUIFields() {
         DOM.authLoggedInView.classList.remove('hidden');
         statusBadge.textContent = "Account Verified & Synced";
         statusBadge.className = "profile-status-badge verified-tier"; 
+        DOM.headerProfileBadge.className = "header-user-avatar verified-tier";
     } else if (state.userProfile.email && !state.userProfile.isVerified) {
         DOM.authLoggedOutView.classList.add('hidden');
         DOM.authPendingView.classList.remove('hidden');
         DOM.authLoggedInView.classList.add('hidden');
         statusBadge.textContent = "Verification Pending";
         statusBadge.className = "profile-status-badge free-tier";
+        DOM.headerProfileBadge.className = "header-user-avatar pending-tier";
     } else {
         DOM.authLoggedInView.classList.add('hidden');
         DOM.authPendingView.classList.add('hidden');
         DOM.authLoggedOutView.classList.remove('hidden');
         statusBadge.textContent = "Unsaved Local Storage Only";
         statusBadge.className = "profile-status-badge free-tier"; 
+        DOM.headerProfileBadge.className = "header-user-avatar";
         DOM.authEmail.value = '';
         DOM.authPassword.value = '';
     }
@@ -188,7 +195,6 @@ DOM.btnActionSignup.addEventListener('click', () => {
 
     hintBox.style.color = '#8b949e'; 
     
-    // Set user data but keep verified and authenticated flags false
     state.userProfile.email = email;
     state.userProfile.passwordHash = btoa(pass); 
     state.userProfile.username = email.split('@')[0];
@@ -205,7 +211,6 @@ DOM.btnActionSignup.addEventListener('click', () => {
     console.log(`============================================================================\n`);
 });
 
-// Exposed global function to manual mock clicking the verification email link
 window.verifyEmail = function() {
     if (!state.userProfile.email) {
         console.error("No account creation sequence is active to verify.");
@@ -432,12 +437,14 @@ function updateHeaderVisibility(viewState) {
         DOM.headerLogo.classList.add('hidden');
         DOM.headerTitle.classList.add('hidden');
         DOM.settingsButton.classList.add('hidden');
+        DOM.headerProfileBadge.classList.add('hidden');
     } else {
         DOM.appHeader.classList.remove('hidden');
         DOM.headerLogo.classList.remove('hidden');
         DOM.headerTitle.classList.remove('hidden');
         DOM.settingsButton.classList.remove('hidden');
         DOM.backButton.classList.remove('hidden'); 
+        DOM.headerProfileBadge.classList.remove('hidden');
     }
 }
 
@@ -546,6 +553,7 @@ window.addEventListener('popstate', (event) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadStateFromStorage();
+    syncDrawerUIFields();
     history.replaceState({ view: 'landing' }, '', ' ');
     navigateToLanding(true);
 });
