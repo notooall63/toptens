@@ -2,17 +2,16 @@
 // 1. Application State & Storage Engine
 // ==========================================================================
 
-// Fallback baseline data if no local storage exists yet
 const defaultState = {
     categories: [
-        { id: 'cat-1', title: 'Movies' },
-        { id: 'cat-2', title: 'Books' },
-        { id: 'cat-3', title: 'Tech Tools' }
+        { id: 'cat-1', title: 'Restaurants' },
+        { id: 'cat-2', title: 'Movies' },
+        { id: 'cat-3', title: 'Travel' }
     ],
     items: {
-        'cat-1': ['Inception', 'The Matrix', 'Interstellar'],
-        'cat-2': ['Neuromancer', 'Snow Crash', 'Dune'],
-        'cat-3': ['Vim', 'Git', 'Linux Container']
+        'cat-1': ['Taco Hub', 'Burger Joint', 'Pizza Place'],
+        'cat-2': ['Inception', 'The Matrix', 'Interstellar'],
+        'cat-3': ['Tokyo', 'London', 'New York']
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -21,13 +20,11 @@ const defaultState = {
 
 let state = {};
 
-// Load application data from browser's local memory footprint
 function loadStateFromStorage() {
     try {
         const storedData = localStorage.getItem('top_tens_app_data');
         if (storedData) {
             const parsed = JSON.parse(storedData);
-            // Re-hydrate application values while preserving clean view state baselines
             state = {
                 categories: parsed.categories || [],
                 items: parsed.items || {},
@@ -44,7 +41,6 @@ function loadStateFromStorage() {
     }
 }
 
-// Commit active mutations directly to local device storage
 function saveStateToStorage() {
     try {
         const dataToSave = {
@@ -87,15 +83,15 @@ function renderCategories() {
         DOM.categoriesGrid.appendChild(card);
     });
 
-    // Enforce strict category depth threshold rules safely
+    // Handle button classes dynamically via the primary responsive class
     if (state.categories.length >= state.maxCategories) {
         DOM.addCategoryBtn.disabled = true;
-        DOM.addCategoryBtn.style.opacity = '0.5';
+        DOM.addCategoryBtn.className = 'btn-primary limited';
         DOM.addCategoryBtn.textContent = 'Category Limit Reached (Max 21)';
     } else {
         DOM.addCategoryBtn.disabled = false;
-        DOM.addCategoryBtn.style.opacity = '1';
-        DOM.addCategoryBtn.textContent = 'Add Custom Categories--Up To 21 Total';
+        DOM.addCategoryBtn.className = 'btn-primary';
+        DOM.addCategoryBtn.textContent = 'Add Custom Categories—Up To 21 Total';
     }
 }
 
@@ -160,7 +156,6 @@ DOM.addCategoryBtn.addEventListener('click', () => {
     state.categories.push({ id, title: title.trim() });
     state.items[id] = [];
 
-    // Save mutations immediately to disk
     saveStateToStorage();
     renderCategories();
 });
@@ -176,7 +171,6 @@ DOM.addItemBtn.addEventListener('click', () => {
     state.items[state.activeCategoryId].push(value);
     DOM.newItemInput.value = '';
     
-    // Save mutations immediately to disk
     saveStateToStorage();
     renderItems(state.activeCategoryId);
 });
@@ -185,12 +179,10 @@ DOM.newItemInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') DOM.addItemBtn.click();
 });
 
-// Explicit Header Back Button Hook
 DOM.backButton.addEventListener('click', () => {
     window.history.back();
 });
 
-// Intercept Hardware/Browser History Pops
 window.addEventListener('popstate', (event) => {
     if (event.state && event.state.view === 'detail') {
         navigateToDetail(event.state.categoryId);
@@ -203,9 +195,7 @@ window.addEventListener('popstate', (event) => {
 // 6. Application Lifecycle Initialization Execution
 // ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Re-hydrate state from device storage layer
     loadStateFromStorage();
-    
     history.replaceState({ view: 'landing' }, '', ' ');
     renderCategories();
 });

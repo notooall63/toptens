@@ -2,83 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Top Tens | Your Personal Vault</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Tens | Your Personal Ranking Engine</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <section id="landing-page" class="view active">
-        <div class="landing-content">
-            <h1 class="landing-title glimmer-text">Top Tens</h1>
-            <p class="landing-tagline ornate-description">
-                Your personal favorite-things vault, each List fusable with as many (or as few) friends' Lists as you wish.
-            </p>
-            <button id="go-btn" class="go-button">GO</button>
+    <header class="app-header">
+        <div class="header-left">
+            <button id="back-button" class="btn-back hidden">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                BACK
+            </button>
         </div>
+        <div class="header-center">
+            <img src="AppIconTopTens.jpg" alt="Top Tens Logo" class="app-logo">
+            <h1 class="app-title">Top Tens</h1>
+        </div>
+        <div class="header-right"></div>
+    </header>
+
+    <section class="app-intro">
+        <p class="app-description">Your personal dynamic list hub. Rank and sort your favorite things values securely across device sandboxes. Create as many categories as you like up to your strict limit.</p>
     </section>
 
-    <section id="dashboard-page" class="view">
-        <header class="app-header">
-            <div class="header-left">
-                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
-                <button class="header-back-btn">BACK</button>
-            </div>
-            <h2 id="category-header-title" class="header-title glimmer-text">Top Tens—Categories</h2>
-            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
-        </header>
-        <div class="page-controls">
-            <button id="add-category-btn" class="add-button">Add Custom Categories—Up To 21 Total</button>
-        </div>
-        <main class="grid-container">
-            <div id="category-grid" class="standard-grid"></div>
-        </main>
-    </section>
+    <main class="app-container">
 
-    <section id="lists-page" class="view">
-        <header class="app-header">
-            <div class="header-left">
-                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
-                <button class="header-back-btn">BACK</button>
+        <div id="landing-view" class="view-panel">
+            <div class="control-bar">
+                <button id="add-category-btn" class="btn-primary">Add Custom Categories—Up To 21 Total</button>
             </div>
-            <h2 id="list-header-title" class="header-title glimmer-text">Top Tens—Lists</h2>
-            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
-        </header>
-        <div class="page-controls">
-            <button id="add-list-btn" class="add-button">Add Custom List—Up To 21 Total</button>
+            <div id="categories-grid" class="grid-layout">
+                </div>
         </div>
-        <main class="grid-container">
-            <div id="lists-grid" class="standard-grid"></div>
-        </main>
-    </section>
 
-    <section id="items-page" class="view">
-        <header class="app-header">
-            <div class="header-left">
-                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
-                <button class="header-back-btn">BACK</button>
+        <div id="detail-view" class="view-panel hidden">
+            <h2 id="current-category-title" style="color: #bf953f; margin-bottom: 20px; font-weight: 700; text-align: center;">Category</h2>
+            
+            <div class="input-group">
+                <input type="text" id="new-item-input" placeholder="Type a new item entry..." autocomplete="off">
+                <button id="add-item-btn" class="btn-accent">Add Item</button>
             </div>
-            <h2 id="item-header-title" class="header-title glimmer-text">Top Tens—Rankings</h2>
-            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
-        </header>
-        <main class="rankings-container">
-            <div id="items-list" class="vertical-rank-list"></div>
-        </main>
-    </section>
 
-    <div id="image-modal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 class="glimmer-text">Center Thumbnail</h3>
-            <div class="preview-circle-container">
-                <img id="preview-img" src="" alt="Preview">
-            </div>
-            <div class="modal-actions">
-                <button id="modal-cancel" class="header-back-btn">CANCEL</button>
-                <button id="modal-confirm" class="go-button" style="font-size: 1rem; padding: 10px 20px;">CONFIRM</button>
-            </div>
+            <ol id="ranked-items-list" class="ranked-list">
+                </ol>
         </div>
-    </div>
+
+    </main>
 
     <script src="app.js"></script>
 </body>
