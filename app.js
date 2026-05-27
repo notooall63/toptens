@@ -1,5 +1,5 @@
 // ==========================================================================
-// 1. Application State & Storage Engine (9 Hydrated Stock Categories)
+// 1. Application State & Storage Engine
 // ==========================================================================
 
 const defaultState = {
@@ -20,46 +20,7 @@ const defaultState = {
             { title: 'Nike Air Max', link: 'https://nike.com', media: null },
             { title: 'New Balance 990v6', link: 'https://newbalance.com', media: null }
         ],
-        'cat-2': [
-            { title: 'Inception', link: 'https://www.warnerbros.com/movies/inception', media: null },
-            { title: 'The Matrix', link: 'https://www.warnerbros.com/movies/matrix', media: null },
-            { title: 'Interstellar', link: 'https://www.warnerbros.com/movies/interstellar', media: null }
-        ],
-        'cat-3': [
-            { title: 'Taco Hub', link: 'https://tacohub.example.com', media: null },
-            { title: 'Burger Joint', link: 'https://burgerjoint.example.com', media: null },
-            { title: 'Pizza Place', link: 'https://pizzaplace.example.com', media: null }
-        ],
-        'cat-4': [
-            { title: 'Tokyo, Japan', link: 'https://page.travel/tokyo', media: null },
-            { title: 'London, UK', link: 'https://page.travel/london', media: null },
-            { title: 'Kyoto, Japan', link: 'https://page.travel/kyoto', media: null }
-        ],
-        'cat-5': [
-            { title: 'Neuromancer', link: 'https://www.penguinrandomhouse.com', media: null },
-            { title: 'Snow Crash', link: 'https://www.penguinrandomhouse.com', media: null },
-            { title: 'Dune', link: 'https://www.macmillanpublishers.com', media: null }
-        ],
-        'cat-6': [
-            { title: 'Random Access Memories', link: 'https://www.daftpunk.com', media: null },
-            { title: 'Dark Side of the Moon', link: 'https://www.pinkfloyd.com', media: null },
-            { title: 'Discovery', link: 'https://www.daftpunk.com', media: null }
-        ],
-        'cat-7': [
-            { title: 'Elden Ring', link: 'https://www.bandainamcoent.com', media: null },
-            { title: 'Cyberpunk 2077', link: 'https://www.cyberpunk.net', media: null },
-            { title: 'The Witcher 3', link: 'https://www.thewitcher.com', media: null }
-        ],
-        'cat-8': [
-            { title: 'Travel Chromebook', link: 'https://google.com/chromebook', media: null },
-            { title: 'Mechanical Keyboard', link: 'https://keychron.com', media: null },
-            { title: 'Wireless ANC Earbuds', link: 'https://sony.com', media: null }
-        ],
-        'cat-9': [
-            { title: 'The Espresso Lab', link: 'https://espressolab.example.com', media: null },
-            { title: 'Monarch Coffee', link: 'https://monarch.example.com', media: null },
-            { title: 'Roaster Vault', link: 'https://roastervault.example.com', media: null }
-        ]
+        'cat-2': [], 'cat-3': [], 'cat-4': [], 'cat-5': [], 'cat-6': [], 'cat-7': [], 'cat-8': [], 'cat-9': []
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -67,37 +28,23 @@ const defaultState = {
 };
 
 let state = {};
+let activeCroppingImage = null; // Memory tracking node for dynamic offset transforms
 
 function loadStateFromStorage() {
     try {
         const storedData = localStorage.getItem('top_tens_app_data');
         if (storedData) {
             state = JSON.parse(storedData);
-            
-            // Clean up state runtime parameters dynamically
             state.currentView = 'landing';
             state.activeCategoryId = null;
             state.maxCategories = 21;
             
-            // Re-verify that items matrices align with all category definitions
-            if (!state.categories || state.categories.length === 0) {
-                state.categories = [...defaultState.categories];
-            }
-            if (!state.items) {
-                state.items = {...defaultState.items};
-            } else {
-                // Ensure legacy items mapping doesn't swallow new stock profiles
-                state.categories.forEach(cat => {
-                    if (!state.items[cat.id]) {
-                        state.items[cat.id] = defaultState.items[cat.id] || [];
-                    }
-                });
-            }
+            if (!state.categories || state.categories.length === 0) state.categories = [...defaultState.categories];
+            if (!state.items) state.items = {...defaultState.items};
         } else {
             state = JSON.parse(JSON.stringify(defaultState));
         }
     } catch (e) {
-        console.error("Storage read exception: fallback to factory defaults triggered.", e);
         state = JSON.parse(JSON.stringify(defaultState));
     }
 }
@@ -105,9 +52,7 @@ function loadStateFromStorage() {
 function saveStateToStorage() {
     try {
         localStorage.setItem('top_tens_app_data', JSON.stringify(state));
-    } catch (e) {
-        console.error("Storage write exception: payload could not be preserved.", e);
-    }
+    } catch (e) {}
 }
 
 // ==========================================================================
@@ -129,6 +74,10 @@ const DOM = {
     newItemRank: document.getElementById('new-item-rank'),
     newItemUrl: document.getElementById('new-item-url'),
     newItemMedia: document.getElementById('new-item-media'),
+    mediaStatusLabel: document.getElementById('media-status-label'),
+    alignmentControlSandbox: document.getElementById('alignment-control-sandbox'),
+    cropCanvas: document.getElementById('crop-canvas'),
+    centerOffsetSlider: document.getElementById('center-offset-slider'),
     addItemBtn: document.getElementById('add-item-btn'),
     rankedItemsList: document.getElementById('ranked-items-list')
 };
@@ -144,9 +93,6 @@ function renderCategories() {
         const card = document.createElement('div');
         card.className = 'category-card';
         card.textContent = category.title;
-        
-        // Dynamic interception point for all stock and added buttons
-        card.removeAttribute('onclick'); 
         card.addEventListener('click', (e) => {
             e.preventDefault();
             navigateToList(category.id);
@@ -175,22 +121,18 @@ function renderItems(categoryId) {
         const li = document.createElement('li');
         li.className = 'ranked-item-row';
 
-        // 1. Prominent hashtag element
         const hashBadge = document.createElement('span');
         hashBadge.className = 'item-hash-symbol';
         hashBadge.textContent = '#';
 
-        // 2. Continuous individual rank counter number
         const numBadge = document.createElement('span');
         numBadge.className = 'item-numerical-rank';
         numBadge.textContent = `${index + 1}`;
 
-        // 3. Item Name Node Block
         const nameBadge = document.createElement('span');
         nameBadge.className = 'item-name-string';
         nameBadge.textContent = item.title;
         
-        // 4. Dedicated Link Button / Icon Element Box
         const linkWrapper = document.createElement('div');
         linkWrapper.className = 'item-link-container';
         if (item.link && item.link.trim() !== '') {
@@ -208,7 +150,6 @@ function renderItems(categoryId) {
             linkWrapper.appendChild(noLink);
         }
 
-        // 5. Appended Circular Media Frame Matrix
         const mediaContainer = document.createElement('div');
         mediaContainer.className = 'item-thumbnail-container';
         
@@ -232,7 +173,6 @@ function renderItems(categoryId) {
             mediaContainer.appendChild(placeholder);
         }
 
-        // Sequential Structural Mount Matrix
         li.appendChild(hashBadge);
         li.appendChild(numBadge);
         li.appendChild(nameBadge);
@@ -244,7 +184,87 @@ function renderItems(categoryId) {
 }
 
 // ==========================================================================
-// 4. Viewport Routing Matrix
+// 4. Canvas Centering Processing Engine
+// ==========================================================================
+function redrawCanvasPreview() {
+    if (!activeCroppingImage) return;
+    const ctx = DOM.cropCanvas.getContext('2d');
+    const width = DOM.cropCanvas.width;
+    const height = DOM.cropCanvas.height;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // Calculate scaling calculations to keep aspect ratios clean
+    const scale = Math.max(width / activeCroppingImage.width, height / activeCroppingImage.height);
+    const imgWidth = activeCroppingImage.width * scale;
+    const imgHeight = activeCroppingImage.height * scale;
+    
+    // Read offset adjustments directly out of slider calculations
+    const sliderVal = parseInt(DOM.centerOffsetSlider.value, 10);
+    
+    let dx = (width - imgWidth) / 2;
+    let dy = (height - imgHeight) / 2;
+    
+    if (imgWidth > imgHeight) {
+        dx += sliderVal; // Horizontal positioning shift
+    } else {
+        dy += sliderVal; // Vertical positioning shift
+    }
+    
+    ctx.drawImage(activeCroppingImage, dx, dy, imgWidth, imgHeight);
+}
+
+DOM.centerOffsetSlider.addEventListener('input', redrawCanvasPreview);
+
+// ==========================================================================
+// 5. Media Interception & Guardrail Logic
+// ==========================================================================
+DOM.newItemMedia.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Guardrail Block: Video duration strict runtime constraint inspection
+    if (file.type.startsWith('video/')) {
+        DOM.alignmentControlSandbox.classList.add('hidden');
+        activeCroppingImage = null;
+        
+        const videoElement = document.createElement('video');
+        videoElement.preload = 'metadata';
+        videoElement.src = URL.createObjectURL(file);
+        
+        videoElement.onloadedmetadata = function() {
+            URL.revokeObjectURL(videoElement.src);
+            if (videoElement.duration > 6.0) {
+                alert(`System Error: Selected video duration is ${videoElement.duration.toFixed(1)}s.\nVideos must be strictly 6 seconds or less.`);
+                DOM.newItemMedia.value = '';
+                DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video ≤ 6s)";
+                DOM.mediaStatusLabel.className = "media-label error-state";
+            } else {
+                DOM.mediaStatusLabel.textContent = `Video Loaded (${videoElement.duration.toFixed(1)}s)`;
+                DOM.mediaStatusLabel.className = "media-label verified-state";
+            }
+        };
+    } 
+    // Image Handling Block: Render into interactive positioning engine sandbox
+    else if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            activeCroppingImage = new Image();
+            activeCroppingImage.onload = function() {
+                DOM.alignmentControlSandbox.classList.remove('hidden');
+                DOM.mediaStatusLabel.textContent = "Image Ready to Frame";
+                DOM.mediaStatusLabel.className = "media-label verified-state";
+                DOM.centerOffsetSlider.value = 0;
+                redrawCanvasPreview();
+            };
+            activeCroppingImage.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+// ==========================================================================
+// 6. Viewport Routing Matrix
 // ==========================================================================
 function updateHeaderDecorations(viewState) {
     if (viewState === 'landing') {
@@ -263,76 +283,50 @@ function updateHeaderDecorations(viewState) {
 function navigateToLanding(isBackAction = false) {
     state.currentView = 'landing';
     state.activeCategoryId = null;
-
     DOM.categoriesView.classList.add('hidden');
     DOM.listView.classList.add('hidden');
     DOM.landingView.classList.remove('hidden');
-    
     updateHeaderDecorations('landing');
-
-    if (!isBackAction) {
-        history.pushState({ view: 'landing' }, '', ' ');
-    }
+    if (!isBackAction) history.pushState({ view: 'landing' }, '', ' ');
 }
 
 function navigateToCategories(isBackAction = false) {
     state.currentView = 'categories';
     state.activeCategoryId = null;
-
     renderCategories();
-
     DOM.landingView.classList.add('hidden');
     DOM.listView.classList.add('hidden');
     DOM.categoriesView.classList.remove('hidden');
-    
     updateHeaderDecorations('categories');
-
-    if (!isBackAction) {
-        history.pushState({ view: 'categories' }, '', '#categories');
-    }
+    if (!isBackAction) history.pushState({ view: 'categories' }, '', '#categories');
 }
 
 function navigateToList(categoryId, isBackAction = false) {
     const category = state.categories.find(c => c.id === categoryId);
     if (!category) return;
-
     state.currentView = 'list';
     state.activeCategoryId = categoryId;
-
     DOM.currentCategoryTitle.textContent = category.title;
     renderItems(categoryId);
-
     DOM.landingView.classList.add('hidden');
     DOM.categoriesView.classList.add('hidden');
     DOM.listView.classList.remove('hidden');
-    
     updateHeaderDecorations('list');
-
-    if (!isBackAction) {
-        history.pushState({ view: 'list', categoryId: categoryId }, '', `#list-${categoryId}`);
-    }
+    if (!isBackAction) history.pushState({ view: 'list', categoryId: categoryId }, '', `#list-${categoryId}`);
 }
 
 // ==========================================================================
-// 5. User Interaction & Data Mutation Interceptors
+// 7. Data Mutation Interceptors
 // ==========================================================================
-DOM.enterVaultBtn.addEventListener('click', () => {
-    navigateToCategories();
-});
+DOM.enterVaultBtn.addEventListener('click', () => navigateToCategories());
 
 DOM.addCategoryBtn.addEventListener('click', () => {
-    if (state.categories.length >= state.maxCategories) {
-        alert('System Limit: You cannot create more than 21 custom categories.');
-        return;
-    }
-
+    if (state.categories.length >= state.maxCategories) return;
     const title = prompt('Enter custom category name:');
     if (!title || title.trim() === '') return;
-
     const id = `cat-${Date.now()}`;
     state.categories.push({ id, title: title.trim() });
     state.items[id] = [];
-
     saveStateToStorage();
     renderCategories();
 });
@@ -344,27 +338,14 @@ DOM.addItemBtn.addEventListener('click', () => {
     const file = DOM.newItemMedia.files[0];
 
     if (!titleValue || !state.activeCategoryId) return;
-
-    if (!state.items[state.activeCategoryId]) {
-        state.items[state.activeCategoryId] = [];
-    }
-
     const targetList = state.items[state.activeCategoryId];
 
-    function commitItem(mediaDataString) {
-        const newItem = {
-            title: titleValue,
-            link: urlValue,
-            media: mediaDataString
-        };
-
+    function commitItem(finalMediaString) {
+        const newItem = { title: titleValue, link: urlValue, media: finalMediaString };
         if (!isNaN(rankValue) && rankValue > 0) {
             const indexPosition = rankValue - 1;
-            if (indexPosition >= targetList.length) {
-                targetList.push(newItem);
-            } else {
-                targetList.splice(indexPosition, 0, newItem);
-            }
+            if (indexPosition >= targetList.length) targetList.push(newItem);
+            else targetList.splice(indexPosition, 0, newItem);
         } else {
             targetList.push(newItem);
         }
@@ -373,26 +354,28 @@ DOM.addItemBtn.addEventListener('click', () => {
         DOM.newItemRank.value = '';
         DOM.newItemUrl.value = '';
         DOM.newItemMedia.value = '';
+        DOM.alignmentControlSandbox.classList.add('hidden');
+        DOM.mediaStatusLabel.textContent = "Select Thumbnail (Img / Video ≤ 6s)";
+        DOM.mediaStatusLabel.className = "media-label";
+        activeCroppingImage = null;
 
         saveStateToStorage();
         renderItems(state.activeCategoryId);
     }
 
-    if (file) {
+    // Canvas image commit stream vs standard native file stream
+    if (activeCroppingImage) {
+        commitItem(DOM.cropCanvas.toDataURL('image/jpeg', 0.85));
+    } else if (file) {
         const reader = new FileReader();
-        reader.onload = function(event) {
-            commitItem(event.target.result);
-        };
+        reader.onload = (e) => commitItem(e.target.result);
         reader.readAsDataURL(file);
     } else {
         commitItem(null);
     }
 });
 
-DOM.backButton.addEventListener('click', () => {
-    window.history.back();
-});
-
+DOM.backButton.addEventListener('click', () => window.history.back());
 DOM.settingsButton.addEventListener('click', () => {
     if(confirm("Purge application localStorage to fully rebuild and synchronize all 9 stock categories?")) {
         localStorage.clear();
@@ -404,21 +387,14 @@ DOM.settingsButton.addEventListener('click', () => {
 
 window.addEventListener('popstate', (event) => {
     if (event.state) {
-        if (event.state.view === 'list') {
-            navigateToList(event.state.categoryId, true);
-        } else if (event.state.view === 'categories') {
-            navigateToCategories(true);
-        } else {
-            navigateToLanding(true);
-        }
+        if (event.state.view === 'list') navigateToList(event.state.categoryId, true);
+        else if (event.state.view === 'categories') navigateToCategories(true);
+        else navigateToLanding(true);
     } else {
         navigateToLanding(true);
     }
 });
 
-// ==========================================================================
-// 6. Application Lifecycle Initialization Execution
-// ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
     loadStateFromStorage();
     history.replaceState({ view: 'landing' }, '', ' ');
