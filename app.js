@@ -4,26 +4,16 @@
 
 const defaultState = {
     categories: [
-        { id: 'cat-1', title: 'Restaurants' },
+        { id: 'cat-1', title: 'Shoes' },
         { id: 'cat-2', title: 'Movies' },
-        { id: 'cat-3', title: 'Travel' }
+        { id: 'cat-3', title: 'Restaurants' }
     ],
     items: {
         'cat-1': [
-            { title: 'Taco Hub', link: 'https://tacohub.example.com', media: null },
-            { title: 'Burger Joint', link: '', media: null },
-            { title: 'Pizza Place', link: '', media: null }
+            { title: 'adidas adiprene', link: 'https://adidas.com', media: null }
         ],
-        'cat-2': [
-            { title: 'Inception', link: '', media: null },
-            { title: 'The Matrix', link: '', media: null },
-            { title: 'Interstellar', link: '', media: null }
-        ],
-        'cat-3': [
-            { title: 'Tokyo', link: '', media: null },
-            { title: 'London', link: '', media: null },
-            { title: 'New York', link: '', media: null }
-        ]
+        'cat-2': [],
+        'cat-3': []
     },
     currentView: 'landing',
     activeCategoryId: null,
@@ -37,10 +27,15 @@ function loadStateFromStorage() {
         const storedData = localStorage.getItem('top_tens_app_data');
         if (storedData) {
             state = JSON.parse(storedData);
-            // Safety enforcement overrides
+            
+            // Clean up state parameters for consistency
             state.currentView = 'landing';
             state.activeCategoryId = null;
             state.maxCategories = 21;
+            
+            // Re-map fallback lists if array targets are missing
+            if (!state.categories) state.categories = [...defaultState.categories];
+            if (!state.items) state.items = {...defaultState.items};
         } else {
             state = JSON.parse(JSON.stringify(defaultState));
         }
@@ -92,7 +87,11 @@ function renderCategories() {
         const card = document.createElement('div');
         card.className = 'category-card';
         card.textContent = category.title;
-        card.addEventListener('click', () => navigateToList(category.id));
+        
+        // Safe mapping to route details smoothly
+        card.addEventListener('click', () => {
+            navigateToList(category.id);
+        });
         DOM.categoriesGrid.appendChild(card);
     });
 
@@ -110,13 +109,38 @@ function renderCategories() {
 function renderItems(categoryId) {
     if (!DOM.rankedItemsList) return;
     DOM.rankedItemsList.innerHTML = '';
+    
     const itemList = state.items[categoryId] || [];
     
     itemList.forEach((item, index) => {
         const li = document.createElement('li');
         li.className = 'ranked-item-row';
 
-        // 1. Media Canvas Container Element Block
+        // 1. Hashtag Position Badging Matrix (#1)
+        const rankBadge = document.createElement('div');
+        rankBadge.className = 'rank-badge-number';
+        rankBadge.textContent = `#${index + 1}`;
+        
+        // 2. Central Reference Text Layout Engine
+        const textContainer = document.createElement('div');
+        textContainer.className = 'item-text-container';
+        
+        const titleSpan = document.createElement('span');
+        titleSpan.className = 'item-title-text';
+        
+        if (item.link && item.link.trim() !== '') {
+            const anchor = document.createElement('a');
+            anchor.href = item.link;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            anchor.textContent = item.title;
+            titleSpan.appendChild(anchor);
+        } else {
+            titleSpan.textContent = item.title;
+        }
+        textContainer.appendChild(titleSpan);
+
+        // 3. Trailing Circular Media Layout Canvas Block
         const mediaContainer = document.createElement('div');
         mediaContainer.className = 'item-thumbnail-container';
         
@@ -135,39 +159,16 @@ function renderItems(categoryId) {
                 mediaContainer.appendChild(img);
             }
         } else {
-            // Placeholder default token layout
             const placeholder = document.createElement('div');
             placeholder.className = 'thumbnail-placeholder';
             mediaContainer.appendChild(placeholder);
         }
 
-        // 2. Structural Position Index Number Matrix
-        const metaContainer = document.createElement('div');
-        metaContainer.className = 'item-meta-details';
-        
-        const badge = document.createElement('span');
-        badge.className = 'rank-badge-number';
-        badge.textContent = `${index + 1}`;
-        
-        // 3. Core Text Processing Node Line
-        const titleSpan = document.createElement('span');
-        titleSpan.className = 'item-title-text';
-        if (item.link && item.link.trim() !== '') {
-            const anchor = document.createElement('a');
-            anchor.href = item.link;
-            anchor.target = '_blank';
-            anchor.rel = 'noopener noreferrer';
-            anchor.textContent = item.title;
-            titleSpan.appendChild(anchor);
-        } else {
-            titleSpan.textContent = item.title;
-        }
-
-        metaContainer.appendChild(badge);
-        metaContainer.appendChild(titleSpan);
-
+        // Linear Layout Appends: Rank -> Title/Link -> Media Card
+        li.appendChild(rankBadge);
+        li.appendChild(textContainer);
         li.appendChild(mediaContainer);
-        li.appendChild(metaContainer);
+        
         DOM.rankedItemsList.appendChild(li);
     });
 }
@@ -185,12 +186,7 @@ function updateHeaderDecorations(viewState) {
         DOM.headerLogo.classList.remove('hidden');
         DOM.headerTitle.classList.remove('hidden');
         DOM.settingsButton.classList.remove('hidden');
-        
-        if (viewState === 'categories') {
-            DOM.backButton.classList.add('hidden');
-        } else if (viewState === 'list') {
-            DOM.backButton.classList.remove('hidden');
-        }
+        DOM.backButton.classList.remove('hidden'); // Force visibility on all inner views
     }
 }
 
@@ -292,7 +288,6 @@ DOM.addItemBtn.addEventListener('click', () => {
             media: mediaDataString
         };
 
-        // Custom position ranking array mutations
         if (!isNaN(rankValue) && rankValue > 0) {
             const indexPosition = rankValue - 1;
             if (indexPosition >= targetList.length) {
@@ -304,7 +299,6 @@ DOM.addItemBtn.addEventListener('click', () => {
             targetList.push(newItem);
         }
 
-        // Clean out fields instantly
         DOM.newItemInput.value = '';
         DOM.newItemRank.value = '';
         DOM.newItemUrl.value = '';
@@ -314,7 +308,6 @@ DOM.addItemBtn.addEventListener('click', () => {
         renderItems(state.activeCategoryId);
     }
 
-    // Media file data processor
     if (file) {
         const reader = new FileReader();
         reader.onload = function(event) {
@@ -326,12 +319,19 @@ DOM.addItemBtn.addEventListener('click', () => {
     }
 });
 
+DOM.newItemInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') DOM.addItemBtn.click();
+});
+
 DOM.backButton.addEventListener('click', () => {
     window.history.back();
 });
 
 DOM.settingsButton.addEventListener('click', () => {
-    alert("Control Matrix Configuration Interface Coming Soon.");
+    if(confirm("Reset System Storage to default categories to fix legacy links?")) {
+        localStorage.clear();
+        location.reload();
+    }
 });
 
 window.addEventListener('popstate', (event) => {
