@@ -2,38 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Tens | Your Personal Vault</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body class="dark-mode">
-    <div id="app-wrapper">
-        <!-- Landing Page Section -->
-        <div id="landing-page" class="view">
-            <div class="brand-container">
-                <div class="app-icon">10</div>
-                <h1>Top Tens</h1>
+<body>
+
+    <section id="landing-page" class="view active">
+        <div class="landing-content">
+            <h1 class="landing-title glimmer-text">Top Tens</h1>
+            <p class="landing-tagline ornate-description">
+                Your personal favorite-things vault, each List fusable with as many (or as few) friends' Lists as you wish.
+            </p>
+            <button id="go-btn" class="go-button">GO</button>
+        </div>
+    </section>
+
+    <section id="dashboard-page" class="view">
+        <header class="app-header">
+            <div class="header-left">
+                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
+                <button class="header-back-btn">BACK</button>
             </div>
-            <button id="enter-button">Enter App</button>
+            <h2 id="category-header-title" class="header-title glimmer-text">Top Tens—Categories</h2>
+            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
+        </header>
+        <div class="page-controls">
+            <button id="add-category-btn" class="add-button">Add Custom Categories—Up To 21 Total</button>
         </div>
+        <main class="grid-container">
+            <div id="category-grid" class="standard-grid"></div>
+        </main>
+    </section>
 
-        <!-- Category List View -->
-        <div id="category-view" class="view hidden">
-            <header>
-                <h2>Categories</h2>
-            </header>
-            <div class="category-list-view"></div>
+    <section id="lists-page" class="view">
+        <header class="app-header">
+            <div class="header-left">
+                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
+                <button class="header-back-btn">BACK</button>
+            </div>
+            <h2 id="list-header-title" class="header-title glimmer-text">Top Tens—Lists</h2>
+            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
+        </header>
+        <div class="page-controls">
+            <button id="add-list-btn" class="add-button">Add Custom List—Up To 21 Total</button>
         </div>
+        <main class="grid-container">
+            <div id="lists-grid" class="standard-grid"></div>
+        </main>
+    </section>
 
-        <!-- Items Grid View -->
-        <div id="grid-view" class="view hidden">
-            <header>
-                <button class="back-link">← Categories</button>
-                <h2 id="grid-title">Category Name</h2>
-            </header>
-            <div class="items-grid-view"></div>
+    <section id="items-page" class="view">
+        <header class="app-header">
+            <div class="header-left">
+                <img src="AppIconTopTens.jpg" alt="Logo" class="mini-icon">
+                <button class="header-back-btn">BACK</button>
+            </div>
+            <h2 id="item-header-title" class="header-title glimmer-text">Top Tens—Rankings</h2>
+            <div class="header-right"><div class="hamburger-menu"><span></span><span></span><span></span></div></div>
+        </header>
+        <main class="rankings-container">
+            <div id="items-list" class="vertical-rank-list"></div>
+        </main>
+    </section>
+
+    <div id="image-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="glimmer-text">Center Thumbnail</h3>
+            <div class="preview-circle-container">
+                <img id="preview-img" src="" alt="Preview">
+            </div>
+            <div class="modal-actions">
+                <button id="modal-cancel" class="header-back-btn">CANCEL</button>
+                <button id="modal-confirm" class="go-button" style="font-size: 1rem; padding: 10px 20px;">CONFIRM</button>
+            </div>
         </div>
     </div>
+
     <script src="app.js"></script>
 </body>
 </html>
