@@ -15,6 +15,7 @@
             --panel-border: #1a222d;
             --btn-green: #0f683a;
             --btn-green-hover: #14854a;
+            --input-bg: #131922;
         }
 
         * {
@@ -32,6 +33,36 @@
             position: relative;
         }
 
+        /* --- Ambient Spinning Vault Watermark --- */
+        .ambient-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .vault-watermark {
+            width: 65vh;
+            height: 65vh;
+            opacity: 0.04;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='1.5'><circle cx='12' cy='12' r='10'></circle><path d='M12 2v4M12 18v4M4 12h4M16 12h4M12 6a6 6 0 0 1 6 6'></path></svg>");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            animation: slowVaultSpin 40s linear infinite;
+        }
+
+        @keyframes slowVaultSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         /* --- Gold Pinprick Shimmer Background --- */
         .shimmer-container {
             position: fixed;
@@ -40,8 +71,7 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+            z-index: 1;
         }
 
         .pinprick {
@@ -66,29 +96,33 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 70px;
+            height: 75px;
             background-color: rgba(7, 9, 14, 0.95);
             border-bottom: 1px solid var(--panel-border);
             display: flex;
             align-items: center;
-            padding: 0 20px;
+            padding: 0 24px;
             z-index: 100;
         }
 
-        /* Fixed Left Section */
         .header-left {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
             flex: 1;
             z-index: 102;
         }
 
-        .app-icon-wrapper img {
-            width: 36px;
-            height: 36px;
-            object-fit: contain;
+        .app-icon-box {
+            width: 38px;
+            height: 38px;
+            background-color: var(--panel-bg);
+            border: 1px solid var(--gold-primary);
             border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold-primary);
         }
 
         .back-btn {
@@ -97,33 +131,24 @@
             color: var(--gold-primary);
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 14px;
+            gap: 8px;
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 1px;
             cursor: pointer;
             text-transform: uppercase;
-            transition: opacity 0.2s;
         }
 
-        .back-btn:hover {
-            opacity: 0.8;
-        }
-
-        /* Perfectly Centered Title Container */
         .header-center {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
             z-index: 101;
+            pointer-events: none;
         }
 
         .app-title-main {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             letter-spacing: 3px;
             background: var(--gold-gradient);
@@ -133,11 +158,10 @@
             pointer-events: auto;
         }
 
-        /* Fixed Right Section */
         .header-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
             justify-content: flex-end;
             flex: 1;
             z-index: 102;
@@ -150,21 +174,18 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
         }
 
-        .header-action-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .profile-avatar-wrapper {
+        .profile-avatar {
             width: 36px;
             height: 36px;
             border-radius: 50%;
             border: 1px solid var(--gold-primary);
             background-color: var(--panel-bg);
-            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gold-primary);
             cursor: pointer;
         }
 
@@ -190,15 +211,15 @@
         .right-drawer {
             position: fixed;
             top: 0;
-            right: -320px; /* Hidden offscreen right */
-            width: 320px;
+            right: -340px;
+            width: 340px;
             height: 100vh;
             background-color: var(--panel-bg);
             border-left: 1px solid var(--panel-border);
-            box-shadow: -5px 0 25px rgba(0,0,0,0.5);
+            box-shadow: -5px 0 25px rgba(0,0,0,0.6);
             transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             z-index: 201;
-            padding: 80px 24px 24px 24px;
+            padding: 85px 24px 24px 24px;
         }
 
         .right-drawer.active {
@@ -207,8 +228,8 @@
 
         .drawer-close {
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 24px;
+            left: 24px;
             background: none;
             border: none;
             color: var(--gold-primary);
@@ -217,77 +238,93 @@
 
         .drawer-content h3 {
             color: var(--gold-primary);
-            font-size: 18px;
+            font-size: 16px;
             letter-spacing: 1px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             text-transform: uppercase;
         }
 
-        /* --- App Content Shell --- */
+        .drawer-item-box {
+            padding: 14px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .drawer-item-box h4 {
+            font-size: 13px;
+            color: var(--gold-primary);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .drawer-item-box p {
+            font-size: 13px;
+            color: #9bb0c7;
+            line-height: 1.4;
+        }
+
+        /* --- Core Layout Containers --- */
         .main-container {
             position: relative;
-            z-index: 1;
-            padding-top: 110px;
+            z-index: 5;
+            padding-top: 115px;
+            padding-bottom: 60px;
             width: 100%;
             max-width: 1200px;
             margin: 0 auto;
-            min-height: calc(100vh - 70px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            min-height: 100vh;
         }
 
-        /* View Switching Logic */
         .app-view {
             display: none;
             width: 100%;
-            animation: fadeIn 0.3s ease-in-out forwards;
+            animation: viewTransition 0.3s ease-out forwards;
         }
 
         .app-view.active {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
+        @keyframes viewTransition {
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- View 1: Landing Page --- */
+        /* --- View 1: Landing State Layout --- */
         .landing-hero {
             text-align: center;
-            max-width: 750px;
-            padding: 40px 20px;
+            max-width: 800px;
+            margin: 100px auto 0 auto;
+            padding: 0 24px;
         }
 
         .landing-hero h1 {
-            font-size: 48px;
+            font-size: 52px;
             font-weight: 700;
             letter-spacing: 4px;
             background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             text-transform: uppercase;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .landing-hero p {
             font-size: 16px;
-            line-height: 1.6;
-            color: var(--electric-blue); /* Neon/Electric Blue */
+            line-height: 1.7;
+            color: var(--electric-blue);
             font-style: italic;
-            margin-bottom: 40px;
+            margin-bottom: 44px;
             letter-spacing: 0.5px;
         }
 
         .hero-action-row {
             display: flex;
-            gap: 20px;
+            gap: 24px;
             justify-content: center;
         }
 
@@ -295,213 +332,492 @@
             background: var(--gold-gradient);
             border: none;
             color: #000000;
-            padding: 14px 36px;
-            font-size: 14px;
+            padding: 14px 40px;
+            font-size: 13px;
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
-            transition: opacity 0.2s, transform 0.2s;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+            transition: opacity 0.2s;
         }
 
         .gold-btn:hover {
             opacity: 0.9;
-            transform: translateY(-1px);
         }
 
-        /* --- View 2: Custom Category Page --- */
-        .category-dashboard {
-            width: 100%;
-            max-width: 800px;
-            padding: 0 20px;
+        /* --- View 2: Dashboard/Categories Panel --- */
+        .dashboard-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 24px;
         }
 
         .dashboard-panel {
             background-color: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 8px;
-            padding: 40px;
+            padding: 32px;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
         }
 
         .dashboard-panel h2 {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: var(--gold-primary);
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
         }
 
         .add-category-btn {
             background-color: var(--btn-green);
             color: #ffffff;
             border: none;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 600;
+            padding: 12px 28px;
+            font-size: 13px;
+            font-weight: 700;
             border-radius: 4px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            transition: background-color 0.2s;
+            margin-bottom: 36px;
+            text-transform: uppercase;
         }
 
         .add-category-btn:hover {
             background-color: var(--btn-green-hover);
         }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            text-align: left;
+        }
+
+        .category-card {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 24px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .category-card:hover {
+            border-color: var(--gold-primary);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            font-size: 28px;
+        }
+
+        .category-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .category-counter {
+            font-size: 12px;
+            color: #62778f;
+        }
+
+        /* --- View 3: Rank List Content Stack --- */
+        .items-wrapper {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .item-creation-box {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .form-input {
+            background-color: var(--input-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 4px;
+            color: #ffffff;
+            padding: 12px 16px;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold-primary);
+        }
+
+        .form-input.short-rank {
+            max-width: 140px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .media-upload-btn {
+            background-color: #232d38;
+            color: #b3c2d4;
+            border: 1px dashed #38485a;
+            border-radius: 4px;
+            padding: 12px 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .submit-item-btn {
+            background-color: var(--btn-green);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 12px 32px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .ranked-items-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ranked-item-row {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .item-identity {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .rank-badge {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--gold-primary);
+            min-width: 40px;
+        }
+
+        .item-title-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .item-interactive-actions {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .visit-link-anchor {
+            color: var(--electric-blue);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .visit-link-anchor:hover {
+            text-decoration: underline;
+        }
+
+        .thumbnail-circle-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #161f2b 0%, #0b1016 100%);
+            border: 1px solid var(--panel-border);
+        }
     </style>
 </head>
 <body>
 
-    <!-- Dynamic Shimmer Layer -->
+    <div class="ambient-background">
+        <div class="vault-watermark"></div>
+    </div>
     <div class="shimmer-container" id="shimmerLayer"></div>
 
-    <!-- Persistent Global Header Layout -->
     <header class="app-header">
         <div class="header-left">
-            <div class="app-icon-wrapper">
-                <!-- Replace src with custom icon assets as required -->
-                <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='2'><rect x='2' y='2' width='20' height='20' rx='5'></rect><path d='M12 18V6'></path><path d='M8 10h8'></path></svg>" alt="Top Tens Icon">
+            <div class="app-icon-box">
+                <i data-lucide="shield-half" style="width: 20px; height: 20px;"></i>
             </div>
             <button class="back-btn" id="globalBackBtn" style="display: none;">
-                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i> ← Back
+                <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i> BACK
             </button>
         </div>
 
         <div class="header-center">
-            <span class="app-title-main">Top Tens</span>
+            <span class="app-title-main" id="dynamicAppTitle">Top Tens</span>
         </div>
 
         <div class="header-right">
             <button class="header-action-btn" id="burgerBtn" title="Settings">
                 <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
             </button>
-            <div class="profile-avatar-wrapper" id="profileBtn" title="User Profile">
-                <!-- Profile Image Element -->
+            <div class="profile-avatar" id="profileBtn" title="User Profile">
+                <i data-lucide="user" style="width: 18px; height: 18px;"></i>
             </div>
         </div>
     </header>
 
-    <!-- Side Overlays (Opening strictly from the right side) -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
     
     <div class="right-drawer" id="settingsDrawer">
-        <button class="drawer-close" id="closeSettings"><i data-lucide="x"></i></button>
+        <button class="drawer-close" id="closeSettings"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
         <div class="drawer-content">
             <h3>System Settings</h3>
-            <!-- Configuration items sit here -->
+            <div class="drawer-item-box">
+                <h4>Encryption Layer</h4>
+                <p>Real-time client session sandbox mapping verified.</p>
+            </div>
+            <div class="drawer-item-box">
+                <h4>Local Cache</h4>
+                <p>Status optimized. Persistent dynamic state engine active.</p>
+            </div>
         </div>
     </div>
 
     <div class="right-drawer" id="profileDrawer">
-        <button class="drawer-close" id="closeProfile"><i data-lucide="x"></i></button>
+        <button class="drawer-close" id="closeProfile"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
         <div class="drawer-content">
             <h3>Vault Profile</h3>
-            <!-- User configuration sits here -->
+            <div class="drawer-item-box">
+                <h4>Account Level</h4>
+                <p>Premium Single Workspace Authenticated.</p>
+            </div>
+            <div class="drawer-item-box">
+                <h4>Slot Index Counter</h4>
+                <p>9 Stock Slots Running / 21 Maximum Allocation.</p>
+            </div>
         </div>
     </div>
 
-    <!-- Application Layout Views -->
     <main class="main-container">
         
-        <!-- View 1: Landing State -->
         <section class="app-view active" id="viewLanding">
             <div class="landing-hero">
                 <h1>Top Tens</h1>
                 <p>Your personal dynamic Favorite-Things vault. Rank, sort, and track your favorite things in real time. Compare your tastes with your friends, or fuse your similar lists with theirs to discover what truly reigns supreme.</p>
                 <div class="hero-action-row">
                     <button class="gold-btn" id="enterVaultBtn">Enter Vault</button>
-                    <button class="gold-btn">Sign In</button>
+                    <button class="gold-btn" id="landingSignInBtn">Sign In</button>
                 </div>
             </div>
         </section>
 
-        <!-- View 2: Category Workspace State (No Stock Categories Intermediary) -->
         <section class="app-view" id="viewCategory">
-            <div class="category-dashboard">
+            <div class="dashboard-wrapper">
                 <div class="dashboard-panel">
                     <h2>Add Custom Categories—Up To 21 Total</h2>
                     <button class="add-category-btn">
                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add New Custom Category
                     </button>
+                    <div class="categories-grid" id="categoriesGridTarget">
+                        </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="app-view" id="viewItems">
+            <div class="items-wrapper">
+                <div class="item-creation-box">
+                    <div class="form-row">
+                        <input type="text" class="form-input" placeholder="Type item title...">
+                        <input type="text" class="form-input short-rank" placeholder="Rank (e.g. 1)">
+                    </div>
+                    <div class="form-row">
+                        <input type="text" class="form-input" placeholder="Reference URL Link (https://...)">
+                    </div>
+                    <div class="form-actions">
+                        <button class="media-upload-btn">Select Thumbnail (Img / Video ≤ 6s)</button>
+                        <button class="submit-item-btn">Add Item</button>
+                    </div>
+                </div>
+
+                <div class="ranked-items-stack" id="itemsListStackTarget">
+                    </div>
             </div>
         </section>
 
     </main>
 
     <script>
-        // Initialize Iconography Engine
-        lucide.createIcons();
+        // Data Vault Memory Array
+        const stockCategories = [
+            { id: 'shoes', name: 'Shoes', icon: '👟', count: 10, items: [
+                { rank: '# 1', title: 'adidas adiprene', url: '#' },
+                { rank: '# 2', title: 'Nike Air Max', url: '#' },
+                { rank: '# 3', title: 'New Balance 990v6', url: '#' }
+            ]},
+            { id: 'movies', name: 'Movies', icon: '🎬', count: 10, items: [] },
+            { id: 'restaurants', name: 'Restaurants', icon: '🍔', count: 10, items: [] },
+            { id: 'travel', name: 'Travel Destinations', icon: '✈️', count: 10, items: [] },
+            { id: 'books', name: 'Books', icon: '📚', count: 10, items: [] },
+            { id: 'albums', name: 'Albums', icon: '🎵', count: 10, items: [] },
+            { id: 'games', name: 'Video Games', icon: '🎮', count: 10, items: [] },
+            { id: 'gadgets', name: 'Tech Gadgets', icon: '💻', count: 10, items: [] },
+            { id: 'hottest', name: 'Hottest ?', icon: '🔥', count: 10, items: [] }
+        ];
 
-        // Background Engine: Gold Turning In Light (Sharp Pinpricks)
-        const shimmerLayer = document.getElementById('shimmerLayer');
-        const particleCount = 65;
-
-        for (let i = 0; i < particleCount; i++) {
-            const pinprick = document.createElement('div');
-            pinprick.classList.add('pinprick');
-            pinprick.style.left = `${Math.random() * 100}vw`;
-            pinprick.style.top = `${Math.random() * 100}vh`;
-            pinprick.style.animationDelay = `${Math.random() * 4}s`;
-            pinprick.style.animationDuration = `${1.5 + Math.random() * 2}s`;
-            shimmerLayer.appendChild(pinprick);
-        }
-
-        // View Management Engine
-        const viewLanding = document.getElementById('viewLanding');
-        const viewCategory = document.getElementById('viewCategory');
+        // Layout Routing State Core
+        const views = {
+            landing: document.getElementById('viewLanding'),
+            category: document.getElementById('viewCategory'),
+            items: document.getElementById('viewItems')
+        };
         const globalBackBtn = document.getElementById('globalBackBtn');
-        const enterVaultBtn = document.getElementById('enterVaultBtn');
+        const dynamicAppTitle = document.getElementById('dynamicAppTitle');
+        let currentViewState = 'landing';
 
-        function navigateToView(viewId) {
-            // Drop visibility states
-            viewLanding.classList.remove('active');
-            viewCategory.classList.remove('active');
+        function updateWorkspaceState(targetView, customHeaderLabel = 'TOP TENS') {
+            views.landing.classList.remove('active');
+            views.category.classList.remove('active');
+            views.items.classList.remove('active');
 
-            if (viewId === 'category') {
-                viewCategory.classList.add('active');
-                globalBackBtn.style.display = 'flex';
-            } else {
-                viewLanding.classList.add('active');
+            currentViewState = targetView;
+            views[targetView].classList.add('active');
+            dynamicAppTitle.innerText = customHeaderLabel.toUpperCase();
+
+            if (targetView === 'landing') {
                 globalBackBtn.style.display = 'none';
+            } else {
+                globalBackBtn.style.display = 'flex';
             }
         }
 
-        enterVaultBtn.addEventListener('click', () => navigateToView('category'));
-        globalBackBtn.addEventListener('click', () => navigateToView('landing'));
+        // Globalized Back Button Logic Routing
+        globalBackBtn.addEventListener('click', () => {
+            if (currentViewState === 'items') {
+                updateWorkspaceState('category');
+            } else if (currentViewState === 'category') {
+                updateWorkspaceState('landing');
+            }
+        });
 
-        // Right-Side Drawer Interaction Mechanics
+        // Trigger Entry & Login Routing Controls
+        document.getElementById('enterVaultBtn').addEventListener('click', () => updateWorkspaceState('category'));
+        document.getElementById('landingSignInBtn').addEventListener('click', () => updateWorkspaceState('category'));
+
+        // Grid Mapping Engine
+        function renderVaultCategories() {
+            const container = document.getElementById('categoriesGridTarget');
+            container.innerHTML = '';
+
+            stockCategories.forEach(cat => {
+                const card = document.createElement('div');
+                card.classList.add('category-card');
+                card.innerHTML = `
+                    <div class="category-icon">${cat.icon}</div>
+                    <div class="category-name">${cat.name}</div>
+                    <div class="category-counter">(${cat.count} items)</div>
+                `;
+                card.addEventListener('click', () => loadRankedItemTable(cat));
+                container.appendChild(card);
+            });
+        }
+
+        // Ranked Table Construction Router
+        function loadRankedItemTable(category) {
+            const listContainer = document.getElementById('itemsListStackTarget');
+            listContainer.innerHTML = '';
+
+            const itemsArray = category.items.length > 0 ? category.items : [
+                { rank: '# 1', title: `Sample ${category.name} Allocation Alpha`, url: '#' },
+                { rank: '# 2', title: `Sample ${category.name} Allocation Beta`, url: '#' }
+            ];
+
+            itemsArray.forEach(item => {
+                const row = document.createElement('div');
+                row.classList.add('ranked-item-row');
+                row.innerHTML = `
+                    <div class="item-identity">
+                        <div class="rank-badge">${item.rank}</div>
+                        <div class="item-title-text">${item.title}</div>
+                    </div>
+                    <div class="item-interactive-actions">
+                        <a href="${item.url}" class="visit-link-anchor" target="_blank">Visit Link</a>
+                        <div class="thumbnail-circle-placeholder"></div>
+                    </div>
+                `;
+                listContainer.appendChild(row);
+            });
+
+            updateWorkspaceState('items', category.name);
+        }
+
+        // High-Frequency Background Sparkle Generation Loop
+        const shimmerLayer = document.getElementById('shimmerLayer');
+        for (let i = 0; i < 65; i++) {
+            const spark = document.createElement('div');
+            spark.classList.add('pinprick');
+            spark.style.left = `${Math.random() * 100}vw`;
+            spark.style.top = `${Math.random() * 100}vh`;
+            spark.style.animationDelay = `${Math.random() * 4}s`;
+            spark.style.animationDuration = `${1.5 + Math.random() * 2}s`;
+            shimmerLayer.appendChild(spark);
+        }
+
+        // Sheet Drawers Orchestrator Mechanics (Slides from Right Edge)
         const drawerOverlay = document.getElementById('drawerOverlay');
         const settingsDrawer = document.getElementById('settingsDrawer');
         const profileDrawer = document.getElementById('profileDrawer');
 
-        const burgerBtn = document.getElementById('burgerBtn');
-        const profileBtn = document.getElementById('profileBtn');
-        const closeSettings = document.getElementById('closeSettings');
-        const closeProfile = document.getElementById('closeProfile');
-
-        function openDrawer(drawer) {
+        function triggerOpenDrawer(drawer) {
             drawerOverlay.classList.add('active');
             drawer.classList.add('active');
         }
 
-        function closeAllDrawers() {
+        function forceCloseDrawers() {
             drawerOverlay.classList.remove('active');
             settingsDrawer.classList.remove('active');
             profileDrawer.classList.remove('active');
         }
 
-        burgerBtn.addEventListener('click', () => openDrawer(settingsDrawer));
-        profileBtn.addEventListener('click', () => openDrawer(profileDrawer));
-        closeSettings.addEventListener('click', closeAllDrawers);
-        closeProfile.addEventListener('click', closeAllDrawers);
-        drawerOverlay.addEventListener('click', closeAllDrawers);
+        document.getElementById('burgerBtn').addEventListener('click', () => triggerOpenDrawer(settingsDrawer));
+        document.getElementById('profileBtn').addEventListener('click', () => triggerOpenDrawer(profileDrawer));
+        document.getElementById('closeSettings').addEventListener('click', forceCloseDrawers);
+        document.getElementById('closeProfile').addEventListener('click', forceCloseDrawers);
+        drawerOverlay.addEventListener('click', forceCloseDrawers);
+
+        // Shell Bootstrap Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderVaultCategories();
+        });
     </script>
 </body>
 </html>
