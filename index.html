@@ -41,16 +41,21 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 0;
+            /* Keeps the watermark explicitly pinned behind all panels and lists */
+            z-index: -1; 
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
         .vault-watermark {
-            width: 65vh;
-            height: 65vh;
-            opacity: 0.04; /* Maintains subtle integration underneath the content layer */
+            width: 55vh;
+            height: 55vh;
+            opacity: 0.05; /* Balanced subtle blending */
+            display: flex;
+            align-items: center;
+            justify-content: center;
             animation: slowVaultSpin 40s linear infinite;
         }
 
@@ -58,6 +63,7 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
+            display: block;
         }
 
         @keyframes slowVaultSpin {
@@ -116,22 +122,23 @@
         }
 
         .app-icon-box {
-            width: 38px;
-            height: 38px;
-            background-color: var(--panel-bg);
+            width: 42px;
+            height: 42px;
+            background-color: transparent;
             border: 1px solid var(--gold-primary);
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 0;
+            padding: 2px;
             overflow: hidden;
         }
 
         .app-icon-box img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
+            border-radius: 4px;
         }
 
         .back-btn {
@@ -574,10 +581,10 @@
 </head>
 <body>
 
-    <!-- Ambient Dynamic Layer with Real Asset Target -->
+    <!-- Ambient Dynamic Layer (Explicitly using root directory paths) -->
     <div class="ambient-background">
         <div class="vault-watermark">
-            <img src="frontend/AppIconTopTens.png" alt="Vault Watermark Asset">
+            <img src="./AppIconTopTens.png" alt="Vault Watermark Asset">
         </div>
     </div>
     <div class="shimmer-container" id="shimmerLayer"></div>
@@ -586,7 +593,7 @@
     <header class="app-header">
         <div class="header-left">
             <div class="app-icon-box">
-                <img src="frontend/AppIconTopTens.png" alt="Top Tens Logo">
+                <img src="./AppIconTopTens.png" alt="Top Tens Logo">
             </div>
             <button class="back-btn" id="globalBackBtn" style="display: none;">
                 <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i> BACK
