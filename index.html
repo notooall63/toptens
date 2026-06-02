@@ -50,12 +50,14 @@
         .vault-watermark {
             width: 65vh;
             height: 65vh;
-            opacity: 0.04;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d4af37' stroke-width='1.5'><circle cx='12' cy='12' r='10'></circle><path d='M12 2v4M12 18v4M4 12h4M16 12h4M12 6a6 6 0 0 1 6 6'></path></svg>");
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: contain;
+            opacity: 0.04; /* Maintains subtle integration underneath the content layer */
             animation: slowVaultSpin 40s linear infinite;
+        }
+
+        .vault-watermark img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
 
         @keyframes slowVaultSpin {
@@ -122,7 +124,14 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gold-primary);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .app-icon-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .back-btn {
@@ -565,15 +574,19 @@
 </head>
 <body>
 
+    <!-- Ambient Dynamic Layer with Real Asset Target -->
     <div class="ambient-background">
-        <div class="vault-watermark"></div>
+        <div class="vault-watermark">
+            <img src="frontend/AppIconTopTens.png" alt="Vault Watermark Asset">
+        </div>
     </div>
     <div class="shimmer-container" id="shimmerLayer"></div>
 
+    <!-- Master Shell Navigation Header -->
     <header class="app-header">
         <div class="header-left">
             <div class="app-icon-box">
-                <i data-lucide="shield-half" style="width: 20px; height: 20px;"></i>
+                <img src="frontend/AppIconTopTens.png" alt="Top Tens Logo">
             </div>
             <button class="back-btn" id="globalBackBtn" style="display: none;">
                 <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i> BACK
@@ -594,6 +607,7 @@
         </div>
     </header>
 
+    <!-- Side Navigation Sheets (Right Alignment Ingress) -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
     
     <div class="right-drawer" id="settingsDrawer">
@@ -626,8 +640,10 @@
         </div>
     </div>
 
+    <!-- Active Layout Canvas -->
     <main class="main-container">
         
+        <!-- View 1: Landing Stage -->
         <section class="app-view active" id="viewLanding">
             <div class="landing-hero">
                 <h1>Top Tens</h1>
@@ -639,6 +655,7 @@
             </div>
         </section>
 
+        <!-- View 2: Dashboard Workspace -->
         <section class="app-view" id="viewCategory">
             <div class="dashboard-wrapper">
                 <div class="dashboard-panel">
@@ -647,11 +664,13 @@
                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add New Custom Category
                     </button>
                     <div class="categories-grid" id="categoriesGridTarget">
-                        </div>
+                        <!-- Dynamic population target -->
+                    </div>
                 </div>
             </div>
         </section>
 
+        <!-- View 3: Ranked Lists / Items Workspace -->
         <section class="app-view" id="viewItems">
             <div class="items-wrapper">
                 <div class="item-creation-box">
@@ -669,7 +688,8 @@
                 </div>
 
                 <div class="ranked-items-stack" id="itemsListStackTarget">
-                    </div>
+                    <!-- Dynamic database results populate here -->
+                </div>
             </div>
         </section>
 
