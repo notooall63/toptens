@@ -3,47 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Top Tens | v3.5</title>
+    <title>Top Tens - Premium Dynamic Vault</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="app-header">
-        <div class="header-container">
-            <h1 class="gold-accent-text">TOP TENS</h1>
-            <div class="nav-controls">
-                <button class="nav-btn" onclick="openDrawer('settings')">Settings</button>
-                <button class="nav-btn" onclick="openDrawer('profile')">Profile</button>
-                <button class="nav-btn" onclick="openDrawer('signup')">Sign Up</button>
+    <div id="sparkle-canvas-layer"></div>
+
+    <header class="vault-app-header">
+        <div class="header-inner-wrapper">
+            <div class="header-brand-box" onclick="window.appEngine.handleBrandClick()">
+                <img src="AppIconTopTens.jpg" alt="Logo" class="header-logo-image" onerror="this.style.display='none'">
+                <h1 class="logo-text-serif">TOP TENS</h1>
+            </div>
+            
+            <div class="header-actions-box">
+                <button id="header-back-btn" class="header-back-trigger hidden" onclick="window.appEngine.navigateBack()">&larr; BACK</button>
+                <button id="header-avatar-btn" class="header-avatar-trigger hidden" onclick="window.appEngine.openDrawer('profile')">
+                    <div id="avatar-circle-display" class="avatar-frame-render"></div>
+                </button>
+                <button id="header-burger-btn" class="header-burger-trigger hidden" onclick="window.appEngine.openDrawer('settings')">&#9776;</button>
             </div>
         </div>
     </header>
 
-    <main id="app-root" class="app-container"></main>
+    <main id="app-root-viewport"></main>
 
-    <div id="app-drawer-overlay" class="drawer-overlay hidden" onclick="handleBackdropClick(event)">
-        <div id="drawer-signup" class="drawer-panel hidden" onclick="event.stopPropagation()">
-            <div class="drawer-header">
-                <h3>Sign Up</h3>
-                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
-            </div>
-            <div class="drawer-content">Sign Up Panel</div>
-        </div>
+    <div id="global-drawer-overlay" class="drawer-shade-backdrop hidden" onclick="window.appEngine.closeAllActiveDrawers()">
         
-        <div id="drawer-settings" class="drawer-panel hidden" onclick="event.stopPropagation()">
-            <div class="drawer-header">
-                <h3>Settings</h3>
-                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
+        <div id="drawer-signin" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
+            <div class="drawer-heading-wrapper">
+                <h3>Vault Security Gateway</h3>
+                <button class="drawer-close-x" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
             </div>
-            <div class="drawer-content">Settings Panel</div>
-        </div>
-        
-        <div id="drawer-profile" class="drawer-panel hidden" onclick="event.stopPropagation()">
-            <div class="drawer-header">
-                <h3>Profile</h3>
-                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
+            <div class="drawer-body-scroll">
+                <form id="vault-auth-form" onsubmit="window.appEngine.handleAuthenticationRun(event)">
+                    <div class="input-field-group">
+                        <label>Active Registration Email</label>
+                        <input type="email" id="auth-email-field" required placeholder="name@domain.com">
+                    </div>
+                    <div class="input-field-group">
+                        <label>Password Account Key</label>
+                        <input type="password" id="auth-pass-field" required placeholder="••••••••">
+                        <small class="pass-rules-text">Requires: 8-20 characters, 1 Upper, 1 Lower, 1 Number, 1 Special Char.</small>
+                    </div>
+                    <button type="submit" class="gold-gradient-submit-btn">AUTHENTICATE & DEPLOY</button>
+                </form>
+                <div id="auth-status-log-output"></div>
             </div>
-            <div class="drawer-content">Profile Panel</div>
         </div>
+
+        <div id="drawer-settings" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
+            <div class="drawer-heading-wrapper">
+                <h3>Global Configuration</h3>
+                <button class="drawer-close-x" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
+            </div>
+            <div class="drawer-body-scroll">
+                <div class="settings-action-block">
+                    <h4>Interface Theme Tuning</h4>
+                    <div class="toggle-flex-row">
+                        <button class="config-toggle-btn active" id="theme-dark-btn" onclick="window.appEngine.setApplicationTheme('dark')">Dark Mode</button>
+                        <button class="config-toggle-btn" id="theme-light-btn" onclick="window.appEngine.setApplicationTheme('light')">Light Mode</button>
+                    </div>
+                </div>
+
+                <div class="settings-action-block">
+                    <h4>Tier Allocations</h4>
+                    <p class="setting-desc-text">Free limits caps categories at 21 slots. Premium scales boundaries out to 99 stored list slots.</p>
+                    <button class="config-action-btn premium-trigger" onclick="window.appEngine.triggerPremiumUpgrade()">Upgrade Tier ($0.99/mo)</button>
+                </div>
+
+                <div class="settings-action-block">
+                    <h4>Social Fusion Engines</h4>
+                    <button class="config-action-btn" onclick="window.appEngine.showSocialFeatureNotice('Friends')">Manage Friends List</button>
+                    <button class="config-action-btn" onclick="window.appEngine.togglePrivacySettings()">Toggle Vault Visibility: <span id="privacy-status-lbl">PUBLIC</span></button>
+                    <button class="config-action-btn" onclick="window.appEngine.showSocialFeatureNotice('Compare')">Juxtapose 26 Vault Arrays (Compare)</button>
+                    <button class="config-action-btn" onclick="window.appEngine.showSocialFeatureNotice('Fuse')">Run Average Weight Synthesis (Fuse)</button>
+                </div>
+
+                <div class="settings-action-block" style="margin-top: 40px;">
+                    <button class="vault-wipe-danger-btn" onclick="window.appEngine.executeVaultWipeProcedure()">WIPE VAULT DATA</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="drawer-profile" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
+            <div class="drawer-heading-wrapper">
+                <h3>Identity Profile Ledger</h3>
+                <button class="drawer-close-x" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
+            </div>
+            <div class="drawer-body-scroll">
+                <div class="avatar-studio-enclosure">
+                    <div id="profile-avatar-preview-box" class="avatar-preview-circle"></div>
+                    <label class="avatar-upload-trigger-btn">
+                        Upload Asset Image / Video (&le; 6s)
+                        <input type="file" id="avatar-file-input" accept="image/*,video/*" onchange="window.appEngine.handleAvatarAssetUpload(event)" style="display:none;">
+                    </label>
+                </div>
+                <form id="profile-data-form" onsubmit="window.appEngine.saveProfileLedgerMetadata(event)">
+                    <div class="input-field-group"><label>Full Legal Name</label><input type="text" id="prof-name" placeholder="John Doe"></div>
+                    <div class="input-field-group"><label>Date of Birth</label><input type="date" id="prof-dob"></div>
+                    <div class="input-field-group"><label>Hometown Location</label><input type="text" id="prof-home" placeholder="New York, NY"></div>
+                    <div class="input-field-group"><label>Current Vocation</label><input type="text" id="prof-vocation" placeholder="Software Engineer"></div>
+                    <div class="input-field-group"><label>Verified Email</label><input type="email" id="prof-email" readonly></div>
+                    <div class="input-field-group"><label>Recovery Phone Channel</label><input type="tel" id="prof-phone" placeholder="+1 (555) 000-0000"></div>
+                    <button type="submit" class="gold-gradient-submit-btn">SAVE LEDGER PROFILE</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <script src="stockitems.js"></script>

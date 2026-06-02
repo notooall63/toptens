@@ -1,611 +1,172 @@
-// stockItems.js
-
-const STOCK_CATEGORIES = [
-  {
-    id: "shoes",
-    name: "Shoes",
-    description: "Iconic sneakers and footwear.",
-    items: [
-      {
-        rank: 1,
-        title: "Nike Air Max 1",
-        url: "https://www.nike.com/air-max-1",
-        thumbnail: "https://images.pexels.com/photos/2529148/pexels-photo-2529148.jpeg"
-      },
-      {
-        rank: 2,
-        title: "adidas Ultraboost",
-        url: "https://www.adidas.com/ultraboost",
-        thumbnail: "https://images.pexels.com/photos/1598505/pexels-photo-1598505.jpeg"
-      },
-      {
-        rank: 3,
-        title: "New Balance 990v6",
-        url: "https://www.newbalance.com/990v6",
-        thumbnail: "https://images.pexels.com/photos/2529147/pexels-photo-2529147.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Converse Chuck Taylor All Star",
-        url: "https://www.converse.com/chuck-taylor-all-star",
-        thumbnail: "https://images.pexels.com/photos/2529149/pexels-photo-2529149.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Nike Air Force 1",
-        url: "https://www.nike.com/air-force-1",
-        thumbnail: "https://images.pexels.com/photos/1598507/pexels-photo-1598507.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Vans Old Skool",
-        url: "https://www.vans.com/old-skool",
-        thumbnail: "https://images.pexels.com/photos/2529150/pexels-photo-2529150.jpeg"
-      },
-      {
-        rank: 7,
-        title: "adidas Superstar",
-        url: "https://www.adidas.com/superstar",
-        thumbnail: "https://images.pexels.com/photos/2529151/pexels-photo-2529151.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Jordan 1 Retro High",
-        url: "https://www.nike.com/jordan-1",
-        thumbnail: "https://images.pexels.com/photos/1598506/pexels-photo-1598506.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Asics Gel-Kayano",
-        url: "https://www.asics.com/gel-kayano",
-        thumbnail: "https://images.pexels.com/photos/2529152/pexels-photo-2529152.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Reebok Club C 85",
-        url: "https://www.reebok.com/club-c-85",
-        thumbnail: "https://images.pexels.com/photos/2529153/pexels-photo-2529153.jpeg"
-      }
-    ]
-  },
-  {
-    id: "inspiring-athletes",
-    name: "Inspiring Athletes",
-    description: "Athletes whose stories and performances inspire.",
-    items: [
-      {
-        rank: 1,
-        title: "Michael Jordan",
-        url: "https://en.wikipedia.org/wiki/Michael_Jordan",
-        thumbnail: "https://images.pexels.com/photos/1618200/pexels-photo-1618200.jpeg"
-      },
-      {
-        rank: 2,
-        title: "Serena Williams",
-        url: "https://en.wikipedia.org/wiki/Serena_Williams",
-        thumbnail: "https://images.pexels.com/photos/1103829/pexels-photo-1103829.jpeg"
-      },
-      {
-        rank: 3,
-        title: "Lionel Messi",
-        url: "https://en.wikipedia.org/wiki/Lionel_Messi",
-        thumbnail: "https://images.pexels.com/photos/3991871/pexels-photo-3991871.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Simone Biles",
-        url: "https://en.wikipedia.org/wiki/Simone_Biles",
-        thumbnail: "https://images.pexels.com/photos/799156/pexels-photo-799156.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Kobe Bryant",
-        url: "https://en.wikipedia.org/wiki/Kobe_Bryant",
-        thumbnail: "https://images.pexels.com/photos/1618201/pexels-photo-1618201.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Usain Bolt",
-        url: "https://en.wikipedia.org/wiki/Usain_Bolt",
-        thumbnail: "https://images.pexels.com/photos/163403/sprint-athletes-runner-male-163403.jpeg"
-      },
-      {
-        rank: 7,
-        title: "Naomi Osaka",
-        url: "https://en.wikipedia.org/wiki/Naomi_Osaka",
-        thumbnail: "https://images.pexels.com/photos/1103830/pexels-photo-1103830.jpeg"
-      },
-      {
-        rank: 8,
-        title: "LeBron James",
-        url: "https://en.wikipedia.org/wiki/LeBron_James",
-        thumbnail: "https://images.pexels.com/photos/1618210/pexels-photo-1618210.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Megan Rapinoe",
-        url: "https://en.wikipedia.org/wiki/Megan_Rapinoe",
-        thumbnail: "https://images.pexels.com/photos/3991870/pexels-photo-3991870.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Roger Federer",
-        url: "https://en.wikipedia.org/wiki/Roger_Federer",
-        thumbnail: "https://images.pexels.com/photos/1103831/pexels-photo-1103831.jpeg"
-      }
-    ]
-  },
-  {
-    id: "tech-devices",
-    name: "Tech Devices",
-    description: "Everyday tech that shapes modern life.",
-    items: [
-      {
-        rank: 1,
-        title: "iPhone 15 Pro",
-        url: "https://www.apple.com/iphone-15-pro/",
-        thumbnail: "https://images.pexels.com/photos/788946/pexels-photo-788946.jpeg"
-      },
-      {
-        rank: 2,
-        title: "MacBook Air M3",
-        url: "https://www.apple.com/macbook-air/",
-        thumbnail: "https://images.pexels.com/photos/18105/pexels-photo.jpg"
-      },
-      {
-        rank: 3,
-        title: "Samsung Galaxy S24",
-        url: "https://www.samsung.com/galaxy-s24/",
-        thumbnail: "https://images.pexels.com/photos/1092644/pexels-photo-1092644.jpeg"
-      },
-      {
-        rank: 4,
-        title: "iPad Pro",
-        url: "https://www.apple.com/ipad-pro/",
-        thumbnail: "https://images.pexels.com/photos/1334597/pexels-photo-1334597.jpeg"
-      },
-      {
-        rank: 5,
-        title: "PlayStation 5",
-        url: "https://www.playstation.com/ps5/",
-        thumbnail: "https://images.pexels.com/photos/8454348/pexels-photo-8454348.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Xbox Series X",
-        url: "https://www.xbox.com/series-x",
-        thumbnail: "https://images.pexels.com/photos/8454349/pexels-photo-8454349.jpeg"
-      },
-      {
-        rank: 7,
-        title: "Nintendo Switch OLED",
-        url: "https://www.nintendo.com/switch/oled-model/",
-        thumbnail: "https://images.pexels.com/photos/8454350/pexels-photo-8454350.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Kindle Paperwhite",
-        url: "https://www.amazon.com/kindle-paperwhite/",
-        thumbnail: "https://images.pexels.com/photos/267586/pexels-photo-267586.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Apple Watch",
-        url: "https://www.apple.com/apple-watch/",
-        thumbnail: "https://images.pexels.com/photos/437037/pexels-photo-437037.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Bose Noise Cancelling Headphones",
-        url: "https://www.bose.com/",
-        thumbnail: "https://images.pexels.com/photos/374870/pexels-photo-374870.jpeg"
-      }
-    ]
-  },
-  {
-    id: "celebrities",
-    name: "Celebrities",
-    description: "Famous personalities across entertainment.",
-    items: [
-      {
-        rank: 1,
-        title: "Dwayne Johnson",
-        url: "https://en.wikipedia.org/wiki/Dwayne_Johnson",
-        thumbnail: "https://images.pexels.com/photos/428364/pexels-photo-428364.jpeg"
-      },
-      {
-        rank: 2,
-        title: "Zendaya",
-        url: "https://en.wikipedia.org/wiki/Zendaya",
-        thumbnail: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
-      },
-      {
-        rank: 3,
-        title: "Keanu Reeves",
-        url: "https://en.wikipedia.org/wiki/Keanu_Reeves",
-        thumbnail: "https://images.pexels.com/photos/428339/pexels-photo-428339.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Taylor Swift",
-        url: "https://en.wikipedia.org/wiki/Taylor_Swift",
-        thumbnail: "https://images.pexels.com/photos/167636/pexels-photo-167636.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Rihanna",
-        url: "https://en.wikipedia.org/wiki/Rihanna",
-        thumbnail: "https://images.pexels.com/photos/428340/pexels-photo-428340.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Ryan Reynolds",
-        url: "https://en.wikipedia.org/wiki/Ryan_Reynolds",
-        thumbnail: "https://images.pexels.com/photos/428341/pexels-photo-428341.jpeg"
-      },
-      {
-        rank: 7,
-        title: "Emma Stone",
-        url: "https://en.wikipedia.org/wiki/Emma_Stone",
-        thumbnail: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Chris Hemsworth",
-        url: "https://en.wikipedia.org/wiki/Chris_Hemsworth",
-        thumbnail: "https://images.pexels.com/photos/428342/pexels-photo-428342.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Lady Gaga",
-        url: "https://en.wikipedia.org/wiki/Lady_Gaga",
-        thumbnail: "https://images.pexels.com/photos/428343/pexels-photo-428343.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Tom Holland",
-        url: "https://en.wikipedia.org/wiki/Tom_Holland",
-        thumbnail: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg"
-      }
-    ]
-  },
-  {
-    id: "post-2000-movies",
-    name: "Post 2000 Movies",
-    description: "Standout films released after 2000.",
-    items: [
-      {
-        rank: 1,
-        title: "The Dark Knight (2008)",
-        url: "https://www.imdb.com/title/tt0468569/",
-        thumbnail: "https://images.pexels.com/photos/799137/pexels-photo-799137.jpeg"
-      },
-      {
-        rank: 2,
-        title: "Inception (2010)",
-        url: "https://www.imdb.com/title/tt1375666/",
-        thumbnail: "https://images.pexels.com/photos/799158/pexels-photo-799158.jpeg"
-      },
-      {
-        rank: 3,
-        title: "The Social Network (2010)",
-        url: "https://www.imdb.com/title/tt1285016/",
-        thumbnail: "https://images.pexels.com/photos/799136/pexels-photo-799136.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Mad Max: Fury Road (2015)",
-        url: "https://www.imdb.com/title/tt1392190/",
-        thumbnail: "https://images.pexels.com/photos/799155/pexels-photo-799155.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Parasite (2019)",
-        url: "https://www.imdb.com/title/tt6751668/",
-        thumbnail: "https://images.pexels.com/photos/799159/pexels-photo-799159.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Gladiator (2000)",
-        url: "https://www.imdb.com/title/tt0172495/",
-        thumbnail: "https://images.pexels.com/photos/799160/pexels-photo-799160.jpeg"
-      },
-      {
-        rank: 7,
-        title: "The Lord of the Rings: The Return of the King (2003)",
-        url: "https://www.imdb.com/title/tt0167260/",
-        thumbnail: "https://images.pexels.com/photos/799161/pexels-photo-799161.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Whiplash (2014)",
-        url: "https://www.imdb.com/title/tt2582802/",
-        thumbnail: "https://images.pexels.com/photos/799162/pexels-photo-799162.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Interstellar (2014)",
-        url: "https://www.imdb.com/title/tt0816692/",
-        thumbnail: "https://images.pexels.com/photos/799163/pexels-photo-799163.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Spider-Man: Into the Spider-Verse (2018)",
-        url: "https://www.imdb.com/title/tt4633694/",
-        thumbnail: "https://images.pexels.com/photos/799164/pexels-photo-799164.jpeg"
-      }
-    ]
-  },
-  {
-    id: "90s-rap-songs",
-    name: "90s Rap Songs",
-    description: "Classic hip-hop tracks from the 1990s.",
-    items: [
-      {
-        rank: 1,
-        title: "Juicy – The Notorious B.I.G.",
-        url: "https://en.wikipedia.org/wiki/Juicy_(The_Notorious_B.I.G._song)",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 2,
-        title: "Nuthin' but a 'G' Thang – Dr. Dre ft. Snoop Dogg",
-        url: "https://en.wikipedia.org/wiki/Nuthin%27_but_a_%27G_Thang",
-        thumbnail: "https://images.pexels.com/photos/164716/pexels-photo-164716.jpeg"
-      },
-      {
-        rank: 3,
-        title: "California Love – 2Pac ft. Dr. Dre",
-        url: "https://en.wikipedia.org/wiki/California_Love",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 4,
-        title: "C.R.E.A.M. – Wu-Tang Clan",
-        url: "https://en.wikipedia.org/wiki/C.R.E.A.M.",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Hypnotize – The Notorious B.I.G.",
-        url: "https://en.wikipedia.org/wiki/Hypnotize_(song)",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Gin and Juice – Snoop Dogg",
-        url: "https://en.wikipedia.org/wiki/Gin_and_Juice",
-        thumbnail: "https://images.pexels.com/photos/164716/pexels-photo-164716.jpeg"
-      },
-      {
-        rank: 7,
-        title: "It Was a Good Day – Ice Cube",
-        url: "https://en.wikipedia.org/wiki/It_Was_a_Good_Day",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Rosa Parks – Outkast",
-        url: "https://en.wikipedia.org/wiki/Rosa_Parks_(song)",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Shook Ones (Part II) – Mobb Deep",
-        url: "https://en.wikipedia.org/wiki/Shook_Ones_(Part_II)",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Ms. Jackson – Outkast",
-        url: "https://en.wikipedia.org/wiki/Ms._Jackson",
-        thumbnail: "https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg"
-      }
-    ]
-  },
-  {
-    id: "post-2010-video-games",
-    name: "Post 2010 Video Games",
-    description: "Influential games released after 2010.",
-    items: [
-      {
-        rank: 1,
-        title: "The Last of Us (2013)",
-        url: "https://en.wikipedia.org/wiki/The_Last_of_Us",
-        thumbnail: "https://images.pexels.com/photos/8454348/pexels-photo-8454348.jpeg"
-      },
-      {
-        rank: 2,
-        title: "The Witcher 3: Wild Hunt (2015)",
-        url: "https://en.wikipedia.org/wiki/The_Witcher_3:_Wild_Hunt",
-        thumbnail: "https://images.pexels.com/photos/8454350/pexels-photo-8454350.jpeg"
-      },
-      {
-        rank: 3,
-        title: "Red Dead Redemption 2 (2018)",
-        url: "https://en.wikipedia.org/wiki/Red_Dead_Redemption_2",
-        thumbnail: "https://images.pexels.com/photos/8454349/pexels-photo-8454349.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Elden Ring (2022)",
-        url: "https://en.wikipedia.org/wiki/Elden_Ring",
-        thumbnail: "https://images.pexels.com/photos/8454351/pexels-photo-8454351.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Hades (2020)",
-        url: "https://en.wikipedia.org/wiki/Hades_(video_game)",
-        thumbnail: "https://images.pexels.com/photos/8454352/pexels-photo-8454352.jpeg"
-      },
-      {
-        rank: 6,
-        title: "God of War (2018)",
-        url: "https://en.wikipedia.org/wiki/God_of_War_(2018_video_game)",
-        thumbnail: "https://images.pexels.com/photos/8454353/pexels-photo-8454353.jpeg"
-      },
-      {
-        rank: 7,
-        title: "Breath of the Wild (2017)",
-        url: "https://en.wikipedia.org/wiki/The_Legend_of_Zelda:_Breath_of_the_Wild",
-        thumbnail: "https://images.pexels.com/photos/8454354/pexels-photo-8454354.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Fortnite (2017)",
-        url: "https://en.wikipedia.org/wiki/Fortnite",
-        thumbnail: "https://images.pexels.com/photos/8454355/pexels-photo-8454355.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Overwatch (2016)",
-        url: "https://en.wikipedia.org/wiki/Overwatch_(video_game)",
-        thumbnail: "https://images.pexels.com/photos/8454356/pexels-photo-8454356.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Stardew Valley (2016)",
-        url: "https://en.wikipedia.org/wiki/Stardew_Valley",
-        thumbnail: "https://images.pexels.com/photos/8454357/pexels-photo-8454357.jpeg"
-      }
-    ]
-  },
-  {
-    id: "novels",
-    name: "Novels",
-    description: "Beloved and influential works of fiction.",
-    items: [
-      {
-        rank: 1,
-        title: "1984 – George Orwell",
-        url: "https://en.wikipedia.org/wiki/Nineteen_Eighty-Four",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 2,
-        title: "To Kill a Mockingbird – Harper Lee",
-        url: "https://en.wikipedia.org/wiki/To_Kill_a_Mockingbird",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 3,
-        title: "The Great Gatsby – F. Scott Fitzgerald",
-        url: "https://en.wikipedia.org/wiki/The_Great_Gatsby",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Beloved – Toni Morrison",
-        url: "https://en.wikipedia.org/wiki/Beloved_(novel)",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 5,
-        title: "The Catcher in the Rye – J.D. Salinger",
-        url: "https://en.wikipedia.org/wiki/The_Catcher_in_the_Rye",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 6,
-        title: "One Hundred Years of Solitude – Gabriel García Márquez",
-        url: "https://en.wikipedia.org/wiki/One_Hundred_Years_of_Solitude",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 7,
-        title: "The Road – Cormac McCarthy",
-        url: "https://en.wikipedia.org/wiki/The_Road",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 8,
-        title: "The Name of the Wind – Patrick Rothfuss",
-        url: "https://en.wikipedia.org/wiki/The_Name_of_the_Wind",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Americanah – Chimamanda Ngozi Adichie",
-        url: "https://en.wikipedia.org/wiki/Americanah",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      },
-      {
-        rank: 10,
-        title: "The Kite Runner – Khaled Hosseini",
-        url: "https://en.wikipedia.org/wiki/The_Kite_Runner",
-        thumbnail: "https://images.pexels.com/photos/46274/pexels-photo-46274.jpeg"
-      }
-    ]
-  },
-  {
-    id: "restaurants",
-    name: "Restaurants",
-    description: "Notable spots for memorable meals.",
-    items: [
-      {
-        rank: 1,
-        title: "Eleven Madison Park – New York",
-        url: "https://www.elevenmadisonpark.com/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 2,
-        title: "Noma – Copenhagen",
-        url: "https://noma.dk/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 3,
-        title: "Osteria Francescana – Modena",
-        url: "https://www.osteriafrancescana.it/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 4,
-        title: "Pujol – Mexico City",
-        url: "https://pujol.com.mx/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 5,
-        title: "Central – Lima",
-        url: "https://centralrestaurante.com.pe/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 6,
-        title: "Gaggan – Bangkok",
-        url: "https://www.gaggananand.com/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 7,
-        title: "The French Laundry – Yountville",
-        url: "https://www.thomaskeller.com/tfl",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 8,
-        title: "Dishoom – London",
-        url: "https://www.dishoom.com/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 9,
-        title: "Din Tai Fung – Taipei",
-        url: "https://dintaifung.com.tw/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      },
-      {
-        rank: 10,
-        title: "Joe’s Pizza – New York",
-        url: "https://www.joespizzanyc.com/",
-        thumbnail: "https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg"
-      }
-    ]
-  }
-];
+/**
+ * Top Tens - Production Grade Stock Asset Matrix
+ * Core categories: Shoes, Inspiring Athletes, Tech Devices, Celebrities, 
+ * Post 2000 Movies, 90s Rap Songs, Post 2010 Video Games, Novels, Restaurants.
+ */
 
 function getFreshStockCategories() {
-  return JSON.parse(JSON.stringify(STOCK_CATEGORIES));
+    return [
+        {
+            id: "cat_shoes",
+            name: "Shoes",
+            icon: "👟",
+            description: "Iconic sneakers and defining footwear iterations.",
+            items: [
+                { rank: 1, title: "Nike Air Max 1", url: "https://www.nike.com", thumbnail: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150" },
+                { rank: 2, title: "adidas Ultraboost", url: "https://www.adidas.com", thumbnail: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=150" },
+                { rank: 3, title: "New Balance 990v6", url: "https://www.newbalance.com", thumbnail: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=150" },
+                { rank: 4, title: "Converse Chuck Taylor", url: "https://www.converse.com", thumbnail: "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=150" },
+                { rank: 5, title: "Nike Air Force 1", url: "https://www.nike.com", thumbnail: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=150" },
+                { rank: 6, title: "Vans Old Skool", url: "https://www.vans.com", thumbnail: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=150" },
+                { rank: 7, title: "adidas Superstar", url: "https://www.adidas.com", thumbnail: "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=150" },
+                { rank: 8, title: "Air Jordan 1 Retro", url: "https://www.nike.com", thumbnail: "https://images.unsplash.com/photo-1556906781-9a412961c28c?w=150" },
+                { rank: 9, title: "Asics Gel-Kayano", url: "https://www.asics.com", thumbnail: "https://images.unsplash.com/photo-1626448011293-fd427917651a?w=150" },
+                { rank: 10, title: "Reebok Club C 85", url: "https://www.reebok.com", thumbnail: "https://images.unsplash.com/photo-1605348532760-6753d2c43329?w=150" }
+            ]
+        },
+        {
+            id: "cat_athletes",
+            name: "Inspiring Athletes",
+            icon: "🏃‍♂️",
+            description: "Athletes whose stories and historic performances inspire.",
+            items: [
+                { rank: 1, title: "Michael Jordan", url: "https://www.nba.com", thumbnail: "https://images.unsplash.com/photo-1519766304817-4f37bda74a27?w=150" },
+                { rank: 2, title: "Muhammad Ali", url: "https://www.boxing.com", thumbnail: "https://images.unsplash.com/photo-1552667466-07770ae110d0?w=150" },
+                { rank: 3, title: "Serena Williams", url: "https://www.wtatennis.com", thumbnail: "https://images.unsplash.com/photo-1622279457486-62dce4a44526?w=150" },
+                { rank: 4, title: "Usain Bolt", url: "https://www.olympics.com", thumbnail: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=150" },
+                { rank: 5, title: "Lionel Messi", url: "https://www.fifa.com", thumbnail: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=150" },
+                { rank: 6, title: "Kobe Bryant", url: "https://www.nba.com", thumbnail: "https://images.unsplash.com/photo-1546519638-68e109498ffc?w=150" },
+                { rank: 7, title: "Simone Biles", url: "https://www.usagym.org", thumbnail: "https://images.unsplash.com/photo-1507398941214-572c25f4b1dc?w=150" },
+                { rank: 8, title: "Roger Federer", url: "https://www.atptour.com", thumbnail: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?w=150" },
+                { rank: 9, title: "Tiger Woods", url: "https://www.pgatour.com", thumbnail: "https://images.unsplash.com/photo-1535131749006-b7f58c99034b?w=150" },
+                { rank: 10, title: "Tom Brady", url: "https://www.nfl.com", thumbnail: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=150" }
+            ]
+        },
+        {
+            id: "cat_tech",
+            name: "Tech Devices",
+            icon: "💻",
+            description: "Hardware gear shaping consumer productivity systems.",
+            items: [
+                { rank: 1, title: "iPhone 15 Pro Max", url: "https://www.apple.com", thumbnail: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150" },
+                { rank: 2, title: "MacBook Pro M3", url: "https://www.apple.com", thumbnail: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150" },
+                { rank: 3, title: "iPad Pro OLED", url: "https://www.apple.com", thumbnail: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=150" },
+                { rank: 4, title: "Sony WH-1000XM5", url: "https://www.sony.com", thumbnail: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150" },
+                { rank: 5, title: "Samsung Galaxy S24 Ultra", url: "https://www.samsung.com", thumbnail: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=150" },
+                { rank: 6, title: "ASUS ROG Ally X", url: "https://www.asus.com", thumbnail: "https://images.unsplash.com/photo-1605901309584-818e25960a8f?w=150" },
+                { rank: 7, title: "Dell XPS 13", url: "https://www.dell.com", thumbnail: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=150" },
+                { rank: 8, title: "Meta Quest 3", url: "https://www.meta.com", thumbnail: "https://images.unsplash.com/photo-1593508512255-86ab42a8e620?w=150" },
+                { rank: 9, title: "Keychron Q1 Max", url: "https://www.keychron.com", thumbnail: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=150" },
+                { rank: 10, title: "Anker Prime PowerBank", url: "https://www.anker.com", thumbnail: "https://images.unsplash.com/photo-1624996379697-f01d168b1a52?w=150" }
+            ]
+        },
+        {
+            id: "cat_celebrities",
+            name: "Celebrities",
+            icon: "🎬",
+            description: "High-impact cultural and global personalities.",
+            items: [
+                { rank: 1, title: "Keanu Reeves", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150" },
+                { rank: 2, title: "Dwayne Johnson", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150" },
+                { rank: 3, title: "Tom Cruise", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150" },
+                { rank: 4, title: "Taylor Swift", url: "https://www.taylorswift.com", thumbnail: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=150" },
+                { rank: 5, title: "Leonardo DiCaprio", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150" },
+                { rank: 6, title: "Scarlett Johansson", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150" },
+                { rank: 7, title: "Robert Downey Jr.", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1489980508314-941910ded1f4?w=150" },
+                { rank: 8, title: "Rihanna", url: "https://www.rihanna.com", thumbnail: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" },
+                { rank: 9, title: "Brad Pitt", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1500048993953-d23a436266cf?w=150" },
+                { rank: 10, title: "Zendaya", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=150" }
+            ]
+        },
+        {
+            id: "cat_movies",
+            name: "Post 2000 Movies",
+            icon: "🎥",
+            description: "Modern cinematic masterpieces released after Y2K.",
+            items: [
+                { rank: 1, title: "Inception (2010)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=150" },
+                { rank: 2, title: "The Dark Knight (2008)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=150" },
+                { rank: 3, title: "Interstellar (2014)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=150" },
+                { rank: 4, title: "Mad Max: Fury Road", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=150" },
+                { rank: 5, title: "Gladiator (2000)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1559715745-e1b33a271c8f?w=150" },
+                { rank: 6, title: "Parasite (2019)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=150" },
+                { rank: 7, title: "Whiplash (2014)", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?w=150" },
+                { rank: 8, title: "The Lord of the Rings", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=150" },
+                { rank: 9, title: "No Country for Old Men", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1533928298208-27ff66555d8d?w=150" },
+                { rank: 10, title: "Everything Everywhere All at Once", url: "https://www.imdb.com", thumbnail: "https://images.unsplash.com/photo-1535016120720-40c646be5580?w=150" }
+            ]
+        },
+        {
+            id: "cat_rap",
+            name: "90s Rap Songs",
+            icon: "📻",
+            description: "Defining historical tracks from the golden era of hip-hop.",
+            items: [
+                { rank: 1, title: "Juicy - Notorious B.I.G.", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1484755560693-a4074577af3a?w=150" },
+                { rank: 2, title: "California Love - 2Pac", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=150" },
+                { rank: 3, title: "C.R.E.A.M. - Wu-Tang Clan", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150" },
+                { rank: 4, title: "Nuthin' But A G Thang - Dr. Dre", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1498038432885-c6f3f1b912ee?w=150" },
+                { rank: 5, title: "Shook Ones Pt. II - Mobb Deep", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=150" },
+                { rank: 6, title: "The World Is Yours - Nas", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=150" },
+                { rank: 7, title: "Hypnotize - Notorious B.I.G.", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=150" },
+                { rank: 8, title: "Dear Mama - 2Pac", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1528605248644-14dd04022da1?w=150" },
+                { rank: 9, title: "Regulate - Warren G", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1516280440614-37939bbacd6a?w=150" },
+                { rank: 10, title: "Mind Playing Tricks on Me", url: "https://www.spotify.com", thumbnail: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=150" }
+            ]
+        },
+        {
+            id: "cat_videogames",
+            name: "Post 2010 Video Games",
+            icon: "🎮",
+            description: "High-tier experiential software environments.",
+            items: [
+                { rank: 1, title: "Elden Ring (2022)", url: "https://www.bandainamcoent.com", thumbnail: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?w=150" },
+                { rank: 2, title: "The Witcher 3 (2015)", url: "https://www.cdprojektred.com", thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=150" },
+                { rank: 3, title: "Red Dead Redemption 2", url: "https://www.rockstargames.com", thumbnail: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=150" },
+                { rank: 4, title: "Zelda: Breath of the Wild", url: "https://www.nintendo.com", thumbnail: "https://images.unsplash.com/photo-1566241477600-ac026ad43874?w=150" },
+                { rank: 5, title: "GTA V (2013)", url: "https://www.rockstargames.com", thumbnail: "https://images.unsplash.com/photo-1552820728-8b83bb6b773f?w=150" },
+                { rank: 6, title: "The Last of Us Part II", url: "https://www.naughtydog.com", thumbnail: "https://images.unsplash.com/photo-1592155931584-901ac15763e3?w=150" },
+                { rank: 7, title: "God of War Ragnarok", url: "https://www.playstation.com", thumbnail: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=150" },
+                { rank: 8, title: "Cyberpunk 2077 (2020)", url: "https://www.cyberpunk.net", thumbnail: "https://images.unsplash.com/photo-1542751130-121f10c533c8?w=150" },
+                { rank: 9, title: "Minecraft (Modern Era)", url: "https://www.minecraft.net", thumbnail: "https://images.unsplash.com/photo-1605899435973-ca2d1a8861cf?w=150" },
+                { rank: 10, title: "Baldur's Gate 3 (2023)", url: "https://www.larian.com", thumbnail: "https://images.unsplash.com/photo-1511512578047-dfb367046420?w=150" }
+            ]
+        },
+        {
+            id: "cat_novels",
+            name: "Novels",
+            icon: "📚",
+            description: "Immersive literary works and defining fiction writing.",
+            items: [
+                { rank: 1, title: "The Great Gatsby", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=150" },
+                { rank: 2, title: "1804", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=150" },
+                { rank: 3, title: "To Kill a Mockingbird", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=150" },
+                { rank: 4, title: "Crime and Punishment", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1495640388908-05fa85288e61?w=150" },
+                { rank: 5, title: "One Hundred Years of Solitude", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150" },
+                { rank: 6, title: "The Catcher in the Rye", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=150" },
+                { rank: 7, title: "Brave New World", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?w=150" },
+                { rank: 8, title: "The Hobbit", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1629992101753-56d196c8aabb?w=150" },
+                { rank: 9, title: "Ulysses", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=150" },
+                { rank: 10, title: "The Odyssey", url: "https://www.goodreads.com", thumbnail: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?w=150" }
+            ]
+        },
+        {
+            id: "cat_restaurants",
+            name: "Restaurants",
+            icon: "🍔",
+            description: "World-class dining highlights and culinary institutions.",
+            items: [
+                { rank: 1, title: "Central (Lima)", url: "https://centralrestaurante.com.pe", thumbnail: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=150" },
+                { rank: 2, title: "Disfrutar (Barcelona)", url: "https://www.disfrutarbarcelona.com", thumbnail: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=150" },
+                { rank: 3, title: "Asador Etxebarri (Achondo)", url: "https://asadoretxebarri.com", thumbnail: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150" },
+                { rank: 4, title: "Alchemist (Copenhagen)", url: "https://alchemist.dk", thumbnail: "https://images.unsplash.com/photo-1544025162-d76694265947?w=150" },
+                { rank: 5, title: "Maido (Lima)", url: "https://www.maido.pe", thumbnail: "https://images.unsplash.com/photo-1592861956120-e524c7404709?w=150" },
+                { rank: 6, title: "Atomix (New York)", url: "https://www.atomixnyc.com", thumbnail: "https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=150" },
+                { rank: 7, title: "Quintonil (Mexico City)", url: "https://quintonil.com", thumbnail: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=150" },
+                { rank: 8, title: "Lido 84 (Gardone Riviera)", url: "https://www.ristorantelido84.com", thumbnail: "https://images.unsplash.com/photo-1424847651672-bf2c98a30026?w=150" },
+                { rank: 9, title: "Gaggan Anand (Bangkok)", url: "https://gaggananand.com", thumbnail: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=150" },
+                { rank: 10, title: "Le Bernardin (New York)", url: "https://www.le-bernardin.com", thumbnail: "https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=150" }
+            ]
+        }
+    ];
 }
