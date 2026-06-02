@@ -4,95 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Top Tens | v3.5</title>
-    <link rel="stylesheet" href="./style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-mode">
-
+<body>
     <header class="app-header">
-        <div class="header-left">
-            <div class="app-logo-icon" id="header-logo-icon">👑</div>
-        </div>
-        <h1 class="header-dynamic-title" id="app-main-title">TOP TENS</h1>
-        <div class="header-right">
-            <button id="header-burger-menu-btn" class="settings-burger-btn" aria-label="Open Settings Vault">
-                <span class="burger-bar"></span>
-                <span class="burger-bar"></span>
-                <span class="burger-bar"></span>
-            </button>
+        <h1 class="gold-accent-text">TOP TENS</h1>
+        <div class="nav-controls">
+            <button onclick="openDrawer('settings')">Settings</button>
+            <button onclick="openDrawer('profile')">Profile</button>
+            <button onclick="openDrawer('signup')">Sign Up</button>
         </div>
     </header>
-
-    <main class="app-container">
-        <section id="category-list-view" class="view-panel active">
-            <div class="view-header-row">
-                <h2 class="section-title">ADD CUSTOM CATEGORY</h2>
-                <div class="inline-creation-controls">
-                    <button id="add-new-category-btn" class="btn-action-primary">+ Add New Custom Category</button>
-                </div>
-            </div>
-            
-            <div id="categories-grid-container" class="grid-layout-matrix">
-                </div>
-        </section>
-    </main>
-
-    <aside id="app-drawer-overlay" class="drawer-overlay hidden">
-        <div class="drawer-panel">
-            <div class="drawer-header-row">
-                <h2 class="drawer-gold-title">VAULT CONTROL</h2>
-                <button id="drawer-close-button" class="btn-close-drawer" aria-label="Close Drawer">&times;</button>
-            </div>
-            
-            <hr class="drawer-divider">
-            
-            <div class="drawer-section-block">
-                <h3 class="drawer-section-heading">ACCOUNT PROFILE</h3>
-                <div class="drawer-profile-card">
-                    <div id="drawer-avatar-fallback-circle" class="drawer-avatar-fallback">U</div>
-                    <div class="drawer-profile-meta">
-                        <div id="drawer-profile-username-string" class="drawer-username-label">Anonymous User</div>
-                        <div id="drawer-profile-tier-badge" class="profile-status-badge unverified-tier">Local Vault Only</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="drawer-section-block">
-                <h3 class="drawer-section-heading">LIST FUSION IDENTITY</h3>
-                <p class="drawer-explanatory-prose">Set your verified email identity to sync active data changes to your backend data volume seamlessly.</p>
-                
-                <div class="drawer-input-group-row">
-                    <input type="email" id="drawer-user-identity-email" class="drawer-text-field" placeholder="name@domain.com">
-                    <button id="drawer-identity-save-btn" class="btn-drawer-action-primary">Save</button>
-                </div>
-                
-                <div id="drawer-password-hint" class="drawer-hint-prose hidden">
-                    Verification handshake initialized. Check your terminal logs for your 4-digit code.
-                </div>
-                
-                <div id="drawer-auth-box-wrapper" class="drawer-auth-entry-zone hidden">
-                    <input type="text" id="drawer-auth-password-input" class="drawer-text-field central-digit-spacing" placeholder="0000" maxlength="4">
-                    <div class="drawer-action-button-grid">
-                        <button id="drawer-auth-verify-submit-btn" class="btn-drawer-action-success">Verify</button>
-                        <button id="drawer-auth-cancel-btn" class="btn-drawer-action-cancel">Cancel</button>
-                    </div>
-                    <div id="drawer-auth-status-msg" class="hidden"></div>
-                </div>
-            </div>
-            
-            <hr class="drawer-divider">
-            
-            <div class="drawer-section-block">
-                <h3 class="drawer-section-heading">DATABASE ACTIONS</h3>
-                <button id="drawer-wipe-vault-core-btn" class="btn-drawer-action-danger">Wipe Entire Vault Database</button>
-            </div>
-            
-            <div class="drawer-footer-attribution">
-                FRAMEWORK NODE: V3.7 // LOCALHOST CLOUD
-            </div>
-        </div>
-    </aside>
-
-    <script src="./app.js"></script>
+    <main id="app-root"></main>
+    <div id="app-drawer-overlay" class="hidden">
+        <div id="drawer-signup" class="drawer-panel hidden">Sign Up Panel</div>
+        <div id="drawer-settings" class="drawer-panel hidden">Settings Panel</div>
+        <div id="drawer-profile" class="drawer-panel hidden">Profile Panel</div>
+    </div>
+    <script src="stockitems.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
