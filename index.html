@@ -41,20 +41,16 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: -1; 
+            z-index: 0;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
         }
 
         .vault-watermark {
-            width: 55vh;
-            height: 55vh;
-            opacity: 0.05; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 65vh;
+            height: 65vh;
+            opacity: 0.04; /* Maintains subtle integration underneath the content layer */
             animation: slowVaultSpin 40s linear infinite;
         }
 
@@ -62,7 +58,6 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            display: block;
         }
 
         @keyframes slowVaultSpin {
@@ -121,23 +116,22 @@
         }
 
         .app-icon-box {
-            width: 42px;
-            height: 42px;
-            background-color: transparent;
+            width: 38px;
+            height: 38px;
+            background-color: var(--panel-bg);
             border: 1px solid var(--gold-primary);
             border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2px;
+            padding: 0;
             overflow: hidden;
         }
 
         .app-icon-box img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
-            border-radius: 4px;
+            object-fit: cover;
         }
 
         .back-btn {
@@ -309,7 +303,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- View 1: Landing Stage Layout --- */
+        /* --- View 1: Landing State Layout --- */
         .landing-hero {
             text-align: center;
             max-width: 800px;
@@ -440,21 +434,11 @@
             font-size: 18px;
             font-weight: 700;
             color: #ffffff;
-            text-align: center;
-        }
-
-        .category-description {
-            font-size: 12px;
-            color: #62778f;
-            text-align: center;
-            line-height: 1.3;
         }
 
         .category-counter {
             font-size: 12px;
-            color: var(--gold-primary);
-            font-weight: bold;
-            margin-top: auto;
+            color: #62778f;
         }
 
         /* --- View 3: Rank List Content Stack --- */
@@ -537,7 +521,7 @@
             background-color: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 6px;
-            padding: 14px 24px;
+            padding: 18px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -579,79 +563,30 @@
             text-decoration: underline;
         }
 
-        .thumbnail-image-frame {
-            width: 46px;
-            height: 46px;
-            border-radius: 6px;
+        .thumbnail-circle-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #161f2b 0%, #0b1016 100%);
             border: 1px solid var(--panel-border);
-            overflow: hidden;
-            background-color: var(--bg-dark);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .thumbnail-image-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
         }
     </style>
-    <!-- Fallback if stockitems.js is missing or cross-origin errors manifest -->
-    <script>
-        window.getFreshStockCategories = window.getFreshStockCategories || function() {
-            return [
-                {
-                    id: "cat_shoes",
-                    name: "Shoes",
-                    icon: "👟",
-                    description: "Iconic sneakers and defining footwear iterations.",
-                    items: [
-                        { rank: 1, title: "Nike Air Max 1", url: "https://www.nike.com", thumbnail: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150" },
-                        { rank: 2, title: "adidas Ultraboost", url: "https://www.adidas.com", thumbnail: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=150" },
-                        { rank: 3, title: "New Balance 990v6", url: "https://www.newbalance.com", thumbnail: "https://images.unsplash.com/photo-1539185441755-769473a23570?w=150" }
-                    ]
-                },
-                {
-                    id: "cat_athletes",
-                    name: "Inspiring Athletes",
-                    icon: "🏃‍♂️",
-                    description: "Athletes whose stories and historic performances inspire.",
-                    items: [
-                        { rank: 1, title: "Michael Jordan", url: "https://www.nba.com", thumbnail: "https://images.unsplash.com/photo-1519766304817-4f37bda74a27?w=150" },
-                        { rank: 2, title: "Muhammad Ali", url: "https://www.boxing.com", thumbnail: "https://images.unsplash.com/photo-1552667466-07770ae110d0?w=150" }
-                    ]
-                },
-                {
-                    id: "cat_tech",
-                    name: "Tech Devices",
-                    icon: "💻",
-                    description: "Hardware gear shaping consumer productivity systems.",
-                    items: [
-                        { rank: 1, title: "iPhone 15 Pro Max", url: "https://www.apple.com", thumbnail: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150" },
-                        { rank: 2, title: "MacBook Pro M3", url: "https://www.apple.com", thumbnail: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150" }
-                    ]
-                }
-            ];
-        };
-    </script>
-    <script src="./stockitems.js" defer></script>
 </head>
 <body>
 
-    <!-- Ambient Dynamic Background Graphic -->
+    <!-- Ambient Dynamic Layer with Real Asset Target -->
     <div class="ambient-background">
         <div class="vault-watermark">
-            <img src="./AppIconTopTens.png" alt="Vault Watermark Asset" onerror="this.style.display='none'">
+            <img src="frontend/AppIconTopTens.png" alt="Vault Watermark Asset">
         </div>
     </div>
     <div class="shimmer-container" id="shimmerLayer"></div>
 
-    <!-- Master Nav Shell Shell -->
+    <!-- Master Shell Navigation Header -->
     <header class="app-header">
         <div class="header-left">
             <div class="app-icon-box">
-                <img src="./AppIconTopTens.png" alt="Top Tens Logo" onerror="this.style.display='none'">
+                <img src="frontend/AppIconTopTens.png" alt="Top Tens Logo">
             </div>
             <button class="back-btn" id="globalBackBtn" style="display: none;">
                 <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i> BACK
@@ -672,7 +607,7 @@
         </div>
     </header>
 
-    <!-- Slide Sheets Outlets -->
+    <!-- Side Navigation Sheets (Right Alignment Ingress) -->
     <div class="drawer-overlay" id="drawerOverlay"></div>
     
     <div class="right-drawer" id="settingsDrawer">
@@ -700,12 +635,12 @@
             </div>
             <div class="drawer-item-box">
                 <h4>Slot Index Counter</h4>
-                <p id="profileSlotCounter">0 Slots Active / 21 Max Allocation.</p>
+                <p>9 Stock Slots Running / 21 Maximum Allocation.</p>
             </div>
         </div>
     </div>
 
-    <!-- Active Canvas Workspace Area -->
+    <!-- Active Layout Canvas -->
     <main class="main-container">
         
         <!-- View 1: Landing Stage -->
@@ -724,12 +659,12 @@
         <section class="app-view" id="viewCategory">
             <div class="dashboard-wrapper">
                 <div class="dashboard-panel">
-                    <h2>Custom Matrix Core — Up To 21 Allocation Slots</h2>
-                    <button class="add-category-btn" id="addCategoryActionBtn">
+                    <h2>Add Custom Categories—Up To 21 Total</h2>
+                    <button class="add-category-btn">
                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Add New Custom Category
                     </button>
                     <div class="categories-grid" id="categoriesGridTarget">
-                        <!-- Populated completely from getFreshStockCategories engine -->
+                        <!-- Dynamic population target -->
                     </div>
                 </div>
             </div>
@@ -740,23 +675,20 @@
             <div class="items-wrapper">
                 <div class="item-creation-box">
                     <div class="form-row">
-                        <input type="text" id="inputItemTitle" class="form-input" placeholder="Type item title...">
-                        <input type="text" id="inputItemRank" class="form-input short-rank" placeholder="Rank (e.g. 1)">
+                        <input type="text" class="form-input" placeholder="Type item title...">
+                        <input type="text" class="form-input short-rank" placeholder="Rank (e.g. 1)">
                     </div>
                     <div class="form-row">
-                        <input type="text" id="inputItemUrl" class="form-input" placeholder="Reference URL Link (https://...)">
-                    </div>
-                    <div class="form-row">
-                        <input type="text" id="inputItemThumbnail" class="form-input" placeholder="Custom Image URL (https://...) [Optional]">
+                        <input type="text" class="form-input" placeholder="Reference URL Link (https://...)">
                     </div>
                     <div class="form-actions">
-                        <button class="media-upload-btn" onclick="alert('Local system file storage access ready. Paste image asset link in the input row.')">Upload Attachment</button>
-                        <button class="submit-item-btn" id="submitItemActionBtn">Add Item</button>
+                        <button class="media-upload-btn">Select Thumbnail (Img / Video ≤ 6s)</button>
+                        <button class="submit-item-btn">Add Item</button>
                     </div>
                 </div>
 
                 <div class="ranked-items-stack" id="itemsListStackTarget">
-                    <!-- Target for specific matrix stack array output -->
+                    <!-- Dynamic database results populate here -->
                 </div>
             </div>
         </section>
@@ -764,219 +696,147 @@
     </main>
 
     <script>
-        // --- Application State Architecture ---
-        const AppState = {
-            categories: [],
-            activeCategoryId: null,
-            maxSlots: 21
+        // Data Vault Memory Array
+        const stockCategories = [
+            { id: 'shoes', name: 'Shoes', icon: '👟', count: 10, items: [
+                { rank: '# 1', title: 'adidas adiprene', url: '#' },
+                { rank: '# 2', title: 'Nike Air Max', url: '#' },
+                { rank: '# 3', title: 'New Balance 990v6', url: '#' }
+            ]},
+            { id: 'movies', name: 'Movies', icon: '🎬', count: 10, items: [] },
+            { id: 'restaurants', name: 'Restaurants', icon: '🍔', count: 10, items: [] },
+            { id: 'travel', name: 'Travel Destinations', icon: '✈️', count: 10, items: [] },
+            { id: 'books', name: 'Books', icon: '📚', count: 10, items: [] },
+            { id: 'albums', name: 'Albums', icon: '🎵', count: 10, items: [] },
+            { id: 'games', name: 'Video Games', icon: '🎮', count: 10, items: [] },
+            { id: 'gadgets', name: 'Tech Gadgets', icon: '💻', count: 10, items: [] },
+            { id: 'hottest', name: 'Hottest ?', icon: '🔥', count: 10, items: [] }
+        ];
+
+        // Layout Routing State Core
+        const views = {
+            landing: document.getElementById('viewLanding'),
+            category: document.getElementById('viewCategory'),
+            items: document.getElementById('viewItems')
         };
+        const globalBackBtn = document.getElementById('globalBackBtn');
+        const dynamicAppTitle = document.getElementById('dynamicAppTitle');
+        let currentViewState = 'landing';
 
-        // --- View Navigation Controllers ---
-        function changeView(viewId) {
-            document.querySelectorAll('.app-view').forEach(view => {
-                view.classList.remove('active');
-            });
-            const targetView = document.getElementById(viewId);
-            if (targetView) targetView.classList.add('active');
+        function updateWorkspaceState(targetView, customHeaderLabel = 'TOP TENS') {
+            views.landing.classList.remove('active');
+            views.category.classList.remove('active');
+            views.items.classList.remove('active');
 
-            const backBtn = document.getElementById('globalBackBtn');
-            const appTitle = document.getElementById('dynamicAppTitle');
+            currentViewState = targetView;
+            views[targetView].classList.add('active');
+            dynamicAppTitle.innerText = customHeaderLabel.toUpperCase();
 
-            if (viewId === 'viewLanding') {
-                backBtn.style.display = 'none';
-                appTitle.innerText = 'Top Tens';
-            } else if (viewId === 'viewCategory') {
-                backBtn.style.display = 'none';
-                appTitle.innerText = 'Vault Matrix';
-            } else if (viewId === 'viewItems') {
-                backBtn.style.display = 'flex';
-                const currentCat = AppState.categories.find(c => c.id === AppState.activeCategoryId);
-                appTitle.innerText = currentCat ? currentCat.name : 'Ranked Stack';
+            if (targetView === 'landing') {
+                globalBackBtn.style.display = 'none';
+            } else {
+                globalBackBtn.style.display = 'flex';
             }
         }
 
-        // --- UI Rendering Operations ---
-        function renderCategories() {
-            const gridTarget = document.getElementById('categoriesGridTarget');
-            if (!gridTarget) return;
+        // Globalized Back Button Logic Routing
+        globalBackBtn.addEventListener('click', () => {
+            if (currentViewState === 'items') {
+                updateWorkspaceState('category');
+            } else if (currentViewState === 'category') {
+                updateWorkspaceState('landing');
+            }
+        });
 
-            gridTarget.innerHTML = '';
-            AppState.categories.forEach(cat => {
-                const totalItems = cat.items ? cat.items.length : 0;
-                
+        // Trigger Entry & Login Routing Controls
+        document.getElementById('enterVaultBtn').addEventListener('click', () => updateWorkspaceState('category'));
+        document.getElementById('landingSignInBtn').addEventListener('click', () => updateWorkspaceState('category'));
+
+        // Grid Mapping Engine
+        function renderVaultCategories() {
+            const container = document.getElementById('categoriesGridTarget');
+            container.innerHTML = '';
+
+            stockCategories.forEach(cat => {
                 const card = document.createElement('div');
-                card.className = 'category-card';
+                card.classList.add('category-card');
                 card.innerHTML = `
-                    <div class="category-icon">${cat.icon || '📁'}</div>
+                    <div class="category-icon">${cat.icon}</div>
                     <div class="category-name">${cat.name}</div>
-                    <div class="category-description">${cat.description || ''}</div>
-                    <div class="category-counter">${totalItems} Items Monitored</div>
+                    <div class="category-counter">(${cat.count} items)</div>
                 `;
-                
-                card.addEventListener('click', () => {
-                    AppState.activeCategoryId = cat.id;
-                    renderItemsStack();
-                    changeView('viewItems');
-                });
-
-                gridTarget.appendChild(card);
+                card.addEventListener('click', () => loadRankedItemTable(cat));
+                container.appendChild(card);
             });
-
-            // Refresh slot counter diagnostics
-            const counterLabel = document.getElementById('profileSlotCounter');
-            if (counterLabel) {
-                counterLabel.innerText = `${AppState.categories.length} Slots Active / ${AppState.maxSlots} Max Allocation.`;
-            }
         }
 
-        function renderItemsStack() {
-            const stackTarget = document.getElementById('itemsListStackTarget');
-            if (!stackTarget) return;
+        // Ranked Table Construction Router
+        function loadRankedItemTable(category) {
+            const listContainer = document.getElementById('itemsListStackTarget');
+            listContainer.innerHTML = '';
 
-            stackTarget.innerHTML = '';
-            const currentCat = AppState.categories.find(c => c.id === AppState.activeCategoryId);
-            if (!currentCat || !currentCat.items) return;
+            const itemsArray = category.items.length > 0 ? category.items : [
+                { rank: '# 1', title: `Sample ${category.name} Allocation Alpha`, url: '#' },
+                { rank: '# 2', title: `Sample ${category.name} Allocation Beta`, url: '#' }
+            ];
 
-            // Enforce clean numeric sort execution mapping 
-            const sortedItems = [...currentCat.items].sort((a, b) => parseInt(a.rank) - parseInt(b.rank));
-
-            sortedItems.forEach(item => {
+            itemsArray.forEach(item => {
                 const row = document.createElement('div');
-                row.className = 'ranked-item-row';
-                
-                const thumbMarkup = item.thumbnail 
-                    ? `<div class="thumbnail-image-frame"><img src="${item.thumbnail}" alt="" onerror="this.parentElement.style.display='none'"></div>`
-                    : '';
-
+                row.classList.add('ranked-item-row');
                 row.innerHTML = `
                     <div class="item-identity">
-                        <span class="rank-badge">#${item.rank}</span>
-                        ${thumbMarkup}
-                        <span class="item-title-text">${item.title}</span>
+                        <div class="rank-badge">${item.rank}</div>
+                        <div class="item-title-text">${item.title}</div>
                     </div>
                     <div class="item-interactive-actions">
-                        ${item.url ? `<a href="${item.url}" target="_blank" class="visit-link-anchor">VISIT REFERENCE</a>` : ''}
+                        <a href="${item.url}" class="visit-link-anchor" target="_blank">Visit Link</a>
+                        <div class="thumbnail-circle-placeholder"></div>
                     </div>
                 `;
-                stackTarget.appendChild(row);
+                listContainer.appendChild(row);
             });
+
+            updateWorkspaceState('items', category.name);
         }
 
-        // --- Gold Pinprick Background Logic ---
-        function generateAmbientShimmers() {
-            const container = document.getElementById('shimmerLayer');
-            if (!container) return;
-            const fragment = document.createDocumentFragment();
-            for (let i = 0; i < 45; i++) {
-                const dot = document.createElement('div');
-                dot.className = 'pinprick';
-                dot.style.top = `${Math.random() * 100}vh`;
-                dot.style.left = `${Math.random() * 100}vw`;
-                dot.style.animationDelay = `${Math.random() * 3}s`;
-                fragment.appendChild(dot);
-            }
-            container.appendChild(fragment);
+        // High-Frequency Background Sparkle Generation Loop
+        const shimmerLayer = document.getElementById('shimmerLayer');
+        for (let i = 0; i < 65; i++) {
+            const spark = document.createElement('div');
+            spark.classList.add('pinprick');
+            spark.style.left = `${Math.random() * 100}vw`;
+            spark.style.top = `${Math.random() * 100}vh`;
+            spark.style.animationDelay = `${Math.random() * 4}s`;
+            spark.style.animationDuration = `${1.5 + Math.random() * 2}s`;
+            shimmerLayer.appendChild(spark);
         }
 
-        // --- Modular Drawers Logic ---
-        function initDrawerPair(triggerId, drawerId, closeId) {
-            const trigger = document.getElementById(triggerId);
-            const drawer = document.getElementById(drawerId);
-            const closeBtn = document.getElementById(closeId);
-            const overlay = document.getElementById('drawerOverlay');
+        // Sheet Drawers Orchestrator Mechanics (Slides from Right Edge)
+        const drawerOverlay = document.getElementById('drawerOverlay');
+        const settingsDrawer = document.getElementById('settingsDrawer');
+        const profileDrawer = document.getElementById('profileDrawer');
 
-            if (!trigger || !drawer || !overlay) return;
-
-            const openDrawer = () => {
-                drawer.classList.add('active');
-                overlay.classList.add('active');
-            };
-
-            const shutDrawer = () => {
-                drawer.classList.remove('active');
-                overlay.classList.remove('active');
-            };
-
-            trigger.addEventListener('click', openDrawer);
-            if (closeBtn) closeBtn.addEventListener('click', shutDrawer);
-            overlay.addEventListener('click', shutDrawer);
+        function triggerOpenDrawer(drawer) {
+            drawerOverlay.classList.add('active');
+            drawer.classList.add('active');
         }
 
-        // --- Core Setup Implementation ---
+        function forceCloseDrawers() {
+            drawerOverlay.classList.remove('active');
+            settingsDrawer.classList.remove('active');
+            profileDrawer.classList.remove('active');
+        }
+
+        document.getElementById('burgerBtn').addEventListener('click', () => triggerOpenDrawer(settingsDrawer));
+        document.getElementById('profileBtn').addEventListener('click', () => triggerOpenDrawer(profileDrawer));
+        document.getElementById('closeSettings').addEventListener('click', forceCloseDrawers);
+        document.getElementById('closeProfile').addEventListener('click', forceCloseDrawers);
+        drawerOverlay.addEventListener('click', forceCloseDrawers);
+
+        // Shell Bootstrap Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize Lucide asset library mappings
-            if (window.lucide) window.lucide.createIcons();
-            generateAmbientShimmers();
-
-            // Run core payload array matrix parsing
-            if (typeof window.getFreshStockCategories === 'function') {
-                AppState.categories = window.getFreshStockCategories();
-            }
-            renderCategories();
-
-            // Navigation Bindings
-            document.getElementById('enterVaultBtn')?.addEventListener('click', () => changeView('viewCategory'));
-            document.getElementById('landingSignInBtn')?.addEventListener('click', () => changeView('viewCategory'));
-            document.getElementById('globalBackBtn')?.addEventListener('click', () => changeView('viewCategory'));
-
-            // Setup Sheets Drawers Engines
-            initDrawerPair('burgerBtn', 'settingsDrawer', 'closeSettings');
-            initDrawerPair('profileBtn', 'profileDrawer', 'closeProfile');
-
-            // Category Insertion Interface
-            document.getElementById('addCategoryActionBtn')?.addEventListener('click', () => {
-                if (AppState.categories.length >= AppState.maxSlots) {
-                    alert('Allocation allocation limit breached. Maximum 21 active matrix category channels reached.');
-                    return;
-                }
-                const name = prompt('Enter your Custom Category name:');
-                if (!name || name.trim() === '') return;
-
-                const uniqueId = 'cat_custom_' + Date.now();
-                AppState.categories.push({
-                    id: uniqueId,
-                    name: name.trim(),
-                    icon: '🌟',
-                    description: 'User initiated custom vault tracking category.',
-                    items: []
-                });
-                renderCategories();
-            });
-
-            // Stack Item Submission Pipeline Execution Target
-            document.getElementById('submitItemActionBtn')?.addEventListener('click', () => {
-                const titleInput = document.getElementById('inputItemTitle');
-                const rankInput = document.getElementById('inputItemRank');
-                const urlInput = document.getElementById('inputItemUrl');
-                const thumbInput = document.getElementById('inputItemThumbnail');
-
-                if (!titleInput || !rankInput) return;
-
-                const title = titleInput.value.trim();
-                const rank = parseInt(rankInput.value.trim());
-                const url = urlInput ? urlInput.value.trim() : '';
-                const thumbnail = thumbInput ? thumbInput.value.trim() : '';
-
-                if (!title || isNaN(rank)) {
-                    alert('Data error validation failure. Explicit Title string and valid numeric Rank value integers required.');
-                    return;
-                }
-
-                const currentCat = AppState.categories.find(c => c.id === AppState.activeCategoryId);
-                if (currentCat) {
-                    if (!currentCat.items) currentCat.items = [];
-                    currentCat.items.push({ rank, title, url, thumbnail });
-                    
-                    // Clear out standard input inputs
-                    titleInput.value = '';
-                    rankInput.value = '';
-                    if (urlInput) urlInput.value = '';
-                    if (thumbInput) thumbInput.value = '';
-
-                    renderItemsStack();
-                    renderCategories();
-                }
-            });
+            lucide.createIcons();
+            renderVaultCategories();
         });
     </script>
 </body>
