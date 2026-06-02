@@ -6,30 +6,32 @@ function renderAppLayout() {
     const root = document.getElementById('app-root');
     if (!root) return;
 
-    // Fetch the raw category objects from stockitems.js
     const categories = typeof getFreshStockCategories === 'function' 
         ? getFreshStockCategories() 
         : [];
 
     if (categories.length === 0) {
-        root.innerHTML = `<div style="color: #ff4444; padding: 20px; text-align: center;">No categories found to display.</div>`;
+        root.innerHTML = `<div class="error-message">No categories found to display.</div>`;
         return;
     }
 
-    // Map categories into dark grid containers matching your mobile preference
     let htmlContent = '';
     categories.forEach(category => {
         htmlContent += `
-            <section class="category-group" style="margin-bottom: 30px; padding: 15px;">
-                <h2 class="category-header" style="color: #ffd700; font-size: 1.4rem; margin-bottom: 5px;">${category.name}</h2>
-                <p class="category-desc" style="color: #aaaaaa; font-size: 0.9rem; margin-bottom: 15px;">${category.description}</p>
-                <div class="items-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;">
+            <section class="category-group">
+                <div class="category-info">
+                    <h2 class="category-header">${category.name}</h2>
+                    <p class="category-desc">${category.description}</p>
+                </div>
+                <div class="items-grid">
                     ${category.items.map(item => `
-                        <div class="item-card" style="background: #111111; border: 1px solid #222222; border-radius: 8px; padding: 10px; text-align: center;">
-                            <div class="rank-badge" style="color: #ffd700; font-weight: bold; margin-bottom: 5px;">#${item.rank}</div>
-                            <img src="${item.thumbnail}" alt="${item.title}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 8px;" onerror="this.src='AppIconTopTens.jpg'">
-                            <div class="item-title" style="font-size: 0.85rem; font-weight: 500; color: #ffffff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                <a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color: #ffffff; text-decoration: none;">${item.title}</a>
+                        <div class="item-card">
+                            <div class="rank-badge">#${item.rank}</div>
+                            <div class="thumbnail-wrapper">
+                                <img src="${item.thumbnail}" alt="${item.title}" class="card-thumb" onerror="this.style.display='none'">
+                            </div>
+                            <div class="item-title-box">
+                                <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="item-link">${item.title}</a>
                             </div>
                         </div>
                     `).join('')}
@@ -41,18 +43,28 @@ function renderAppLayout() {
     root.innerHTML = htmlContent;
 }
 
+/* Drawer UI Mechanics */
 function openDrawer(type) {
-    document.querySelectorAll('.drawer-panel').forEach(d => d.classList.add('hidden'));
-    const targetedDrawer = document.getElementById(`drawer-${type}`);
-    if (targetedDrawer) targetedDrawer.classList.remove('hidden');
+    // Hide all panels first
+    document.querySelectorAll('.drawer-panel').forEach(panel => panel.classList.add('hidden'));
     
-    const overlay = document.getElementById('app-drawer-overlay');
-    if (overlay) overlay.classList.remove('hidden');
+    // Reveal target panel
+    const targetedPanel = document.getElementById(`drawer-${type}`);
+    if (targetedPanel) {
+        targetedPanel.classList.remove('hidden');
+        document.getElementById('app-drawer-overlay').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // Lock background scrolling
+    }
 }
 
-const overlayEl = document.getElementById('app-drawer-overlay');
-if (overlayEl) {
-    overlayEl.addEventListener('click', (e) => {
-        if (e.target.id === 'app-drawer-overlay') e.target.classList.add('hidden');
-    });
+function closeAllDrawers() {
+    document.getElementById('app-drawer-overlay').classList.add('hidden');
+    document.querySelectorAll('.drawer-panel').forEach(panel => panel.classList.add('hidden'));
+    document.body.style.overflow = ''; // Restore layout scroll
+}
+
+function handleBackdropClick(event) {
+    if (event.target.id === 'app-drawer-overlay') {
+        closeAllDrawers();
+    }
 }

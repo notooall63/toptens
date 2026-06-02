@@ -2,25 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Top Tens | v3.5</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="app-header">
-        <h1 class="gold-accent-text">TOP TENS</h1>
-        <div class="nav-controls">
-            <button onclick="openDrawer('settings')">Settings</button>
-            <button onclick="openDrawer('profile')">Profile</button>
-            <button onclick="openDrawer('signup')">Sign Up</button>
+        <div class="header-container">
+            <h1 class="gold-accent-text">TOP TENS</h1>
+            <div class="nav-controls">
+                <button class="nav-btn" onclick="openDrawer('settings')">Settings</button>
+                <button class="nav-btn" onclick="openDrawer('profile')">Profile</button>
+                <button class="nav-btn" onclick="openDrawer('signup')">Sign Up</button>
+            </div>
         </div>
     </header>
-    <main id="app-root"></main>
-    <div id="app-drawer-overlay" class="hidden">
-        <div id="drawer-signup" class="drawer-panel hidden">Sign Up Panel</div>
-        <div id="drawer-settings" class="drawer-panel hidden">Settings Panel</div>
-        <div id="drawer-profile" class="drawer-panel hidden">Profile Panel</div>
+
+    <main id="app-root" class="app-container"></main>
+
+    <div id="app-drawer-overlay" class="drawer-overlay hidden" onclick="handleBackdropClick(event)">
+        <div id="drawer-signup" class="drawer-panel hidden" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <h3>Sign Up</h3>
+                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
+            </div>
+            <div class="drawer-content">Sign Up Panel</div>
+        </div>
+        
+        <div id="drawer-settings" class="drawer-panel hidden" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <h3>Settings</h3>
+                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
+            </div>
+            <div class="drawer-content">Settings Panel</div>
+        </div>
+        
+        <div id="drawer-profile" class="drawer-panel hidden" onclick="event.stopPropagation()">
+            <div class="drawer-header">
+                <h3>Profile</h3>
+                <button class="close-btn" onclick="closeAllDrawers()">&times;</button>
+            </div>
+            <div class="drawer-content">Profile Panel</div>
+        </div>
     </div>
+
     <script src="stockitems.js"></script>
     <script src="app.js"></script>
 </body>
