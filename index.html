@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens</title>
+    <title>Top Tens Vault</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+    <div id="sparkle-canvas" class="sparkle-container"></div>
+
     <div id="landing-page" class="view-layer active">
         <div class="landing-hero">
-            <h1>Top Tens</h1>
-            <p>Your curated world in ranked orders.</p>
+            <img src="AppIconTopTens.png" alt="Top Tens Vault" class="app-hero-logo">
+            <h1>THE VAULT</h1>
+            <p>Your curated reality in ranked absolute tiers.</p>
             <div class="landing-actions">
-                <button id="btn-enter" class="btn-primary">Enter App</button>
+                <button id="btn-enter" class="btn-primary">Enter Vault As Guest</button>
                 <button id="btn-landing-signin" class="btn-secondary">Sign In</button>
             </div>
         </div>
@@ -23,13 +26,14 @@
         <header class="app-header">
             <div class="header-left">
                 <button id="btn-back" class="icon-btn hidden">←</button>
-                <span id="app-title" class="brand-title">Top Tens</span>
+                <img src="AppIconTopTens.png" alt="Logo" class="header-logo">
+                <span id="app-title" class="brand-title">THE VAULT</span>
             </div>
             <div class="header-right">
-                <button id="btn-avatar" class="avatar-icon-btn" aria-label="Profile View">
-                    <div id="avatar-display" class="avatar-placeholder">U</div>
+                <button id="btn-avatar" class="avatar-icon-btn" aria-label="Profile">
+                    <div id="avatar-display" class="avatar-placeholder">G</div>
                 </button>
-                <button id="btn-burger" class="burger-menu-btn" aria-label="Settings Configuration">
+                <button id="btn-burger" class="burger-menu-btn" aria-label="Settings">
                     <span></span>
                     <span></span>
                     <span></span>
@@ -39,11 +43,17 @@
 
         <main class="app-container">
             <section id="categories-view" class="sub-view active">
+                <div class="view-controls-bar">
+                    <button id="btn-add-category" class="btn-primary compact-btn">+ Add Category</button>
+                </div>
                 <div id="categories-grid" class="category-grid"></div>
             </section>
 
             <section id="list-view" class="sub-view">
-                <h2 id="current-list-title">Category Items</h2>
+                <div class="list-header-row">
+                    <h2 id="current-list-title">Category Title</h2>
+                    <button id="btn-add-item" class="btn-primary compact-btn">+ Add Item</button>
+                </div>
                 <div id="items-list" class="items-list-container"></div>
             </section>
         </main>
@@ -51,75 +61,132 @@
 
     <div id="drawer-overlay" class="drawer-overlay"></div>
 
-    <div id="drawer-signin" class="app-drawer" data-position="right">
+    <div id="drawer-signin" class="app-drawer" data-position="left">
         <div class="drawer-header">
-            <h3>Account Access</h3>
-            <button class="close-drawer-btn" aria-label="Close Drawer">&times;</button>
+            <h3>Secure Verification</h3>
+            <button class="close-drawer-btn">&times;</button>
         </div>
         <div class="drawer-content">
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab-btn active">Sign In</button>
+                <button id="tab-register" class="auth-tab-btn">Register</button>
+            </div>
             <form id="auth-form" class="auth-form">
                 <div class="form-group">
-                    <label for="auth-username">Username</label>
-                    <input type="text" id="auth-username" required placeholder="Enter username">
+                    <label for="auth-email">Email Address</label>
+                    <input type="email" id="auth-email" required placeholder="name@domain.com">
                 </div>
                 <div class="form-group">
-                    <label for="auth-password">Password</label>
-                    <input type="password" id="auth-password" required placeholder="Enter password">
+                    <label for="auth-password">Secret Password</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••">
+                    <small class="password-specs">Requires: 8-20 chars, 1 Upper, 1 Lower, 1 Num, 1 Special Char.</small>
                 </div>
-                <button type="submit" class="btn-primary full-width">Sign In / Register</button>
+                <button type="submit" id="auth-submit-btn" class="btn-primary full-width">Execute Access</button>
             </form>
             <div id="auth-message" class="auth-feedback"></div>
         </div>
     </div>
 
-    <div id="drawer-settings" class="app-drawer" data-position="right">
+    <div id="drawer-settings" class="app-drawer" data-position="left">
         <div class="drawer-header">
-            <h3>Configuration</h3>
-            <button class="close-drawer-btn" aria-label="Close Drawer">&times;</button>
+            <h3>Configuration Panel</h3>
+            <button class="close-drawer-btn">&times;</button>
         </div>
         <div class="drawer-content">
             <ul class="settings-list">
                 <li class="settings-item">
-                    <span>Dark Theme</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-dark-mode">
-                        <span class="slider"></span>
-                    </label>
-                </li>
-                <li class="settings-item">
-                    <span>Compact Interface</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggle-compact">
-                        <span class="slider"></span>
-                    </label>
+                    <span>Aesthetic Themes</span>
+                    <div class="theme-switch-group">
+                        <button id="btn-theme-dark" class="btn-secondary active">Dark</button>
+                        <button id="btn-theme-light" class="btn-secondary">Light</button>
+                    </div>
                 </li>
                 <li class="settings-item separator"></li>
                 <li class="settings-item action-row">
-                    <button id="btn-settings-signin" class="btn-secondary full-width">Sign In to Sync Data</button>
+                    <button id="btn-settings-signin" class="btn-primary full-width">Sign In To Sync</button>
+                </li>
+                <li class="settings-item">
+                    <button id="btn-upgrade" class="btn-gold-action full-width">Upgrade Tier (99 Vaults) — $0.99/mo</button>
+                </li>
+                <li class="settings-item">
+                    <button id="btn-add-friends" class="btn-secondary full-width">Manage Friends List</button>
+                </li>
+                <li class="settings-item">
+                    <button id="btn-social-public" class="btn-secondary full-width">Privacy: Public / Private</button>
+                </li>
+                <li class="settings-item">
+                    <button id="btn-social-compare" class="btn-secondary full-width">Juxtapose & Compare Lists</button>
+                </li>
+                <li class="settings-item">
+                    <button id="btn-social-fuse" class="btn-secondary full-width">Weight-Average Fuse Lists</button>
+                </li>
+                <li class="settings-item separator"></li>
+                <li class="settings-item">
+                    <button id="btn-vault-wipe" class="btn-danger full-width">Wipe Vault Instantly</button>
                 </li>
             </ul>
         </div>
     </div>
 
-    <div id="drawer-profile" class="app-drawer" data-position="right">
+    <div id="drawer-profile" class="app-drawer" data-position="left">
         <div class="drawer-header">
-            <h3>User Profile</h3>
-            <button class="close-drawer-btn" aria-label="Close Drawer">&times;</button>
+            <h3>Vault Ownership Identity</h3>
+            <button class="close-drawer-btn">&times;</button>
         </div>
         <div class="drawer-content">
             <div class="profile-card">
-                <div id="profile-avatar-large" class="profile-avatar-large">U</div>
-                <h4 id="profile-username">Guest User</h4>
-                <p id="profile-status">Local Session</p>
+                <div class="avatar-edit-container">
+                    <img id="profile-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236c757d'><circle cx='12' cy='12' r='12'/></svg>" class="avatar-preview-display" alt="Avatar">
+                    <label for="avatar-file-upload" class="avatar-upload-trigger">Edit</label>
+                    <input type="file" id="avatar-file-upload" accept="image/*">
+                </div>
+                <h4 id="profile-display-name">Guest Node</h4>
+                <p id="profile-display-status" class="gold-badge">Read-Only Session</p>
             </div>
-            <ul class="profile-actions">
-                <li><button id="btn-profile-sync" class="btn-text">Sync Cloud Configurations</button></li>
-                <li><button id="btn-logout" class="btn-danger-text hidden">Sign Out of Session</button></li>
-            </ul>
+            
+            <div class="profile-editable-fields">
+                <div class="form-group">
+                    <label>Full Legal Name</label>
+                    <input type="text" id="prof-name" placeholder="Not Shared">
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="prof-dob">
+                </div>
+                <div class="form-group">
+                    <label>Hometown</label>
+                    <input type="text" id="prof-hometown" placeholder="Not Shared">
+                </div>
+                <div class="form-group">
+                    <label>Vocation</label>
+                    <input type="text" id="prof-vocation" placeholder="Not Shared">
+                </div>
+                <div class="form-group">
+                    <label>Primary Email</label>
+                    <input type="email" id="prof-email" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Recovery Security Node</label>
+                    <input type="text" id="prof-recovery" placeholder="recovery@domain.com or phone">
+                </div>
+                <button id="btn-save-profile" class="btn-primary full-width">Commit Meta Updates</button>
+                <button id="btn-logout" class="btn-danger full-width hidden">Exit Operational Session</button>
+            </div>
         </div>
     </div>
 
-    <script src="stockitems.js"></script>
-    <script src="app.js"></script>
+    <div id="crop-modal" class="crop-modal-overlay">
+        <div class="crop-modal-box">
+            <h3>Position Media Core</h3>
+            <div class="crop-frame-viewport">
+                <img id="crop-modal-target-img" src="" alt="Target positioning window image">
+            </div>
+            <div class="crop-controls">
+                <button id="btn-crop-cancel" class="btn-secondary">Dismiss</button>
+                <button id="btn-crop-commit" class="btn-primary">Lock Viewport Layout</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
