@@ -1,407 +1,571 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // ================= STATE CONFIGURATIONS =================
-    let currentUserSession = null; // Stored user configuration context
-    let currentActiveCategoryKey = null;
-    let localCacheVault = JSON.parse(localStorage.getItem('vault_cache_data'));
+/**
+ * Top Tens - Core Modular Application Lifecycle Architecture
+ */
 
-    // Modal cropping session state variables
-    let cropTargetContext = null; 
-    let currentPositioningX = 0;
-    let currentPositioningY = 0;
-    let isDraggingMedia = false;
-    let startingDragX, startingDragY;
+(function () {
+    class TopTensEngine {
+        constructor() {
+            this.currentViewState = "landing"; // States: landing, categories, lists
+            this.activeCategoryId = null;
+            this.appSessionMode = "anonymous"; // Options: anonymous, guest, authenticated
+            this.appThemeSetting = "dark";
+            this.isPremiumTier = false;
+            this.isVaultPrivate = false;
+            
+            // Database Cache Core
+            this.vaultCategoriesMemory = [];
+            this.userProfileMetadata = {
+                name: "", dob: "", hometown: "", vocation: "", email: "guest@toptens.internal", phone: "", avatarData: ""
+            };
 
-    // Core Node Layer Lookups
-    const landingPage = document.getElementById('landing-page');
-    const appInterface = document.getElementById('app-interface');
-    const categoriesView = document.getElementById('categories-view');
-    const listView = document.getElementById('list-view');
-
-    // Drawer System Elements
-    const drawerOverlay = document.getElementById('drawer-overlay');
-    const drawers = document.querySelectorAll('.app-drawer');
-    const btnLandingSignin = document.getElementById('btn-landing-signin');
-    const btnSettingsSignin = document.getElementById('btn-settings-signin');
-    const btnAvatar = document.getElementById('btn-avatar');
-    const btnBurger = document.getElementById('btn-burger');
-
-    // Initialize Local Storage Cache if Empty
-    if (!localCacheVault) {
-        localCacheVault = JSON.parse(JSON.stringify(stockItems));
-        localStorage.setItem('vault_cache_data', JSON.stringify(localCacheVault));
-    }
-
-    // ================= SPARKLE RENDERING SYSTEM =================
-    function initSparkleGenerator() {
-        const canvas = document.getElementById('sparkle-canvas');
-        const count = 35;
-        for (let i = 0; i < count; i++) {
-            const star = document.createElement('div');
-            star.className = 'sparkle-pinpoint';
-            star.style.left = `${Math.random() * 100}vw`;
-            star.style.top = `${Math.random() * 100}vh`;
-            star.style.animationDelay = `${Math.random() * 4}s`;
-            star.style.animationDuration = `${2 + Math.random() * 4}s`;
-            canvas.appendChild(star);
+            // Semantic Lookup Equivalency Map
+            this.conceptEquivalencyDictionary = {
+                "shoes": ["sneakers", "footwear", "kicks", "boots"],
+                "inspiring athletes": ["athletes", "sports players", "runners", "mvps"],
+                "tech devices": ["gadgets", "computers", "phones", "hardware", "tech gadgets"],
+                "celebrities": ["famous people", "actors", "stars", "favorite celebrity"],
+                "post 2000 movies": ["movies", "cinema", "films", "modern movies"],
+                "90s rap songs": ["rap", "hip hop", "tracks", "90s rap"],
+                "post 2010 video games": ["video games", "gaming", "games"],
+                "novels": ["books", "literature", "fiction"],
+                "restaurants": ["best eatery", "eateries", "food locations", "dining"]
+            };
         }
-    }
-    initSparkleGenerator();
 
-    /* ================= CATEGORY LINGUISTIC MAPPING PATTERNS ================= */
-    function normalizeCategoryKey(inputName) {
-        const term = inputName.toLowerCase().trim();
-        if (/shoe|sneaker|footwear/i.test(term)) return "Shoes";
-        if (/athlete|sports|runner/i.test(term)) return "Inspiring Athletes";
-        if (/tech|device|gadget|phone|computer/i.test(term)) return "Tech Devices";
-        if (/celebrity|famous|actor|star/i.test(term)) return "Celebrities";
-        if (/movie|film/i.test(term) && /2000/.test(term)) return "Post 2000 Movies";
-        if (/rap|hiphop|song/i.test(term) && /90/.test(term)) return "90s Rap Songs";
-        if (/video game|gaming/i.test(term) && /2010/.test(term)) return "Post 2010 Video Games";
-        if (/novel|book|literature/i.test(term)) return "Novels";
-        if (/restaurant|eatery|dining|food/i.test(term)) return "Restaurants";
-        return inputName; // Fallback mapping match
-    }
-
-    /* ================= ROUTING NAVIGATION GRAPHICS ================= */
-    function routeGlobalLayer(target) {
-        if (target === 'landing') {
-            landingPage.classList.add('active');
-            appInterface.classList.remove('active');
-        } else {
-            landingPage.classList.remove('active');
-            appInterface.classList.add('active');
-            routeSubView('categories');
+        initializeEngine() {
+            window.appEngine = this;
+            this.generateSparkleCoordinatesGrid();
+            this.loadVaultStateFromLocalStorage();
+            this.renderTargetViewState();
         }
-    }
 
-    function routeSubView(subTarget) {
-        if (subTarget === 'categories') {
-            categoriesView.classList.add('active');
-            listView.classList.remove('active');
-            document.getElementById('btn-back').classList.add('hidden');
-            renderCategoriesGrid();
-        } else {
-            categoriesView.classList.remove('active');
-            listView.classList.add('active');
-            document.getElementById('btn-back').classList.remove('hidden');
+        generateSparkleCoordinatesGrid() {
+            const canvas = document.getElementById("sparkle-canvas-layer");
+            if (!canvas) return;
+            canvas.innerHTML = "";
+            for (let i = 0; i < 45; i++) {
+                const spark = document.createElement("div");
+                spark.className = "star-sparkle-node";
+                spark.style.top = `${Math.floor(Math.random() * 100)}vh`;
+                spark.style.left = `${Math.floor(Math.random() * 100)}vw`;
+                spark.style.animationDelay = `${(Math.random() * 4).toFixed(2)}s`;
+                canvas.appendChild(spark);
+            }
         }
-    }
 
-    /* ================= DRAWER ANIMATION HANDLERS ================= */
-    function openLeftDrawer(drawerId) {
-        closeAllDrawers();
-        drawerOverlay.classList.add('active');
-        document.getElementById(drawerId).classList.add('active');
-    }
+        loadVaultStateFromLocalStorage() {
+            const savedData = localStorage.getItem("toptens_vault_save");
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    this.vaultCategoriesMemory = parsed.categories || [];
+                    this.userProfileMetadata = parsed.profile || this.userProfileMetadata;
+                    this.appSessionMode = parsed.session || "anonymous";
+                    this.isPremiumTier = !!parsed.isPremium;
+                    this.isVaultPrivate = !!parsed.isPrivate;
+                } catch (e) {
+                    this.loadDefaultStockAssets();
+                }
+            } else {
+                this.loadDefaultStockAssets();
+            }
+            this.syncProfileUIDrawers();
+        }
 
-    function closeAllDrawers() {
-        drawerOverlay.classList.remove('active');
-        drawers.forEach(d => d.classList.remove('active'));
-    }
+        loadDefaultStockAssets() {
+            if (typeof getFreshStockCategories === "function") {
+                this.vaultCategoriesMemory = getFreshStockCategories();
+            }
+        }
 
-    drawerOverlay.addEventListener('click', closeAllDrawers);
-    document.querySelectorAll('.close-drawer-btn').forEach(b => b.addEventListener('click', closeAllDrawers));
+        persistVaultStateToLocalStorage() {
+            if (this.appSessionMode === "guest") return; // Guest actions aren't saved
+            const payload = {
+                categories: this.vaultCategoriesMemory,
+                profile: this.userProfileMetadata,
+                session: this.appSessionMode,
+                isPremium: this.isPremiumTier,
+                isPrivate: this.isVaultPrivate
+            };
+            localStorage.setItem("toptens_vault_save", JSON.stringify(payload));
+        }
 
-    // Drawer Triggers
-    document.getElementById('btn-enter').addEventListener('click', () => routeGlobalLayer('app'));
-    btnLandingSignin.addEventListener('click', () => openLeftDrawer('drawer-signin'));
-    btnSettingsSignin.addEventListener('click', () => openLeftDrawer('drawer-signin'));
-    btnBurger.addEventListener('click', () => openLeftDrawer('drawer-settings'));
-    btnAvatar.addEventListener('click', () => openLeftDrawer('drawer-profile'));
-    document.getElementById('btn-back').addEventListener('click', () => routeSubView('categories'));
+        renderTargetViewState() {
+            const viewport = document.getElementById("app-root-viewport");
+            if (!viewport) return;
 
-    /* ================= REGISTER & LOGIN AUTH MODULES ================= */
-    const authForm = document.getElementById('auth-form');
-    let dynamicAuthContext = 'login';
+            this.evaluateHeaderNavigationControls();
 
-    document.getElementById('tab-login').addEventListener('click', (e) => {
-        dynamicAuthContext = 'login';
-        e.target.classList.add('active');
-        document.getElementById('tab-register').classList.remove('active');
-        document.getElementById('auth-submit-btn').textContent = "Execute Access";
-    });
+            if (this.currentViewState === "landing") {
+                this.renderLandingViewScreen(viewport);
+            } else if (this.currentViewState === "categories") {
+                this.renderCategoriesViewScreen(viewport);
+            } else if (this.currentViewState === "lists") {
+                this.renderListsViewScreen(viewport);
+            }
+        }
 
-    document.getElementById('tab-register').addEventListener('click', (e) => {
-        dynamicAuthContext = 'register';
-        e.target.classList.add('active');
-        document.getElementById('tab-login').classList.remove('active');
-        document.getElementById('auth-submit-btn').textContent = "Submit Registration Request";
-    });
+        evaluateHeaderNavigationControls() {
+            const backBtn = document.getElementById("header-back-btn");
+            const avatarBtn = document.getElementById("header-avatar-btn");
+            const burgerBtn = document.getElementById("header-burger-btn");
 
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = document.getElementById('auth-email').value.trim();
-        const password = document.getElementById('auth-password').value;
-        const feedback = document.getElementById('auth-message');
+            if (this.currentViewState === "landing") {
+                if (backBtn) backBtn.classList.add("hidden");
+                if (avatarBtn) avatarBtn.classList.add("hidden");
+                if (burgerBtn) burgerBtn.classList.add("hidden");
+            } else {
+                if (backBtn) backBtn.classList.remove("hidden");
+                if (avatarBtn) avatarBtn.classList.remove("hidden");
+                if (burgerBtn) burgerBtn.classList.remove("hidden");
+            }
+        }
 
-        if (dynamicAuthContext === 'register') {
-            // Password Constraint Checker Implementation
-            const complexRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-            if (!complexRegex.test(password)) {
-                feedback.style.color = 'var(--accent-danger)';
-                feedback.textContent = "Password failure: Requirements unmet.";
+        renderLandingViewScreen(target) {
+            target.innerHTML = `
+                <div class="landing-page-center-card animate-framer">
+                    <h2 class="branding-serif-title">TOP TENS</h2>
+                    <p class="branding-serif-italic-desc">
+                        Your personal dynamic Favorite-Things vault. Rank, sort, and track your favorite things in real time. Compare your tastes with your friends, or fuse your similar lists with theirs to discover what truly reigns supreme.
+                    </p>
+                    <div class="landing-action-button-stack">
+                        <button class="gold-gradient-ui-btn" onclick="window.appEngine.triggerSessionEntry('guest')">ENTER VAULT</button>
+                        <button class="gold-gradient-ui-btn" onclick="window.appEngine.openDrawer('signin')">SIGN IN</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        renderCategoriesPageLayout(target) {
+            target.innerHTML = `
+                <div class="categories-central-bounding-box animate-framer">
+                    <div class="box-heading-accent">ADD CUSTOM CATEGORIES&mdash;UP TO ${this.isPremiumTier ? 99 : 21} TOTAL</div>
+                    <div class="top-action-bar-center">
+                        <button class="green-action-rect-btn" onclick="window.appEngine.promptCreateNewCategory()">+ Add New Custom Category</button>
+                    </div>
+                    <div class="categories-3x3-grid" id="categories-grid-node"></div>
+                </div>
+            `;
+        }
+
+        renderCategoriesViewScreen(target) {
+            this.renderCategoriesPageLayout(target);
+            const grid = document.getElementById("categories-3x3-grid");
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            this.vaultCategoriesMemory.forEach(cat => {
+                const card = document.createElement("div");
+                card.className = "category-block-tab-card";
+                card.onclick = () => this.enterCategoryListView(cat.id);
+
+                card.innerHTML = `
+                    <div class="tab-emoji-graphic">${cat.icon || "📁"}</div>
+                    <div class="tab-title-text">${cat.name}</div>
+                    <div class="tab-item-counter">(${cat.items.length} items)</div>
+                    <div class="tab-management-tray" onclick="event.stopPropagation()">
+                        <button class="tab-tray-trash-icon" title="Remove Category" onclick="window.appEngine.deleteCategoryItemLink('${cat.id}')">&times;</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        renderListsPageLayout(target, currentCategory) {
+            target.innerHTML = `
+                <div class="lists-central-bounding-box animate-framer">
+                    <div class="box-heading-accent" style="text-transform: uppercase;">MANAGE VAULT LIST: ${currentCategory.name}</div>
+                    
+                    <div class="item-generation-form-container">
+                        <form id="list-item-addition-form" onsubmit="window.appEngine.handleNewListItemSubmission(event)">
+                            <div class="form-input-inline-row">
+                                <input type="text" id="item-input-title" required placeholder="Type item title...">
+                                <input type="number" id="item-input-rank" required min="1" max="10" placeholder="Rank (1-10)">
+                            </div>
+                            <div class="form-input-block-row">
+                                <input type="url" id="item-input-url" placeholder="Reference URL Link (https://...) [Optional]">
+                            </div>
+                            <div class="form-input-inline-row">
+                                <label class="file-stub-btn">
+                                    Select Thumbnail Media (Img / Video &le; 6s)
+                                    <input type="file" id="item-input-file" accept="image/*,video/*" onchange="window.appEngine.handleListItemMediaSelect(event)" style="display:none;">
+                                </label>
+                                <button type="submit" class="green-action-rect-btn" style="padding: 0 24px;">Add Item</button>
+                            </div>
+                            <div id="item-media-preview-stub" style="margin-top:10px; font-size:0.8rem; color:#c5a059; text-align:center;"></div>
+                        </form>
+                    </div>
+                    <div class="list-rows-vertical-stack" id="list-items-stack-node"></div>
+                </div>
+            `;
+        }
+
+        renderListsViewScreen(target) {
+            const currentCategory = this.vaultCategoriesMemory.find(c => c.id === this.activeCategoryId);
+            if (!currentCategory) {
+                this.navigateToView("categories");
                 return;
             }
-            
-            // Simulating Worker Registration Email Verification Link Dispatch
-            feedback.style.color = 'var(--gold-pure)';
-            feedback.textContent = "Verification link successfully issued to your email endpoint.";
-            
-            // Establish simulated session tracking context state
-            setTimeout(() => { authenticateUserSession(email); }, 1500);
-        } else {
-            // Simulating Cloudflare Workers API validation pathway
-            authenticateUserSession(email);
-        }
-    });
 
-    function authenticateUserSession(email) {
-        currentUserSession = { email: email, name: email.split('@')[0] };
-        document.getElementById('avatar-display').textContent = currentUserSession.name.charAt(0).toUpperCase();
-        document.getElementById('profile-display-name').textContent = currentUserSession.name;
-        document.getElementById('profile-display-status').textContent = "Verified Live Account";
-        document.getElementById('prof-email').value = email;
-        document.getElementById('btn-logout').classList.remove('hidden');
-        document.getElementById('auth-message').textContent = "";
-        authForm.reset();
-        closeAllDrawers();
-        routeGlobalLayer('app');
-    }
+            this.renderListsPageLayout(target, currentCategory);
+            const stack = document.getElementById("list-items-stack-node");
+            if (!stack) return;
+            stack.innerHTML = "";
 
-    document.getElementById('btn-logout').addEventListener('click', () => {
-        currentUserSession = null;
-        document.getElementById('avatar-display').textContent = "G";
-        document.getElementById('profile-display-name').textContent = "Guest Node";
-        document.getElementById('profile-display-status').textContent = "Read-Only Session";
-        document.getElementById('btn-logout').classList.add('hidden');
-        closeAllDrawers();
-    });
+            // Strictly sort items ascending by rank sequence
+            const sortedItems = [...currentCategory.items].sort((a, b) => a.rank - b.rank);
 
-    /* ================= LOCAL STORAGE RENDERING ENGINE ================= */
-    function renderCategoriesGrid() {
-        const grid = document.getElementById('categories-grid');
-        grid.innerHTML = '';
-        
-        Object.keys(localCacheVault).forEach(catKey => {
-            const card = document.createElement('div');
-            card.className = 'category-card';
-            card.innerHTML = `
-                <h3>${catKey}</h3>
-                <p>${localCacheVault[catKey].length} Loaded Entities</p>
-                <div class="category-modifiers">
-                    <button class="card-mod-btn ren">✎</button>
-                    <button class="card-mod-btn del">✕</button>
-                </div>
-            `;
-            
-            // Event Interceptors
-            card.querySelector('.category-modifiers').addEventListener('click', (e) => {
-                e.stopPropagation(); // Avoid opening the list detail view when clicking modifier buttons
+            sortedItems.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "list-row-item-card";
+
+                const finalUrl = item.url ? item.url : `https://www.amazon.com/dp/s?k=${encodeURIComponent(item.title)}`;
+                const mediaOutput = item.thumbnail ? 
+                    (item.thumbnail.startsWith("data:video") ? `<video src="${item.thumbnail}" autoplay loop muted playsinline class="row-circular-media"></video>` : `<img src="${item.thumbnail}" class="row-circular-media">`) 
+                    : `<div class="row-circular-media mock-empty"></div>`;
+
+                row.innerHTML = `
+                    <div class="row-hashtag-accent"># ${item.rank}</div>
+                    <div class="row-item-title">${item.title}</div>
+                    <a href="${finalUrl}" target="_blank" rel="noopener noreferrer" class="row-visit-anchor-link">Visit Link</a>
+                    <div class="row-media-frame-wrapper">${mediaOutput}</div>
+                    <button class="row-item-delete-btn" title="Delete Item" onclick="window.appEngine.deleteSingleListItemRank(${item.rank})">&times;</button>
+                `;
+                stack.appendChild(row);
             });
-
-            card.querySelector('.card-mod-btn.ren').addEventListener('click', () => renameCategory(catKey));
-            card.querySelector('.card-mod-btn.del').addEventListener('click', () => removeCategory(catKey));
-            card.addEventListener('click', () => displayListView(catKey));
-            grid.appendChild(card);
-        });
-    }
-
-    function renameCategory(oldKey) {
-        const target = prompt("Provide new identifier label:", oldKey);
-        if (!target || target.trim() === oldKey) return;
-        const normalized = normalizeCategoryKey(target);
-        
-        localCacheVault[normalized] = localCacheVault[oldKey];
-        delete localCacheVault[oldKey];
-        saveStateToLocalStorage();
-        renderCategoriesGrid();
-    }
-
-    function removeCategory(key) {
-        if (!confirm(`Confirm absolute deletion of category: ${key}?`)) return;
-        delete localCacheVault[key];
-        saveStateToLocalStorage();
-        renderCategoriesGrid();
-    }
-
-    document.getElementById('btn-add-category').addEventListener('click', () => {
-        const title = prompt("Enter new category target title name:");
-        if (!title) return;
-        const mappedKey = normalizeCategoryKey(title);
-        
-        if (localCacheVault[mappedKey]) {
-            alert("This identity token structural map already exists.");
-            return;
-        }
-        localCacheVault[mappedKey] = [];
-        saveStateToLocalStorage();
-        renderCategoriesGrid();
-    });
-
-    /* ================= LIST IMPLEMENTATION DETAILS ENGINE ================= */
-    function displayListView(categoryKey) {
-        currentActiveCategoryKey = categoryKey;
-        document.getElementById('current-list-title').textContent = categoryKey;
-        const container = document.getElementById('items-list');
-        container.innerHTML = '';
-
-        const collection = localCacheVault[categoryKey] || [];
-        
-        // Sorting sequence guarantees explicit tier positions
-        collection.sort((a, b) => a.rank - b.rank);
-
-        collection.forEach((item, index) => {
-            const row = document.createElement('div');
-            row.className = 'list-item-row';
-            row.innerHTML = `
-                <div class="item-rank-block">
-                    <span class="item-hashtag">#</span>
-                    <span class="item-number">${item.rank}</span>
-                </div>
-                <div class="circular-media-frame">
-                    <img src="${item.thumb || 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'%23333\' viewBox=\'0 0 24 24\'><circle cx=\'12\' cy=\'12\' r=\'12\'/></svg>'}" alt="Thumb">
-                </div>
-                <div class="item-core-details">
-                    <span class="item-title-text">${item.name}</span>
-                    <a href="${item.link}" target="_blank" class="item-affiliate-link">Affiliate Source Node →</a>
-                </div>
-                <div class="item-row-actions">
-                    <button class="row-action-btn ren">✎</button>
-                    <button class="row-action-btn del">✕</button>
-                </div>
-            `;
-
-            row.querySelector('.row-action-btn.ren').addEventListener('click', () => editListItem(index));
-            row.querySelector('.row-action-btn.del').addEventListener('click', () => removeListItem(index));
-            container.appendChild(row);
-        });
-
-        routeSubView('list');
-    }
-
-    document.getElementById('btn-add-item').addEventListener('click', () => {
-        const targetList = localCacheVault[currentActiveCategoryKey] || [];
-        if (targetList.length >= 10) {
-            alert("Absolute tier ceiling enforced: Max limit of 10 list entities reached.");
-            return;
         }
 
-        const name = prompt("Enter entity label item title name:");
-        if (!name) return;
-
-        // Auto Affiliate Engine Link Generator Strategy
-        const generatedLink = `https://amazon.com/s?k=${encodeURIComponent(name)}&tag=vaultfallback-20`;
-
-        targetList.push({
-            rank: targetList.length + 1,
-            name: name,
-            link: generatedLink,
-            thumb: null
-        });
-
-        saveStateToLocalStorage();
-        displayListView(currentActiveCategoryKey);
-    });
-
-    function editListItem(index) {
-        const item = localCacheVault[currentActiveCategoryKey][index];
-        const newName = prompt("Modify item title name:", item.name);
-        if (!newName) return;
-        item.name = newName;
-        saveStateToLocalStorage();
-        displayListView(currentActiveCategoryKey);
-    }
-
-    function removeListItem(index) {
-        if (!confirm("Remove entity from list?")) return;
-        localCacheVault[currentActiveCategoryKey].splice(index, 1);
-        
-        // Re-calculate ranks cleanly to prevent list structural fragmentation
-        localCacheVault[currentActiveCategoryKey].forEach((item, idx) => {
-            item.rank = idx + 1;
-        });
-
-        saveStateToLocalStorage();
-        displayListView(currentActiveCategoryKey);
-    }
-
-    function saveStateToLocalStorage() {
-        // Intercept action if user context is unrecognized guest status
-        if (!currentUserSession) return; 
-        localStorage.setItem('vault_cache_data', JSON.stringify(localCacheVault));
-    }
-
-    /* ================= SETTINGS OPTIONS PANELS ================= */
-    document.getElementById('btn-vault-wipe').addEventListener('click', () => {
-        if (!confirm("Execute full database wipe? This will restore all stock defaults.")) return;
-        localCacheVault = JSON.parse(JSON.stringify(stockItems));
-        if (currentUserSession) {
-            localStorage.setItem('vault_cache_data', JSON.stringify(localCacheVault));
+        triggerSessionEntry(mode) {
+            this.appSessionMode = mode;
+            this.navigateToView("categories");
+            this.persistVaultStateToLocalStorage();
         }
-        alert("Vault wiped successfully.");
-        routeSubView('categories');
-        closeAllDrawers();
-    });
 
-    // Theme Switch Selection Engine
-    document.getElementById('btn-theme-dark').addEventListener('click', (e) => {
-        document.documentElement.removeAttribute('data-theme');
-        e.target.classList.add('active');
-        document.getElementById('btn-theme-light').classList.remove('active');
-    });
+        navigateToView(state) {
+            this.currentViewState = state;
+            this.renderTargetViewState();
+        }
 
-    document.getElementById('btn-theme-light').addEventListener('click', (e) => {
-        document.documentElement.setAttribute('data-theme', 'light');
-        e.target.classList.add('active');
-        document.getElementById('btn-theme-dark').classList.remove('active');
-    });
+        navigateBack() {
+            if (this.currentViewState === "lists") {
+                this.navigateToView("categories");
+            } else if (this.currentViewState === "categories") {
+                this.navigateToView("landing");
+            }
+        }
 
-    /* ================= EDITABLE MEDIA LAYOUT INTERFACE MODALS ================= */
-    const cropModal = document.getElementById('crop-modal');
-    const cropImgTarget = document.getElementById('crop-modal-target-img');
-    const fileUploadTrigger = document.getElementById('avatar-file-upload');
+        handleBrandClick() {
+            this.navigateToView("landing");
+        }
 
-    fileUploadTrigger.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+        enterCategoryListView(catId) {
+            this.activeCategoryId = catId;
+            this.navigateToView("lists");
+        }
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            cropImgTarget.src = event.target.result;
-            cropModal.classList.add('active');
+        /* Drawer Operational Pipeline */
+        openDrawer(drawerId) {
+            const overlay = document.getElementById("global-drawer-overlay");
+            if (!overlay) return;
+
+            // Hide all sub panels
+            document.querySelectorAll(".drawer-sliding-chassis").forEach(panel => panel.classList.remove("open"));
+            overlay.classList.remove("hidden");
+
+            const targetedPanel = document.getElementById(`drawer-${drawerId}`);
+            if (targetedPanel) {
+                targetedPanel.classList.add("open");
+            }
+        }
+
+        closeAllActiveDrawers() {
+            const overlay = document.getElementById("global-drawer-overlay");
+            if (overlay) overlay.classList.add("hidden");
+            document.querySelectorAll(".drawer-sliding-chassis").forEach(panel => panel.classList.remove("open"));
+        }
+
+        /* Security Infrastructure Logic */
+        handleAuthenticationRun(event) {
+            event.preventDefault();
+            const email = document.getElementById("auth-email-field").value;
+            const pass = document.getElementById("auth-pass-field").value;
+            const log = document.getElementById("auth-status-log-output");
+
+            // Strict regex pass mapping standard rule bounds
+            const securityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+            if (!securityRegex.test(pass)) {
+                log.innerHTML = `<span style="color:#ff4d4d;">Password structural requirements rejected. Check specs and retry.</span>`;
+                return;
+            }
+
+            log.innerHTML = `<span style="color:#c5a059;">Verification transmission processing... Link issued downstream to ${email}.</span>`;
             
-            // Normalize crop structural frame metrics
-            currentPositioningX = 0; currentPositioningY = 0;
-            cropImgTarget.style.transform = `translate(0px, 0px)`;
-        };
-        reader.readAsDataURL(file);
+            setTimeout(() => {
+                this.appSessionMode = "authenticated";
+                this.userProfileMetadata.email = email;
+                alert(`Account initialized securely for ${email}! Vault data mapping enabled.`);
+                this.closeAllActiveDrawers();
+                this.navigateToView("categories");
+                this.persistVaultStateToLocalStorage();
+                this.syncProfileUIDrawers();
+            }, 1200);
+        }
+
+        /* Category Mutation Mechanics */
+        promptCreateNewCategory() {
+            if (this.appSessionMode === "anonymous" || this.appSessionMode === "guest") {
+                this.rejectProtectedAction("Unverified session. Register an authenticated account key to add persistent categories.");
+                return;
+            }
+
+            const limitCap = this.isPremiumTier ? 99 : 21;
+            if (this.vaultCategoriesMemory.length >= limitCap) {
+                alert(`Vault boundary threshold reached. Maximum allocation allowed on current tier: ${limitCap}`);
+                return;
+            }
+
+            const inputName = prompt("Enter Custom Category Name:");
+            if (!inputName || !inputName.trim()) return;
+
+            const structuredName = inputName.trim();
+            const evaluatedMatch = this.resolveSemanticEquivalencies(structuredName);
+
+            // Prevent creation collisions
+            const existenceCheck = this.vaultCategoriesMemory.find(c => c.name.toLowerCase() === evaluatedMatch.toLowerCase());
+            if (existenceCheck) {
+                alert(`Collision dynamic mapping error: category matching concept "${existenceCheck.name}" already initialized.`);
+                return;
+            }
+
+            const newCategory = {
+                id: `cat_${Date.now()}`,
+                name: evaluatedMatch,
+                icon: "📁",
+                description: "User mapped custom categorization index vault.",
+                items: []
+            };
+
+            this.vaultCategoriesMemory.unshift(newCategory);
+            this.persistVaultStateToLocalStorage();
+            this.renderTargetViewState();
+        }
+
+        resolveSemanticEquivalencies(targetName) {
+            const cleanTarget = targetName.toLowerCase();
+            for (const [canonical, variants] of Object.entries(this.conceptEquivalencyDictionary)) {
+                if (cleanTarget === canonical || variants.includes(cleanTarget)) {
+                    // Return strict normalized casing
+                    return canonical.split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                }
+            }
+            return targetName;
+        }
+
+        deleteCategoryItemLink(catId) {
+            if (this.appSessionMode === "anonymous" || this.appSessionMode === "guest") {
+                this.rejectProtectedAction("Write clearance denied. Guests cannot mutate base stock category nodes.");
+                return;
+            }
+            if (confirm("Execute structural removal of category container and all nested items?")) {
+                this.vaultCategoriesMemory = this.vaultCategoriesMemory.filter(c => c.id !== catId);
+                this.persistVaultStateToLocalStorage();
+                this.renderTargetViewState();
+            }
+        }
+
+        /* List Items Mutation Engine */
+        handleNewListItemSubmission(event) {
+            event.preventDefault();
+            if (this.appSessionMode === "anonymous" || this.appSessionMode === "guest") {
+                this.rejectProtectedAction("Write access denied. Authenticate to persist custom asset nodes to lists.");
+                return;
+            }
+
+            const currentCategory = this.vaultCategoriesMemory.find(c => c.id === this.activeCategoryId);
+            if (!currentCategory) return;
+
+            if (currentCategory.items.length >= 10) {
+                alert("Vault structure limitation violation: Entry restricted to maximum 10 items for any category vector.");
+                return;
+            }
+
+            const title = document.getElementById("item-input-title").value;
+            const rank = parseInt(document.getElementById("item-input-rank").value, 10);
+            const url = document.getElementById("item-input-url").value;
+            const mediaPreviewStub = document.getElementById("item-media-preview-stub");
+            
+            // Check rank collision parameters
+            if (currentCategory.items.some(item => item.rank === rank)) {
+                alert(`Rank slot #${rank} is currently allocated. Remove structural occupant before redefining slot.`);
+                return;
+            }
+
+            const assetDataString = window.temporaryItemMediaPayload || "";
+
+            const newItem = {
+                rank: rank,
+                title: title.trim(),
+                url: url ? url.trim() : null,
+                thumbnail: assetDataString
+            };
+
+            currentCategory.items.push(newItem);
+            this.persistVaultStateToLocalStorage();
+            
+            // Wipe inputs
+            document.getElementById("list-item-addition-form").reset();
+            if (mediaPreviewStub) mediaPreviewStub.textContent = "";
+            window.temporaryItemMediaPayload = null;
+
+            this.renderTargetViewState();
+        }
+
+        handleListItemMediaSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                window.temporaryItemMediaPayload = e.target.result;
+                const previewStub = document.getElementById("item-media-preview-stub");
+                if (previewStub) previewStub.textContent = `Media asset staging complete (${file.name})`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        deleteSingleListItemRank(rankValue) {
+            if (this.appSessionMode === "anonymous" || this.appSessionMode === "guest") {
+                this.rejectProtectedAction("Write access failure. Guests are restricted from mutating index nodes.");
+                return;
+            }
+            const currentCategory = this.vaultCategoriesMemory.find(c => c.id === this.activeCategoryId);
+            if (!currentCategory) return;
+
+            currentCategory.items = currentCategory.items.filter(item => item.rank !== rankValue);
+            this.persistVaultStateToLocalStorage();
+            this.renderTargetViewState();
+        }
+
+        /* System Profile Asset Management */
+        handleAvatarAssetUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.userProfileMetadata.avatarData = e.target.result;
+                this.syncProfileUIDrawers();
+                this.persistVaultStateToLocalStorage();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        saveProfileLedgerMetadata(event) {
+            event.preventDefault();
+            this.userProfileMetadata.name = document.getElementById("prof-name").value;
+            this.userProfileMetadata.dob = document.getElementById("prof-dob").value;
+            this.userProfileMetadata.hometown = document.getElementById("prof-home").value;
+            this.userProfileMetadata.vocation = document.getElementById("prof-vocation").value;
+            this.userProfileMetadata.phone = document.getElementById("prof-phone").value;
+
+            this.persistVaultStateToLocalStorage();
+            alert("Identity ledger metrics synchronized safely.");
+            this.closeAllActiveDrawers();
+        }
+
+        syncProfileUIDrawers() {
+            document.getElementById("prof-name").value = this.userProfileMetadata.name || "";
+            document.getElementById("prof-dob").value = this.userProfileMetadata.dob || "";
+            document.getElementById("prof-home").value = this.userProfileMetadata.hometown || "";
+            document.getElementById("prof-vocation").value = this.userProfileMetadata.vocation || "";
+            document.getElementById("prof-email").value = this.userProfileMetadata.email || "";
+            document.getElementById("prof-phone").value = this.userProfileMetadata.phone || "";
+
+            const preview = document.getElementById("profile-avatar-preview-box");
+            const topIcon = document.getElementById("avatar-circle-display");
+
+            const renderString = this.userProfileMetadata.avatarData ? 
+                (this.userProfileMetadata.avatarData.startsWith("data:video") ? `<video src="${this.userProfileMetadata.avatarData}" autoplay loop muted playsinline style="width:100%; height:100%; object-fit:cover; border-radius:50%;"></video>` : `url(${this.userProfileMetadata.avatarData})`) 
+                : "";
+
+            [preview, topIcon].forEach(el => {
+                if (!el) return;
+                if (renderString.startsWith("url")) {
+                    el.innerHTML = "";
+                    el.style.backgroundImage = renderString;
+                    el.style.backgroundSize = "cover";
+                    el.style.backgroundPosition = "center";
+                } else if (renderString !== "") {
+                    el.style.backgroundImage = "";
+                    el.innerHTML = renderString;
+                } else {
+                    el.style.backgroundImage = "";
+                    el.innerHTML = "";
+                }
+            });
+        }
+
+        /* Settings Sub-Modules */
+        setApplicationTheme(mode) {
+            this.appThemeSetting = mode;
+            document.body.className = `${mode}-theme-context`;
+            document.querySelectorAll(".config-toggle-btn").forEach(btn => btn.classList.remove("active"));
+            
+            if (mode === "dark") {
+                document.getElementById("theme-dark-btn").classList.add("active");
+            } else {
+                document.getElementById("theme-light-btn").classList.add("active");
+            }
+        }
+
+        triggerPremiumUpgrade() {
+            this.isPremiumTier = true;
+            alert("Transaction verified successfully. Stored matrix expansion enabled up to 99 structural vectors.");
+            this.persistVaultStateToLocalStorage();
+            this.renderTargetViewState();
+        }
+
+        togglePrivacySettings() {
+            this.isVaultPrivate = !this.isVaultPrivate;
+            document.getElementById("privacy-status-lbl").textContent = this.isVaultPrivate ? "PRIVATE" : "PUBLIC";
+            this.persistVaultStateToLocalStorage();
+        }
+
+        showSocialFeatureNotice(type) {
+            if (type === 'Fuse') {
+                alert("Synthesizing data grids...\nFormula Applied: R_avg = sum(Item_Rank * Weight) / sum(Weight).\nMaster vault synthesis complete.");
+            } else {
+                alert(`Social Interface Module Callout: [${type}] logic executed over sandbox array records successfully.`);
+            }
+        }
+
+        executeVaultWipeProcedure() {
+            if (confirm("CRITICAL WARNING: Wipe all user-defined structural data components and reset to static default stock lists?")) {
+                localStorage.removeItem("toptens_vault_save");
+                this.currentViewState = "landing";
+                this.activeCategoryId = null;
+                this.appSessionMode = "anonymous";
+                this.isPremiumTier = false;
+                this.isVaultPrivate = false;
+                this.userProfileMetadata = {
+                    name: "", dob: "", hometown: "", vocation: "", email: "guest@toptens.internal", phone: "", avatarData: ""
+                };
+                this.loadDefaultStockAssets();
+                this.syncProfileUIDrawers();
+                this.renderTargetViewState();
+                this.closeAllActiveDrawers();
+                alert("Vault tracking reset to base factory standard state.");
+            }
+        }
+
+        rejectProtectedAction(reason) {
+            alert(`Security Fault Intercept: ${reason}`);
+            this.openDrawer("signin");
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const engine = new TopTensEngine();
+        engine.initializeEngine();
     });
-
-    // Mouse & Touch Event Listeners for Handling Media Repositioning Triggers
-    cropImgTarget.addEventListener('mousedown', (e) => {
-        isDraggingMedia = true;
-        startingDragX = e.clientX - currentPositioningX;
-        startingDragY = e.clientY - currentPositioningY;
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isDraggingMedia) return;
-        currentPositioningX = e.clientX - startingDragX;
-        currentPositioningY = e.clientY - startingDragY;
-        cropImgTarget.style.transform = `translate(${currentPositioningX}px, ${currentPositioningY}px)`;
-    });
-
-    window.addEventListener('mouseup', () => { isDraggingMedia = false; });
-
-    document.getElementById('btn-crop-commit').addEventListener('click', () => {
-        document.getElementById('profile-avatar-img').src = cropImgTarget.src;
-        cropModal.classList.remove('active');
-    });
-
-    document.getElementById('btn-crop-cancel').addEventListener('click', () => {
-        cropModal.classList.remove('active');
-    });
-
-    // Run Stage Initialization Execution Target Loop
-    renderCategoriesGrid();
-});
+})();
