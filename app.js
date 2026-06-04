@@ -1,615 +1,749 @@
-// frontend/app.js
+// File: frontend/app.js
+const BACKEND_URL = "https://top-tens-backend.swoodson96.workers.dev";
 
-const SUITE_API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
-let sessionToken = null;
-let activeAccountUser = null;
-let accountTierLevel = "free"; 
-let localVaultDictionary = {};
-let activeTargetCategory = null;
-let currentVisualTheme = "dark";
-let structuralPrivacyMode = "private";
+// --- CLIENT STATE ENGINE ---
+let CONFIG_STATE = {
+  token: localStorage.getItem('vault_jwt') || null,
+  profile: JSON.parse(localStorage.getItem('vault_profile')) || null,
+  tier: "free",
+  categories: [], 
+  friends: [],
+  activeView: "screen-landing",
+  currentCategoryKey: null,
+  activeLuminescence: "dark-mode"
+};
 
-// Temporary storage trackers for file media ingestion processing
-let temporaryBase64Stream = null;
-let activeTargetMediaElementId = null;
+// --- DATA ACCESS LAYER RAILS ---
+const VaultStorage = {
+  get: () => {
+    if (CONFIG_STATE.token) return CONFIG_STATE.categories;
+    const local = localStorage.getItem('vault_guest_data');
+    return local ? JSON.parse(local) : [];
+  },
+  set: (data) => {
+    CONFIG_STATE.categories = data;
+    if (!CONFIG_STATE.token) {
+      localStorage.setItem('vault_guest_data', JSON.stringify(data));
+    }
+  },
+  wipe: () => {
+    localStorage.removeItem('vault_guest_data');
+    CONFIG_STATE.categories = [];
+    VaultStorage.initializeDefaultStock();
+  },
+  initializeDefaultStock: () => {
+    const freshStock = STOCK_CATEGORY_KEYS.map(cat => ({
+      id: "stock-" + cat.key,
+      name: cat.display,
+      isStock: true,
+      items: [...STOCK_DATA[cat.key]]
+    }));
+    VaultStorage.set(freshStock);
+  }
+};
 
+// --- CORE APPLICATION LIFECYCLE CONTROLLER ---
 document.addEventListener("DOMContentLoaded", () => {
-  initSparkleMatrix();
-  loadStoredSessionState();
-  bindInteractionListeners();
-  evaluateHashRoutes();
-  renderVaultInterfaceGrid();
+  AppRouter.checkUrlParameters();
+  AppRouter.bootstrapDomListeners();
+  AppRouter.evaluateAuthenticationState();
+  
+  if (VaultStorage.get().length === 0) {
+    VaultStorage.initializeDefaultStock();
+  }
+  AppRouter.renderActiveView();
 });
 
-// Dynamic Sparkling Micro-Engine
-function initSparkleMatrix() {
-  const canvas = document.getElementById("sparkle-canvas");
-  setInterval(() => {
-    const point = document.createElement("div");
-    point.className = "pinpoint-sparkle-flash";
-    point.style.top = Math.random() * 100 + "%";
-    point.style.left = Math.random() * 100 + "%";
-    canvas.appendChild(point);
-    setTimeout(() => point.remove(), 2000);
-  }, 100);
-}
-
-function loadStoredSessionState() {
-  sessionToken = localStorage.getItem("t10_token");
-  activeAccountUser = localStorage.getItem("t10_email");
-  accountTierLevel = localStorage.getItem("t10_tier") || "free";
-  currentVisualTheme = localStorage.getItem("t10_theme") || "dark";
-  structuralPrivacyMode = localStorage.getItem("t10_privacy") || "private";
-
-  document.body.className = `${currentVisualTheme}-mode`;
-  document.getElementById("btn-cfg-theme").innerText = `Theme Array Matrix: ${currentVisualTheme.toUpperCase()} Mode`;
-  document.getElementById("btn-cfg-privacy").innerText = `Data Distribution Level: ${structuralPrivacyMode.toUpperCase()} Mode`;
-
-  const dynamicCache = localStorage.getItem("t10_vault_cache");
-  if (dynamicCache) {
-    localVaultDictionary = JSON.parse(dynamicCache);
-  } else {
-    localVaultDictionary = JSON.parse(JSON.stringify(defaultStockVault));
-  }
-
-  evaluateAdvertisementsTracks();
-  updateProfileDrawerFields();
-}
-
-function evaluateAdvertisementsTracks() {
-  const leftTrack = document.getElementById("ads-left-track");
-  const rightTrack = document.getElementById("ads-right-track");
-  
-  if (accountTierLevel === "premium") {
-    leftTrack.classList.add("hidden-ad");
-    rightTrack.classList.add("hidden-ad");
-  } else {
-    leftTrack.classList.remove("hidden-ad");
-    rightTrack.classList.remove("hidden-ad");
-    leftTrack.innerHTML = "<div class='ad-placeholder-label'>SPONSOR SLOTS ADVERT</div>";
-    rightTrack.innerHTML = "<div class='ad-placeholder-label'>SPONSOR SLOTS ADVERT</div>";
-  }
-}
-
-function updateProfileDrawerFields() {
-  if (activeAccountUser) {
-    document.getElementById("txt-prof-display-email").value = activeAccountUser;
-    document.getElementById("btn-cfg-signin").classList.add("display-none");
-    
-    const meta = localStorage.getItem(`t10_meta_${activeAccountUser}`);
-    if (meta) {
-      const parsed = JSON.parse(meta);
-      document.getElementById("txt-prof-fullname").value = parsed.fullName || "";
-      document.getElementById("txt-prof-dob").value = parsed.dob || "";
-      document.getElementById("txt-prof-hometown").value = parsed.hometown || "";
-      document.getElementById("txt-prof-vocation").value = parsed.vocation || "";
-      document.getElementById("txt-prof-recovery").value = parsed.recovery || "";
-      if (parsed.avatar) {
-        document.getElementById("display-avatar-img").src = parsed.avatar;
-        document.getElementById("img-avatar-cropper-preview").src = parsed.avatar;
-      }
+const AppRouter = {
+  checkUrlParameters: () => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('verified') === 'true') {
+      alert("Cryptographic account verified successfully. Access granted. Please sign in.");
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
-  } else {
-    document.getElementById("btn-cfg-signin").classList.remove("display-none");
-  }
-}
+  },
 
-function bindInteractionListeners() {
-  // Navigation
-  document.getElementById("btn-action-enter").addEventListener("click", () => {
-    document.getElementById("global-nav-header").classList.remove("hidden");
-    shiftViewportContext("view-categories");
-  });
+  bootstrapDomListeners: () => {
+    // Top Level Navigation Hub Hooks
+    document.getElementById('cta-enter-vault').addEventListener('click', () => AppRouter.navigate('screen-categories'));
+    document.getElementById('cta-sign-in').addEventListener('click', () => DrawerUX.open('drawer-signin'));
+    document.getElementById('back-btn').addEventListener('click', () => AppRouter.handleBackAction());
+    document.getElementById('burger-menu').addEventListener('click', () => DrawerUX.open('drawer-settings'));
+    document.getElementById('avatar-frame').addEventListener('click', () => DrawerUX.open('drawer-profile'));
+    document.getElementById('drawer-overlay-backdrop').addEventListener('click', () => DrawerUX.closeAll());
 
-  document.getElementById("nav-back-button").addEventListener("click", () => {
-    const currentActiveView = document.querySelector("main > section:not(.hidden)").id;
-    if (currentActiveView === "view-categories") {
-      document.getElementById("global-nav-header").classList.add("hidden");
-      shiftViewportContext("view-landing");
-    } else {
-      shiftViewportContext("view-categories");
-    }
-  });
-
-  // Drawer Triggers
-  document.getElementById("btn-action-signin").addEventListener("click", () => openVaultDrawer("drawer-auth-panel"));
-  document.getElementById("btn-cfg-signin").addEventListener("click", () => openVaultDrawer("drawer-auth-panel"));
-  document.getElementById("trigger-settings-btn").addEventListener("click", () => openVaultDrawer("drawer-settings-panel"));
-  document.getElementById("trigger-profile-btn").addEventListener("click", () => openVaultDrawer("drawer-profile-panel"));
-
-  document.querySelectorAll(".drawer-close-trigger, #modal-backdrop-shield").forEach(el => {
-    el.addEventListener("click", collapseAllActiveDrawers);
-  });
-
-  // Event Handlers
-  document.getElementById("frm-auth-handshake").addEventListener("submit", processAuthHandshake);
-  document.getElementById("btn-cfg-theme").addEventListener("click", toggleVisualThemeSelection);
-  document.getElementById("btn-cfg-privacy").addEventListener("click", togglePrivacySettingLevel);
-  document.getElementById("btn-cfg-upgrade").addEventListener("click", processPremiumInfrastructureUpgrade);
-  document.getElementById("btn-cfg-wipe").addEventListener("click", executeVaultWipeWipeReset);
-  document.getElementById("btn-cfg-save").addEventListener("click", commitGlobalSettingsToCloudStorage);
-  
-  document.getElementById("btn-global-add-category").addEventListener("click", processNewCategoryPromptInsertion);
-  document.getElementById("btn-global-add-item").addEventListener("click", processNewItemPromptInsertion);
-
-  // Compare & Fuse Engine Interactions
-  document.getElementById("btn-cfg-compare").addEventListener("click", executeJuxtaposedNetworkComparisonView);
-  document.getElementById("btn-cfg-fuse").addEventListener("click", executeWeightedFusionMatrixCompilation);
-
-  // Avatar Image Selection Upload Handlers
-  document.getElementById("btn-trigger-avatar-file-browse").addEventListener("click", () => {
-    document.getElementById("file-avatar-raw-input").click();
-  });
-  document.getElementById("file-avatar-raw-input").addEventListener("change", (e) => {
-    processFileAssetTransformationStream(e.target.files[0], "img-avatar-cropper-preview");
-  });
-
-  // Generic Media Upload Hooks
-  document.getElementById("file-generic-item-raw").addEventListener("change", (e) => {
-    processFileAssetTransformationStream(e.target.files[0], "generic-preview");
-  });
-  document.getElementById("btn-cancel-media-ingest").addEventListener("click", () => {
-    document.getElementById("modal-media-ingestion").classList.add("hidden");
-  });
-  document.getElementById("btn-commit-media-ingest").addEventListener("click", saveIngestedMediaToAssetSlot);
-}
-
-function shiftViewportContext(targetId) {
-  document.querySelectorAll("main > section").forEach(sec => sec.classList.add("hidden"));
-  document.getElementById(targetId).classList.remove("hidden");
-  
-  const bg = document.getElementById("dynamic-bg");
-  if (targetId === "view-landing") {
-    bg.style.opacity = "0.75";
-  } else if (targetId === "view-categories") {
-    bg.style.opacity = "0.35";
-    renderVaultInterfaceGrid();
-  } else {
-    bg.style.opacity = "0.15";
-  }
-}
-
-function openVaultDrawer(drawerId) {
-  collapseAllActiveDrawers();
-  document.getElementById(drawerId).classList.add("drawer-open");
-  document.getElementById("modal-backdrop-shield").classList.remove("hidden");
-}
-
-function collapseAllActiveDrawers() {
-  document.querySelectorAll(".vault-side-drawer").forEach(d => d.classList.remove("drawer-open"));
-  document.getElementById("modal-backdrop-shield").classList.add("hidden");
-}
-
-// RESTful Authentication Pipeline Validation
-async function processAuthHandshake(e) {
-  e.preventDefault();
-  const email = document.getElementById("txt-auth-email").value;
-  const password = document.getElementById("txt-auth-password").value;
-
-  const standardRules = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]:;<>.,?~-]).{8,20}$/;
-  if (!standardRules.test(password)) {
-    alert("Security criteria rejected: Password parameters do not meet strength matrix validation thresholds.");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${SUITE_API_BASE}/api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
+    // Connect Close Cross Targets on Drawers
+    document.querySelectorAll('.drawer-close-cross-btn').forEach(btn => {
+      btn.addEventListener('click', () => DrawerUX.closeAll());
     });
-    const data = await res.json();
 
-    if (data.verificationUrl) {
-      document.getElementById("sandbox-activation-catcher").classList.remove("hidden");
-      const link = document.getElementById("lnk-sandbox-verification");
-      link.href = data.verificationUrl;
-      link.onclick = async (event) => {
-        event.preventDefault();
-        // Emulate verification redirection handshake logic internally
-        alert("Verification webhook intercept complete. Account state active inside cloud register.");
-        
-        // Log in immediately following verification
-        const loginRes = await fetch(`${SUITE_API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password })
-        });
-        const loginData = await loginRes.json();
-        
-        if (loginData.token) {
-          localStorage.setItem("t10_token", loginData.token);
-          localStorage.setItem("t10_email", loginData.user.email);
-          localStorage.setItem("t10_tier", loginData.user.tier);
-          location.reload();
+    // Wire Up Form Authentication Pipeline
+    document.getElementById('tab-login-toggle').addEventListener('click', () => FormUX.toggleAuthTab('login'));
+    document.getElementById('tab-signup-toggle').addEventListener('click', () => FormUX.toggleAuthTab('signup'));
+    document.getElementById('vault-auth-form').addEventListener('submit', (e) => FormUX.handleAuthSubmit(e));
+    
+    // Wire Settings Controls
+    document.getElementById('toggle-luminescence').addEventListener('click', () => AppRouter.toggleLuminescence());
+    document.getElementById('action-upgrade-license').addEventListener('click', () => ActionUX.upgradeLicense());
+    document.getElementById('action-global-save').addEventListener('click', () => ActionUX.syncCloudStorage());
+    document.getElementById('action-wipe-vault').addEventListener('click', () => ActionUX.wipeVaultData());
+    document.getElementById('settings-signin-shortcut').addEventListener('click', () => { DrawerUX.closeAll(); DrawerUX.open('drawer-signin'); });
+
+    // Navigation triggers buried inside settings drawer
+    document.getElementById('nav-friends-trigger').addEventListener('click', () => { DrawerUX.closeAll(); AppRouter.navigate('screen-friends'); });
+    document.getElementById('matrix-compare-trigger').addEventListener('click', () => { DrawerUX.closeAll(); ActionUX.runCompareMatrix(); });
+    document.getElementById('matrix-fuse-trigger').addEventListener('click', () => { DrawerUX.closeAll(); ActionUX.runWeightedFusion(); });
+
+    // Profile updates and image processing nodes
+    document.getElementById('profile-save-trigger').addEventListener('click', () => FormUX.saveProfileMetadata());
+    document.getElementById('avatar-upload-trigger').addEventListener('click', () => document.getElementById('avatar-file-pipeline-input').click());
+    document.getElementById('avatar-file-pipeline-input').addEventListener('change', (e) => MediaPipeline.handleAvatarSelected(e));
+    document.getElementById('avatar-crop-commit').addEventListener('click', () => MediaPipeline.commitAvatarCrop());
+
+    // Addition modal listeners
+    document.getElementById('add-category-trigger').addEventListener('click', () => ModalUX.show('category'));
+    document.getElementById('add-item-trigger').addEventListener('click', () => ModalUX.show('item'));
+    document.getElementById('modal-cancel-btn').addEventListener('click', () => ModalUX.hide());
+    document.getElementById('modal-commit-btn').addEventListener('click', () => ModalUX.commit());
+    
+    // Wire dynamic friend listing action binding hook
+    document.getElementById('friend-add-commit-btn').addEventListener('click', () => ActionUX.addFriendNode());
+  },
+
+  evaluateAuthenticationState: () => {
+    const signinBtn = document.getElementById('settings-signin-shortcut');
+    const saveBtn = document.getElementById('action-global-save');
+    
+    if (CONFIG_STATE.token) {
+      signinBtn.classList.add('hidden');
+      saveBtn.classList.remove('hidden');
+      document.getElementById('profile-email-display').value = CONFIG_STATE.profile.email;
+      document.getElementById('profile-name-input').value = CONFIG_STATE.profile.name || '';
+      document.getElementById('profile-dob-input').value = CONFIG_STATE.profile.dob || '';
+      document.getElementById('profile-hometown-input').value = CONFIG_STATE.profile.hometown || '';
+      document.getElementById('profile-vocation-input').value = CONFIG_STATE.profile.vocation || '';
+      document.getElementById('profile-recovery-input').value = CONFIG_STATE.profile.recovery || '';
+      CONFIG_STATE.tier = CONFIG_STATE.profile.tier || "free";
+      ActionUX.pullCloudStorage();
+    } else {
+      signinBtn.classList.remove('hidden');
+      saveBtn.classList.add('hidden');
+      CONFIG_STATE.tier = "free";
+    }
+    ActionUX.evaluateTierLimitsUI();
+  },
+
+  navigate: (screenId) => {
+    document.querySelectorAll('.viewport-screen').forEach(scr => scr.classList.add('hidden'));
+    document.querySelectorAll('.viewport-screen').forEach(scr => scr.classList.remove('active'));
+    
+    const target = document.getElementById(screenId);
+    target.classList.remove('hidden');
+    target.classList.add('active');
+    
+    CONFIG_STATE.activeView = screenId;
+    
+    const header = document.getElementById('app-header');
+    if (screenId === 'screen-landing') {
+      header.classList.add('hidden');
+    } else {
+      header.classList.remove('hidden');
+    }
+    
+    AppRouter.renderActiveView();
+  },
+
+  handleBackAction: () => {
+    if (CONFIG_STATE.activeView === 'screen-list-items') AppRouter.navigate('screen-categories');
+    else if (CONFIG_STATE.activeView === 'screen-compare') AppRouter.navigate('screen-categories');
+    else if (CONFIG_STATE.activeView === 'screen-friends') AppRouter.navigate('screen-categories');
+    else AppRouter.navigate('screen-landing');
+  },
+
+  toggleLuminescence: () => {
+    const body = document.body;
+    const btn = document.getElementById('toggle-luminescence');
+    if (body.classList.contains('dark-mode')) {
+      body.classList.replace('dark-mode', 'light-mode');
+      CONFIG_STATE.activeLuminescence = "light-mode";
+      btn.innerText = "LIGHT MODE";
+    } else {
+      body.classList.replace('light-mode', 'dark-mode');
+      CONFIG_STATE.activeLuminescence = "dark-mode";
+      btn.innerText = "DARK MODE";
+    }
+  },
+
+  renderActiveView: () => {
+    if (CONFIG_STATE.activeView === 'screen-categories') ViewRenderer.categories();
+    if (CONFIG_STATE.activeView === 'screen-list-items') ViewRenderer.items();
+    if (CONFIG_STATE.activeView === 'screen-friends') ViewRenderer.friends();
+  }
+};
+
+// --- DRAWER USER EXPERIENCE INTERFACES ---
+const DrawerUX = {
+  open: (drawerId) => {
+    DrawerUX.closeAll();
+    document.getElementById('drawer-overlay-backdrop').classList.remove('hidden');
+    document.getElementById(drawerId).classList.add('open');
+  },
+  closeAll: () => {
+    document.getElementById('drawer-overlay-backdrop').classList.add('hidden');
+    document.querySelectorAll('.sliding-panel-drawer').forEach(dr => dr.classList.remove('open'));
+  }
+};
+
+// --- VISUAL VIEW RENDER ENGINE ---
+const ViewRenderer = {
+  categories: () => {
+    const container = document.getElementById('categories-dynamic-grid');
+    container.innerHTML = '';
+    const categories = VaultStorage.get();
+
+    categories.forEach(cat => {
+      const tab = document.createElement('div');
+      tab.className = 'category-luxury-tab';
+      tab.innerHTML = `
+        <div class="category-tab-title">${cat.name}</div>
+        <div class="category-tab-counter">(${cat.items ? cat.items.length : 0} items cached)</div>
+        <div class="tab-action-icon-anchor">✎</div>
+      `;
+      
+      // Separate click execution path for the editing hook vs drilldown entry
+      tab.addEventListener('click', (e) => {
+        if (e.target.classList.contains('tab-action-icon-anchor') || e.target.innerText === '✎') {
+          e.stopPropagation();
+          ModalUX.show('category', cat.id);
+        } else {
+          CONFIG_STATE.currentCategoryKey = cat.id;
+          AppRouter.navigate('screen-list-items');
         }
-      };
-    }
-  } catch (err) {
-    alert("REST Gateway connection failure: " + err.message);
-  }
-}
+      });
+      container.appendChild(tab);
+    });
+    ViewRenderer.injectAdsSystemVisibility();
+  },
 
-function evaluateHashRoutes() {
-  const hash = window.location.hash;
-  if (hash.includes("auth-callback")) {
-    const urlParams = new URLSearchParams(hash.split("?")[1]);
-    const verified = urlParams.get("verified");
-    const email = urlParams.get("email");
-    if (verified && email) {
-      localStorage.setItem("t10_email", email);
-      alert(`Account initialization completed for ${email}`);
-      window.location.hash = "";
-      location.reload();
-    }
-  }
-}
-
-// Grid Layout Engine for Horizontal Elongated Tabs
-function renderVaultInterfaceGrid() {
-  const container = document.getElementById("categories-horizontal-grid");
-  container.innerHTML = "";
-
-  const keys = Object.keys(localVaultDictionary);
-  document.getElementById("lbl-active-slots").innerText = keys.length;
-  document.getElementById("lbl-max-slots").innerText = (accountTierLevel === "premium") ? "99" : "21";
-
-  keys.forEach(catKey => {
-    const tab = document.createElement("div");
-    tab.className = "category-horizontal-card-tab";
-    tab.innerHTML = `
-      <div class="card-tab-internal-trigger">
-        <h3 class="card-tab-headline">${catKey}</h3>
-        <span class="card-tab-sub-count">Stored Inventory: ${localVaultDictionary[catKey].length} Slots filled</span>
-      </div>
-      <div class="card-tab-absolute-actions-deck">
-        <span class="action-trigger-icon edit-cat-trigger">✎</span>
-        <span class="action-trigger-icon delete-cat-trigger">×</span>
-      </div>
-    `;
-
-    tab.querySelector(".card-tab-internal-trigger").addEventListener("click", () => loadVerticalListItemsView(catKey));
+  items: () => {
+    const categories = VaultStorage.get();
+    const currentCat = categories.find(c => c.id === CONFIG_STATE.currentCategoryKey);
     
-    // Edit Category Name Configuration Trigger
-    tab.querySelector(".edit-cat-trigger").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (!sessionToken) {
-        alert("Guest Profile Action Boundary: Sign up or log in to configure core vault definitions.");
-        return;
-      }
-      const newName = prompt(`Enter structural overwrite replacement name for '${catKey}':`, catKey);
-      if (newName && newName !== catKey) {
-        localVaultDictionary[newName] = localVaultDictionary[catKey];
-        delete localVaultDictionary[catKey];
-        persistVaultCacheState();
-        renderVaultInterfaceGrid();
-      }
-    });
+    document.getElementById('current-list-title').innerText = currentCat ? currentCat.name.toUpperCase() : "VAULT ERROR";
+    const stack = document.getElementById('ranked-slots-vertical-stack');
+    stack.innerHTML = '';
 
-    // Delete Category Configuration Trigger
-    tab.querySelector(".delete-cat-trigger").addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (!sessionToken) {
-        alert("Guest Profile Action Boundary: Sign up or log in to configure core vault definitions.");
-        return;
-      }
-      if (confirm(`Drop category profile path '${catKey}' completely?`)) {
-        delete localVaultDictionary[catKey];
-        persistVaultCacheState();
-        renderVaultInterfaceGrid();
-      }
-    });
+    if (!currentCat || !currentCat.items) return;
 
-    container.appendChild(tab);
-  });
-}
+    // Enforce matching physical rank sort configuration metrics
+    const sortedItems = [...currentCat.items].sort((a, b) => a.rank - b.rank);
 
-// Vertical List Ranking Interface Engine
-function loadVerticalListItemsView(categoryName) {
-  activeTargetCategory = categoryName;
-  document.getElementById("lbl-list-focused-title").innerText = categoryName;
-  renderVerticalItemSlotsStack();
-  shiftViewportContext("view-list-items");
-}
+    sortedItems.forEach(item => {
+      const row = document.createElement('li');
+      row.className = 'item-slot-row-row';
+      
+      let hashClass = "hash-norm";
+      if (item.rank === 1) hashClass = "hash-top1";
+      if (item.rank === 2) hashClass = "hash-top2";
+      if (item.rank === 3) hashClass = "hash-top3";
 
-function autogenerateAffiliateDeepLink(name) {
-  const baseQuery = encodeURIComponent(name);
-  return `https://www.amazon.com/s?k=${baseQuery}&tag=${accountTierLevel === "premium" ? "customvault-20" : "toptensvault-20"}`;
-}
+      // Affiliate link autogeneration layer logic engine
+      const searchSlug = encodeURIComponent(item.name);
+      const generatedAffiliateUrl = `https://www.amazon.com/s?k=${searchSlug}&tag=toptensvault26-20`;
 
-function renderVerticalItemSlotsStack() {
-  const container = document.getElementById("list-items-vertical-stack");
-  container.innerHTML = "";
-  const itemRecordsArray = localVaultDictionary[activeTargetCategory] || [];
-
-  itemRecordsArray.forEach((item, index) => {
-    const slotRow = document.createElement("div");
-    slotRow.className = "item-rank-row-slot";
-    const affiliateTrackingUrl = autogenerateAffiliateDeepLink(item.name);
-
-    slotRow.innerHTML = `
-      <div class="slot-flex-left-bounds">
-        <span class="slot-prominent-hashtag">#</span>
-        <span class="slot-numerical-rank-badge">${item.rank}</span>
-        <span class="slot-item-core-title">${item.name}</span>
-      </div>
-      <div class="slot-flex-right-bounds">
-        <a href="${affiliateTrackingUrl}" target="_blank" class="affiliate-automation-link-badge">PURCHASE</a>
-        <div class="circular-thumbnail-media-icon-frame" id="thumb-frame-${index}">
-          <img src="${item.media || 'AppIconTopTens.png'}" alt="Media Resource Preview">
+      row.innerHTML = `
+        <span class="slot-hashtag ${hashClass}">#</span>
+        <span class="slot-rank-idx">${item.rank}</span>
+        <span class="slot-item-literal-name">${item.name}</span>
+        <a href="${generatedAffiliateUrl}" target="_blank" rel="noopener" class="affiliate-badge-link">PURCHASE ↗</a>
+        <div class="slot-media-thumbnail-frame">
+          ${item.media ? (item.media.includes('video') || item.media.startsWith('data:video') ? `<video src="${item.media}" autoplay loop muted></video>` : `<img src="${item.media}">`) : `<img src="AppIconTopTens.png">`}
         </div>
-        <div class="slot-operational-icon-deck">
-          <span class="action-trigger-icon edit-item-trigger">✎</span>
-          <span class="action-trigger-icon remove-item-trigger">×</span>
-        </div>
-      </div>
-    `;
+        <button class="slot-row-action-btn-hub">✎</button>
+      `;
 
-    // Hook media preview cropper interface trigger direct onto thumbnail click frame
-    slotRow.querySelector(".circular-thumbnail-media-icon-frame").addEventListener("click", () => {
-      triggerMediaIngestionInterfaceCropper(`thumb-frame-${index}`, index);
+      row.querySelector('.slot-row-action-btn-hub').addEventListener('click', () => {
+        ModalUX.show('item', item.rank);
+      });
+
+      stack.appendChild(row);
     });
+    ViewRenderer.injectAdsSystemVisibility();
+  },
 
-    slotRow.querySelector(".edit-item-trigger").addEventListener("click", () => {
-      if (!sessionToken) {
-        alert("Guest Profile Action Boundary: Sign up or log in to configure core vault definitions.");
-        return;
-      }
-      const editedTitle = prompt("Modify current listed name entry:", item.name);
-      if (editedTitle) {
-        item.name = editedTitle;
-        persistVaultCacheState();
-        renderVerticalItemSlotsStack();
-      }
-    });
-
-    slotRow.querySelector(".remove-item-trigger").addEventListener("click", () => {
-      if (!sessionToken) {
-        alert("Guest Profile Action Boundary: Sign up or log in to configure core vault definitions.");
-        return;
-      }
-      itemRecordsArray.splice(index, 1);
-      // Re-normalize dynamic ranks matching matrix positions
-      itemRecordsArray.forEach((it, idx) => it.rank = idx + 1);
-      persistVaultCacheState();
-      renderVerticalItemSlotsStack();
-    });
-
-    container.appendChild(slotRow);
-  });
-}
-
-// Media Center Centering and Cropping Interface Engine 
-function triggerMediaIngestionInterfaceCropper(elementId, itemIndex) {
-  activeTargetMediaElementId = { elementId, itemIndex };
-  const modal = document.getElementById("modal-media-ingestion");
-  const viewport = document.getElementById("media-viewport-cropper");
-  
-  viewport.innerHTML = `<img id="generic-preview" src="${localVaultDictionary[activeTargetCategory][itemIndex].media || 'AppIconTopTens.png'}" style="width:100%; height:100%; object-fit:cover;">`;
-  modal.classList.remove("hidden");
-}
-
-function processFileAssetTransformationStream(fileHandle, imgTargetId) {
-  if (!fileHandle) return;
-  
-  // Accept jpg, png, svg, or videos under 6 seconds
-  const isVideo = fileHandle.type.includes("video");
-  if (isVideo) {
-    const videoElement = document.createElement("video");
-    videoElement.preload = "metadata";
-    videoElement.onloadedmetadata = function() {
-      window.URL.revokeObjectURL(videoElement.src);
-      if (videoElement.duration > 6) {
-        alert("Validation rejection rule constraints violated: Uploaded video file media duration exceeds 6-second threshold limitation bounds.");
-        return;
-      }
-      executeBase64ReaderStream(fileHandle, imgTargetId, true);
-    };
-    videoElement.src = URL.createObjectURL(fileHandle);
-  } else {
-    executeBase64ReaderStream(fileHandle, imgTargetId, false);
-  }
-}
-
-function executeBase64ReaderStream(file, targetId, isVideoMedia) {
-  const reader = new FileReader();
-  reader.onloadend = function() {
-    temporaryBase64Stream = reader.result;
-    const view = document.getElementById("media-viewport-cropper");
-    if (isVideoMedia) {
-      view.innerHTML = `<video src="${temporaryBase64Stream}" autoplay loop muted style="width:100%; height:100%; object-fit:cover;"></video>`;
-    } else {
-      view.innerHTML = `<img id="${targetId}" src="${temporaryBase64Stream}" style="width:100%; height:100%; object-fit:cover; cursor:move;">`;
+  friends: () => {
+    const list = document.getElementById('friends-rendered-list');
+    list.innerHTML = '';
+    if (CONFIG_STATE.friends.length === 0) {
+      list.innerHTML = `<li class="item-slot-row-row" style="color:var(--text-muted)">No active profile nodes linked in this companion ring graph.</li>`;
+      return;
     }
+    CONFIG_STATE.friends.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'item-slot-row-row';
+      li.innerHTML = `<span class="slot-item-literal-name">${f}</span><button class="destructive-action-btn" style="padding:4px 10px;">UNLINK</button>`;
+      li.querySelector('button').addEventListener('click', () => {
+        CONFIG_STATE.friends = CONFIG_STATE.friends.filter(x => x !== f);
+        ViewRenderer.friends();
+      });
+      list.appendChild(li);
+    });
+  },
+
+  injectAdsSystemVisibility: () => {
+    const panels = document.querySelectorAll('.ad-panel');
+    panels.forEach(panel => {
+      if (CONFIG_STATE.tier === "premium") {
+        panel.classList.remove('populated');
+      } else {
+        panel.classList.add('populated');
+        panel.innerHTML = `<div style="padding:15px; font-size:10px; color:var(--text-muted); text-align:center;">ADVERTISING HUB SEGMENT<br><br><span style="color:var(--gold-primary);cursor:pointer;" onclick="AppRouter.navigate('screen-categories'); DrawerUX.open('drawer-settings');">UPGRADE NOW TO STRIP ADS</span></div>`;
+      }
+    });
+  }
+};
+
+// --- DATA ACTION EXECUTION MANAGERS ---
+const ActionUX = {
+  evaluateTierLimitsUI: () => {
+    const upgradeBtn = document.getElementById('action-upgrade-license');
+    if (CONFIG_STATE.tier === "premium") {
+      upgradeBtn.innerHTML = "LICENSE CONFIG: PREMIUM LEVEL ACTIVE";
+      upgradeBtn.disabled = true;
+      upgradeBtn.style.background = "linear-gradient(135deg, #1f242c, #238636)";
+      upgradeBtn.style.color = "#fff";
+    } else {
+      upgradeBtn.innerHTML = `UPGRADE LICENSE ($0.99/mo)<br><small>Unlock 99 Multi-vault slots & No Ads</small>`;
+      upgradeBtn.disabled = false;
+    }
+  },
+
+  upgradeLicense: async () => {
+    if (!CONFIG_STATE.token) {
+      alert("Sign in required to run premium credential upgrades.");
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/vault/upgrade`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${CONFIG_STATE.token}` }
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert("License upgraded to premium tier via simulation engine gateway.");
+        CONFIG_STATE.tier = "premium";
+        if (CONFIG_STATE.profile) CONFIG_STATE.profile.tier = "premium";
+        localStorage.setItem('vault_profile', JSON.stringify(CONFIG_STATE.profile));
+        ActionUX.evaluateTierLimitsUI();
+        AppRouter.renderActiveView();
+      }
+    } catch (e) {
+      alert("Network exception processing premium configuration routines.");
+    }
+  },
+
+  syncCloudStorage: async () => {
+    if (!CONFIG_STATE.token) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/vault/save`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${CONFIG_STATE.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ categories: CONFIG_STATE.categories })
+      });
+      if (res.ok) {
+        alert("Data synced with distributed cloud secure storage.");
+      } else {
+        const err = await res.json();
+        alert(`Storage syncing rejected: ${err.error}`);
+      }
+    } catch (e) {
+      alert("Cloud connection tracking infrastructure dropped payload serialization.");
+    }
+  },
+
+  pullCloudStorage: async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/vault/data`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${CONFIG_STATE.token}` }
+      });
+      const data = await res.json();
+      if (res.ok && data.categories && data.categories.length > 0) {
+        VaultStorage.set(data.categories);
+        AppRouter.renderActiveView();
+      }
+    } catch (e) {
+      console.error("Hydration pipeline drop tracing log logs capture.");
+    }
+  },
+
+  wipeVaultData: () => {
+    if (confirm("Execute destructive data overwrite logic? All metrics restore to base stock parameters.")) {
+      VaultStorage.wipe();
+      AppRouter.navigate('screen-categories');
+      alert("Local cached context completely re-initialized.");
+      if (CONFIG_STATE.token) ActionUX.syncCloudStorage();
+    }
+  },
+
+  addFriendNode: () => {
+    const input = document.getElementById('friend-search-input');
+    const email = input.value.trim().toLowerCase();
+    if (email && !CONFIG_STATE.friends.includes(email)) {
+      CONFIG_STATE.friends.push(email);
+      input.value = '';
+      ViewRenderer.friends();
+    }
+  },
+
+  runCompareMatrix: () => {
+    AppRouter.navigate('screen-compare');
+    const container = document.getElementById('comparison-matrix-viewport');
+    container.innerHTML = '';
+    
+    const categories = VaultStorage.get();
+    const currentCat = categories.find(c => c.id === CONFIG_STATE.currentCategoryKey) || categories[0];
+
+    // Build exactly 27 structural column tracks (9 rows of 3 columns blocks)
+    for (let i = 0; i < 27; i++) {
+      const nodeCol = document.createElement('div');
+      nodeCol.className = 'matrix-column-bucket';
+      
+      let columnOwnerLabel = i === 0 ? "My Direct Profile" : `Linked Companion Node Alpha-${i}`;
+      let dataSetSource = i === 0 ? (currentCat ? currentCat.items : []) : SIMULATE_FUSION_DATA(currentCat ? currentCat.name : "Shoes");
+
+      nodeCol.innerHTML = `<h4 style="color:var(--gold-primary); margin-bottom:10px; font-size:11px;">${columnOwnerLabel} [${currentCat ? currentCat.name : 'Vault'}]</h4>`;
+      
+      dataSetSource.slice(0, 10).forEach(item => {
+        const p = document.createElement('p');
+        p.style.fontSize = '12px';
+        p.style.padding = '4px 0';
+        p.innerText = `#${item.rank} - ${item.name}`;
+        nodeCol.appendChild(p);
+      });
+      container.appendChild(nodeCol);
+    }
+  },
+
+  runWeightedFusion: () => {
+    const categories = VaultStorage.get();
+    const currentCat = categories.find(c => c.id === CONFIG_STATE.currentCategoryKey);
+    if (!currentCat) {
+      alert("Navigate down inside an operational cluster profile slice prior to running fusion calculation logic.");
+      return;
+    }
+
+    // Weight Ranking Average Formula Implementation Engine Simulation
+    // Formulates normalized cross data frequencies mapped horizontally
+    alert(`Running Weight Ranking Average equation aggregation across ${CONFIG_STATE.friends.length + 1} multi-cluster inputs for category: "${currentCat.name}"`);
+    
+    let masterMap = {};
+    
+    // Inject local rank points configurations
+    currentCat.items.forEach(item => {
+      masterMap[item.name] = (masterMap[item.name] || 0) + (11 - item.rank);
+    });
+
+    // Inject simulated companion profiles matrix values
+    for (let i = 0; i < 3; i++) {
+      const simulatedSet = SIMULATE_FUSION_DATA(currentCat.name);
+      simulatedSet.forEach(item => {
+        masterMap[item.name] = (masterMap[item.name] || 0) + (Math.random() * (11 - item.rank));
+      });
+    }
+
+    // Re-rank items into newly generated Master Core List based on score aggregates
+    const sortedFused = Object.keys(masterMap)
+      .map(name => ({ name, score: masterMap[name] }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10)
+      .map((item, index) => ({ rank: index + 1, name: item.name }));
+
+    currentCat.items = sortedFused;
+    VaultStorage.set(categories);
+    ViewRenderer.items();
+    alert("Aggregated Master Core List written dynamically back into current workspace scope profile.");
+  }
+};
+
+// --- SIMULATED DATA CONTEXT GENERATOR ---
+function SIMULATE_FUSION_DATA(catName) {
+  const norm = catName.toLowerCase();
+  if (STOCK_DATA[norm]) return STOCK_DATA[norm].map(i => ({ ...i, rank: Math.floor(Math.random() * 10) + 1 }));
+  return [
+    { rank: 1, name: "Alternative Synthesis Delta" },
+    { rank: 2, name: "Alternative Synthesis Beta" },
+    { rank: 3, name: "Cognitive Matrix Omega" },
+    { rank: 4, name: "Unified Structural Node" }
+  ];
+}
+
+// --- INTERACTIVE SYSTEM MODAL ENGINE ---
+let ACTIVE_MODAL_CONTEXT = { type: null, targetId: null };
+
+const ModalUX = {
+  show: (type, targetId = null) => {
+    ACTIVE_MODAL_CONTEXT = { type, targetId };
+    const modal = document.getElementById('global-entity-modal');
+    const mediaSubchain = document.getElementById('modal-media-upload-subchain');
+    
+    modal.classList.remove('hidden');
+    document.getElementById('modal-literal-text-input').value = '';
+    
+    if (type === 'category') {
+      document.getElementById('modal-view-headline').innerText = targetId ? "EDIT CATEGORY SLOT" : "CREATE CUSTOM CATEGORY";
+      mediaSubchain.classList.add('hidden');
+      if (targetId) {
+        const cat = VaultStorage.get().find(c => c.id === targetId);
+        if (cat) document.getElementById('modal-literal-text-input').value = cat.name;
+      }
+    } else {
+      document.getElementById('modal-view-headline').innerText = `EDIT RANK SLOT #${targetId}`;
+      mediaSubchain.classList.remove('hidden');
+      document.getElementById('modal-media-preview-viewport').innerHTML = '';
+      
+      const cat = VaultStorage.get().find(c => c.id === CONFIG_STATE.currentCategoryKey);
+      const item = cat ? cat.items.find(i => i.rank === parseInt(targetId)) : null;
+      if (item) document.getElementById('modal-literal-text-input').value = item.name;
+    }
+  },
+
+  hide: () => {
+    document.getElementById('global-entity-modal').classList.add('hidden');
+  },
+
+  commit: () => {
+    const value = document.getElementById('modal-literal-text-input').value.trim();
+    if (!value) return;
+
+    const categories = VaultStorage.get();
+    const maxLimit = CONFIG_STATE.tier === "premium" ? 99 : 21;
+
+    if (ACTIVE_MODAL_CONTEXT.type === 'category') {
+      if (ACTIVE_MODAL_CONTEXT.targetId) {
+        // Mode: Edit existing category
+        const cat = categories.find(c => c.id === ACTIVE_MODAL_CONTEXT.targetId);
+        if (cat) cat.name = value;
+      } else {
+        // Mode: Append structural array entry
+        if (categories.length >= maxLimit) {
+          alert(`Storage allocation overflow. Free tier handles 21 slots. Upgrade to Premium for 99.`);
+          ModalUX.hide();
+          return;
+        }
+        categories.push({
+          id: "custom-" + Date.now(),
+          name: value,
+          isStock: false,
+          items: Array.from({ length: 10 }, (_, i) => ({ rank: i + 1, name: `Custom Entry ${i + 1}` }))
+        });
+      }
+    } else {
+      // Mode: Edit ranked slot configuration value inside array track
+      const cat = categories.find(c => c.id === CONFIG_STATE.currentCategoryKey);
+      if (cat) {
+        const item = cat.items.find(i => i.rank === parseInt(ACTIVE_MODAL_CONTEXT.targetId));
+        if (item) {
+          item.name = value;
+          if (MediaPipeline.currentProcessedMediaPayload) {
+            item.media = MediaPipeline.currentProcessedMediaPayload;
+          }
+        }
+      }
+    }
+
+    VaultStorage.set(categories);
+    AppRouter.renderActiveView();
+    ModalUX.hide();
+    MediaPipeline.currentProcessedMediaPayload = null; // Flush active transient memory pipeline
+    if (CONFIG_STATE.token) ActionUX.syncCloudStorage();
+  }
+};
+
+// --- MULTIMEDIA STREAM CAPTURE INTEGRATION ENGINE ---
+const MediaPipeline = {
+  currentProcessedMediaPayload: null,
+  avatarCropperState: { zoom: 1, element: null },
+
+  handleAvatarSelected: (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.getElementById('avatar-manipulation-target');
+      img.src = event.target.result;
+      document.getElementById('avatar-crop-controls-hub').classList.remove('hidden');
+      
+      const slider = document.getElementById('avatar-zoom-slider');
+      slider.addEventListener('input', (ev) => {
+        img.style.transform = `scale(${ev.target.value})`;
+      });
+    };
+    reader.readAsDataURL(file);
+  },
+
+  commitAvatarCrop: () => {
+    const img = document.getElementById('avatar-manipulation-target');
+    // Read structural cropping bounding frames and output serialized string base64 matrix asset
+    const base64Sample = img.src; 
+    document.getElementById('header-avatar-img').src = base64Sample;
+    document.getElementById('avatar-crop-controls-hub').classSub = "hidden";
+    alert("Profile icon alignment locked and compiled.");
+    
+    if (CONFIG_STATE.token) {
+      fetch(`${BACKEND_URL}/api/vault/profile`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${CONFIG_STATE.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ avatar: base64Sample })
+      });
+    }
+  }
+};
+
+// Bind item-level multi-format media attachment pipelines asynchronously
+document.getElementById('modal-media-pipeline-input')?.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const previewBox = document.getElementById('modal-media-preview-viewport');
+    previewBox.innerHTML = '';
+    
+    if (file.type.includes('video')) {
+      const video = document.createElement('video');
+      video.src = ev.target.result;
+      video.controls = true;
+      video.muted = true;
+      video.style.maxWidth = "100%";
+      previewBox.appendChild(video);
+      
+      // Enforce 6 second visual timing loop runtime parameters
+      video.addEventListener('loadedmetadata', () => {
+        if (video.duration > 6) {
+          alert("Media clip timing constraints breach threshold boundary limit profile. Max: 6 seconds.");
+          previewBox.innerHTML = '';
+          MediaPipeline.currentProcessedMediaPayload = null;
+        }
+      });
+    } else {
+      const img = document.createElement('img');
+      img.src = ev.target.result;
+      img.style.maxWidth = "100%";
+      previewBox.appendChild(img);
+    }
+    MediaPipeline.currentProcessedMediaPayload = ev.target.result;
   };
   reader.readAsDataURL(file);
-}
+});
 
-function saveIngestedMediaToAssetSlot() {
-  if (temporaryBase64Stream && activeTargetMediaElementId) {
-    const { itemIndex } = activeTargetMediaElementId;
-    localVaultDictionary[activeTargetCategory][itemIndex].media = temporaryBase64Stream;
-    persistVaultCacheState();
-    renderVerticalItemSlotsStack();
-    temporaryBase64Stream = null;
-    activeTargetMediaElementId = null;
-    document.getElementById("modal-media-ingestion").classList.add("hidden");
-  }
-}
+// --- AUTHENTICATION FLOWS SUBSYSTEM ---
+const FormUX = {
+  currentTab: 'login',
 
-// Add Custom Category Handshake Endpoint Connection
-async function processNewCategoryPromptInsertion() {
-  const currentLimitThreshold = (accountTierLevel === "premium") ? 99 : 21;
-  if (Object.keys(localVaultDictionary).length >= currentLimitThreshold) {
-    alert("Configuration array capacity limit reached. Upgrade via Settings Drawer panel configuration controls.");
-    return;
-  }
+  toggleAuthTab: (tab) => {
+    FormUX.currentTab = tab;
+    const lTab = document.getElementById('tab-login-toggle');
+    const sTab = document.getElementById('tab-signup-toggle');
+    const submitBtn = document.getElementById('auth-submit-action');
+    const hint = document.getElementById('password-policy-hint');
 
-  const inputRaw = prompt("Input structural configuration description label target name context:");
-  if (!inputRaw) return;
-
-  try {
-    const response = await fetch(`${SUITE_API_BASE}/api/vault/normalize`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: inputRaw })
-    });
-    const parsedData = await response.json();
-    const resolvedNameCanonical = parsedData.resolved;
-
-    if (localVaultDictionary[resolvedNameCanonical]) {
-      alert(`Semantic processing match mapping redirected entry safely into active cluster workspace track: ${resolvedNameCanonical}`);
-      loadVerticalListItemsView(resolvedNameCanonical);
+    if (tab === 'login') {
+      lTab.classList.add('active');
+      sTab.classList.remove('active');
+      submitBtn.innerText = "INITIALIZE TOKEN EXCHANGE";
+      hint.classList.add('hidden');
     } else {
-      localVaultDictionary[inputRaw] = [];
-      persistVaultCacheState();
-      renderVaultInterfaceGrid();
+      sTab.classList.add('active');
+      lTab.classList.remove('active');
+      submitBtn.innerText = "DISPATCH REGISTRATION PAYLOAD";
+      hint.classList.remove('hidden');
     }
-  } catch {
-    localVaultDictionary[inputRaw] = [];
-    persistVaultCacheState();
-    renderVaultInterfaceGrid();
-  }
-}
+  },
 
-function processNewItemPromptInsertion() {
-  const cluster = localVaultDictionary[activeTargetCategory] || [];
-  if (cluster.length >= 10) {
-    alert("Validation parameters cap: List index items stack allocation restricted strictly to top 10 positions capacity layout max limits.");
-    return;
-  }
+  handleAuthSubmit: async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('auth-email-field').value.trim();
+    const password = document.getElementById('auth-password-field').value;
+    const reporter = document.getElementById('auth-status-reporter');
 
-  const name = prompt("Enter asset description name label profile target:");
-  if (!name) return;
+    reporter.className = "status-box-reporter processing";
+    reporter.innerText = "Processing remote routing transactions...";
 
-  const targetRankPosition = cluster.length + 1;
-  cluster.push({ rank: targetRankPosition, name, media: "AppIconTopTens.png" });
-  persistVaultCacheState();
-  renderVerticalItemSlotsStack();
-}
+    const endpoint = FormUX.currentTab === 'login' ? '/api/auth/login' : '/api/auth/signup';
 
-// Compare Vectors Engine 3x9 Matrix Rendering Logic Block (27 Total)
-function executeJuxtaposedNetworkComparisonView() {
-  collapseAllActiveDrawers();
-  shiftViewportContext("view-matrix-compare");
-  const matrixContainer = document.getElementById("matrix-juxtapose-container");
-  matrixContainer.innerHTML = "";
+    try {
+      const res = await fetch(`${BACKEND_URL}${endpoint}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
 
-  // Juxtapose up to 26 simulated reference network items alongside user's active category stack
-  for (let rankIndex = 1; rankIndex <= 9; rankIndex++) {
-    for (let columnVectorChannel = 1; columnVectorChannel <= 3; columnVectorChannel++) {
-      const displayCellBox = document.createElement("div");
-      displayCellBox.className = "matrix-comparison-data-cell-unit";
-      
-      if (rankIndex === 1 && columnVectorChannel === 1) {
-        displayCellBox.innerHTML = `<h5 class='gold-font-accent'>My Vault Focus</h5><p>${activeTargetCategory || "General Asset Deck"}</p>`;
-      } else {
-        displayCellBox.innerHTML = `<h5>Vector Node Channel context _${columnVectorChannel * rankIndex}</h5><p>Substantively Similar Category Match Value Data Block</p>`;
+      if (!res.ok) {
+        reporter.className = "status-box-reporter error";
+        reporter.innerText = data.error || "Transaction exception rejected mapping parameters.";
+        return;
       }
-      matrixContainer.appendChild(displayCellBox);
+
+      if (FormUX.currentTab === 'signup') {
+        reporter.className = "status-box-reporter success";
+        reporter.innerText = "Vault deployment package dispatched. Inspect email inbox verification vectors.";
+      } else {
+        reporter.className = "status-box-reporter success";
+        reporter.innerText = "Cryptographic signature validated. Loading dashboard context profile...";
+        
+        localStorage.setItem('vault_jwt', data.token);
+        localStorage.setItem('vault_profile', JSON.stringify(data.profile));
+        
+        CONFIG_STATE.token = data.token;
+        CONFIG_STATE.profile = data.profile;
+
+        setTimeout(() => {
+          DrawerUX.closeAll();
+          AppRouter.evaluateAuthenticationState();
+          AppRouter.navigate('screen-categories');
+        }, 1000);
+      }
+    } catch (err) {
+      reporter.className = "status-box-reporter error";
+      reporter.innerText = "Target connection thread timed out.";
+    }
+  },
+
+  saveProfileMetadata: async () => {
+    if (!CONFIG_STATE.token) return;
+    const profileData = {
+      name: document.getElementById('profile-name-input').value,
+      dob: document.getElementById('profile-dob-input').value,
+      hometown: document.getElementById('profile-hometown-input').value,
+      vocation: document.getElementById('profile-vocation-input').value,
+      recovery: document.getElementById('profile-recovery-input').value
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/vault/profile`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${CONFIG_STATE.token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(profileData)
+      });
+      if (res.ok) {
+        alert("Decentralized data profile parameters updated inside local cloud cache.");
+        CONFIG_STATE.profile = { ...CONFIG_STATE.profile, ...profileData };
+        localStorage.setItem('vault_profile', JSON.stringify(CONFIG_STATE.profile));
+      }
+    } catch (e) {
+      alert("Network dropped synchronization context routing channels.");
     }
   }
-}
-
-// Weight Ranking Average Fusion Calculation Master Module
-function executeWeightedFusionMatrixCompilation() {
-  collapseAllActiveDrawers();
-  if (!activeTargetCategory) {
-    alert("Select a category profile channel map inside dashboard array workspace target track before deploying compilation matrix.");
-    return;
-  }
-
-  alert("Executing structural compilation formula logic calculation matrix: Applying Weight Ranking Average system algorithm variables across substantively similar matching peer categories...");
-  
-  const formulaCompiledMasterListClusterMock = [
-    { rank: 1, name: `Fused Dominant Master ${activeTargetCategory} Item Alpha`, media: "AppIconTopTens.png" },
-    { rank: 2, name: `Fused Secondary Weighted ${activeTargetCategory} Item Beta`, media: "AppIconTopTens.png" }
-  ];
-
-  localVaultDictionary[`Fused Master: ${activeTargetCategory}`] = formulaCompiledMasterListClusterMock;
-  persistVaultCacheState();
-  renderVaultInterfaceGrid();
-  alert("Calculation complete. Master Merge Fused ranking profile channel injected into workspace tabs array sequence successfully.");
-}
-
-function persistVaultCacheState() {
-  localStorage.setItem("t10_vault_cache", JSON.stringify(localVaultDictionary));
-}
-
-// Settings Drawer Controller Operations Handlers
-function toggleVisualThemeSelection() {
-  currentVisualTheme = (currentVisualTheme === "dark") ? "light" : "dark";
-  localStorage.setItem("t10_theme", currentVisualTheme);
-  document.body.className = `${currentVisualTheme}-mode`;
-  document.getElementById("btn-cfg-theme").innerText = `Theme Array Matrix: ${currentVisualTheme.toUpperCase()} Mode`;
-}
-
-function togglePrivacySettingLevel() {
-  structuralPrivacyMode = (structuralPrivacyMode === "private") ? "public" : "private";
-  localStorage.setItem("t10_privacy", structuralPrivacyMode);
-  document.getElementById("btn-cfg-privacy").innerText = `Data Distribution Level: ${structuralPrivacyMode.toUpperCase()} Mode`;
-  alert(`Vault permissions network configuration visibility broadcast mode set to: ${structuralPrivacyMode.toUpperCase()}`);
-}
-
-function processPremiumInfrastructureUpgrade() {
-  accountTierLevel = "premium";
-  localStorage.setItem("t10_tier", "premium");
-  document.getElementById("lbl-max-slots").innerText = "99";
-  evaluateAdvertisementsTracks();
-  alert("Infrastructure license elevated to Premium Level Tier matrix layout successfully. Max customizable category paths expanded to 99 profiles! Ad layout channels dismantled safely.");
-  collapseAllActiveDrawers();
-}
-
-function executeVaultWipeWipeReset() {
-  if (!confirm("Are you sure you want to perform a structural vault reset data wipe? All user-inputted configurations will be cleared and replaced with default stock tracking data maps.")) return;
-  
-  localStorage.removeItem("t10_vault_cache");
-  localVaultDictionary = JSON.parse(JSON.stringify(defaultStockVault));
-  persistVaultCacheState();
-  renderVaultInterfaceGrid();
-  collapseAllActiveDrawers();
-  alert("Wipe completed successfully. Factory stock system indexes restored.");
-}
-
-async function commitGlobalSettingsToCloudStorage() {
-  if (!sessionToken) {
-    alert("Guest Data State Saved Locally: Create verified permanent account status to scale matrix tracking states to cloud database partitions.");
-    collapseAllActiveDrawers();
-    return;
-  }
-
-  // Construct identity metadata profiles packet from input text fields matrix
-  const profilePayload = {
-    fullName: document.getElementById("txt-prof-fullname").value,
-    dob: document.getElementById("txt-prof-dob").value,
-    hometown: document.getElementById("txt-prof-hometown").value,
-    vocation: document.getElementById("txt-prof-vocation").value,
-    recovery: document.getElementById("txt-prof-recovery").value,
-    avatar: document.getElementById("img-avatar-cropper-preview").src
-  };
-
-  localStorage.setItem(`t10_meta_${activeAccountUser}`, JSON.stringify(profilePayload));
-
-  try {
-    const res = await fetch(`${SUITE_API_BASE}/api/vault/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${sessionToken}`
-      },
-      body: JSON.stringify({
-        email: activeAccountUser,
-        vaultData: localVaultDictionary,
-        profileData: profilePayload,
-        tier: accountTierLevel
-      })
-    });
-    
-    if (res.ok) {
-      alert("Infrastructure sync matrix updated: Cloud storage transaction processed successfully.");
-      collapseAllActiveDrawers();
-    }
-  } catch (err) {
-    alert("Background data replication synchronization encounter timeout drop error: " + err.message);
-  }
-}
+};

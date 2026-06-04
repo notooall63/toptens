@@ -3,140 +3,233 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Tens Vault</title>
+  <title>Top Tens - The Dynamic Favorite-Things Vault</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
 </head>
 <body class="dark-mode">
-  <div id="sparkle-canvas" class="sparkle-layer"></div>
-  <div id="dynamic-bg" class="vault-background-image"></div>
+  
+  <canvas id="ambient-canvas"></canvas>
 
-  <header id="global-nav-header" class="hidden">
-    <div class="nav-left">
-      <button id="nav-back-button" class="action-nav-btn">← BACK</button>
+  <header id="app-header" class="hidden">
+    <div class="header-left">
+      <button id="back-btn" class="header-action-btn">← BACK</button>
     </div>
-    <div class="nav-center">
-      <h1 class="logo-brand">TOP TENS</h1>
+    <div class="header-center">
+      <h1 class="brand-title">TOP TENS</h1>
     </div>
-    <div class="nav-right">
-      <button id="trigger-settings-btn" class="icon-nav-btn">☰</button>
-      <div id="trigger-profile-btn" class="avatar-frame-trigger">
-        <img id="display-avatar-img" src="AppIconTopTens.png" alt="Profile View">
+    <div class="header-right">
+      <button id="burger-menu" class="header-action-btn" aria-label="Open settings">☰</button>
+      <div id="avatar-frame" class="avatar-clickable">
+        <img id="header-avatar-img" src="AppIconTopTens.png" alt="Profile View Icon">
       </div>
     </div>
   </header>
 
-  <div id="ads-left-track" class="advertisement-lane hidden-ad"></div>
-  <div id="ads-right-track" class="advertisement-lane hidden-ad"></div>
+  <main id="view-viewport">
 
-  <main id="app-viewport">
-    
-    <section id="view-landing" class="active-viewport">
-      <div class="landing-centerpiece">
-        <h1 class="brand-huge-title">TOP TENS</h1>
-        <p class="brand-ornate-description">Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.</p>
-        <div class="landing-control-deck">
-          <button id="btn-action-enter" class="gold-fluid-button">ENTER VAULT</button>
-          <button id="btn-action-signin" class="gold-outline-button">SIGN IN / CREATE ACCOUNT</button>
+    <section id="screen-landing" class="viewport-screen active">
+      <div class="landing-hero-container">
+        <div class="hero-logo-box">
+          <img src="AppIconTopTens.png" alt="Top Tens App Logo Flagship Spinner" class="flagship-spinner">
+        </div>
+        <h1 class="hero-title-headline">TOP TENS</h1>
+        <p class="hero-description-narrative">Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.</p>
+        <div class="hero-cta-button-row">
+          <button id="cta-enter-vault" class="gold-luxury-btn">ENTER VAULT</button>
+          <button id="cta-sign-in" class="gold-luxury-btn dynamic-glow">SIGN IN</button>
         </div>
       </div>
     </section>
 
-    <section id="view-categories" class="hidden">
-      <div class="action-control-banner">
-        <button id="btn-global-add-category" class="emerald-action-btn">+ ADD NEW CATEGORY</button>
-        <div class="tier-indicator">Vault Slots Active: <span id="lbl-active-slots">9</span> / <span id="lbl-max-slots">21</span></div>
+    <section id="screen-categories" class="viewport-screen hidden">
+      <div class="layout-container-with-ads">
+        <aside class="ad-panel side-left"></aside>
+        
+        <div class="center-content-flow">
+          <div class="action-trigger-hub">
+            <button id="add-category-trigger" class="action-add-pill">+ Add New Custom Category</button>
+          </div>
+          <div id="categories-dynamic-grid" class="categories-grid-container">
+            </div>
+        </div>
+
+        <aside class="ad-panel side-right"></aside>
       </div>
-      <div id="categories-horizontal-grid" class="horizontal-tabs-grid"></div>
     </section>
 
-    <section id="view-list-items" class="hidden">
-      <h2 id="lbl-list-focused-title" class="centered-viewport-title">Category List</h2>
-      <div class="action-control-banner flex-center">
-        <button id="btn-global-add-item" class="emerald-action-btn">+ ADD LIST ITEM</button>
+    <section id="screen-list-items" class="viewport-screen hidden">
+      <div class="layout-container-with-ads">
+        <aside class="ad-panel side-left"></aside>
+        
+        <div class="center-content-flow">
+          <h2 id="current-list-title" class="centered-view-title">CATEGORY</h2>
+          <div class="action-trigger-hub">
+            <button id="add-item-trigger" class="action-add-pill">+ Add New List Item</button>
+          </div>
+          
+          <ol id="ranked-slots-vertical-stack" class="slots-ordered-list">
+            </ol>
+        </div>
+
+        <aside class="ad-panel side-right"></aside>
       </div>
-      <div id="list-items-vertical-stack" class="item-slots-stack"></div>
     </section>
 
-    <section id="view-matrix-compare" class="hidden">
-      <h2 class="centered-viewport-title">Juxtaposed Multi-Vault Cross Evaluation (27 Channels max)</h2>
-      <div id="matrix-juxtapose-container" class="matrix-grid-3x9"></div>
+    <section id="screen-compare" class="viewport-screen hidden">
+      <h2 class="centered-view-title">COMPARE MODE (JUXTAPOSITION MATRIX)</h2>
+      <div id="comparison-matrix-viewport" class="matrix-scroll-pane">
+        </div>
     </section>
+
+    <section id="screen-friends" class="viewport-screen hidden">
+      <div class="layout-container-with-ads">
+        <aside class="ad-panel side-left"></aside>
+        <div class="center-content-flow">
+          <h2 class="centered-view-title">VAULT CIRCLE (FRIENDS)</h2>
+          <div class="friend-input-nexus">
+            <input type="email" id="friend-search-input" placeholder="Enter companion profile email...">
+            <button id="friend-add-commit-btn" class="gold-luxury-btn">LINK USER</button>
+          </div>
+          <ul id="friends-rendered-list" class="friends-list-group"></ul>
+        </div>
+        <aside class="ad-panel side-right"></aside>
+      </div>
+    </section>
+
   </main>
 
-  <div id="modal-backdrop-shield" class="drawer-backdrop hidden"></div>
+  <div id="drawer-overlay-backdrop" class="drawer-overlay hidden"></div>
 
-  <div id="drawer-auth-panel" class="vault-side-drawer">
-    <button class="drawer-close-trigger">×</button>
-    <h2 class="drawer-title-accent">Access Security Challenge</h2>
-    <form id="frm-auth-handshake">
-      <div class="form-input-block">
-        <label>Active Email Gateway Address</label>
-        <input type="email" id="txt-auth-email" required placeholder="name@domain.com">
+  <aside id="drawer-signin" class="sliding-panel-drawer">
+    <button class="drawer-close-cross-btn">×</button>
+    <div class="drawer-internal-scroller">
+      <h2 class="drawer-header-title">VAULT KEY MANAGEMENT</h2>
+      
+      <div class="tab-toggle-container">
+        <button id="tab-login-toggle" class="tab-toggle-btn active">SECURE SIGN IN</button>
+        <button id="tab-signup-toggle" class="tab-toggle-btn">CREATE PROFILE</button>
       </div>
-      <div class="form-input-block">
-        <label>Vault Security Password</label>
-        <input type="password" id="txt-auth-password" required>
-        <span class="password-validation-note">Requires 8-20 characters containing 1 Upper case, 1 Lower case, 1 Number, and 1 Special symbol character.</span>
-      </div>
-      <button type="submit" class="gold-fluid-button width-100-percent">Submit Security Handshake</button>
-    </form>
-    <div id="sandbox-activation-catcher" class="hidden">
-      <p class="sandbox-alert-header">Dev System Capture Hook Enabled:</p>
-      <a id="lnk-sandbox-verification" href="#" target="_blank">Click Here to Emulate Email Link Verification Action</a>
-    </div>
-  </div>
 
-  <div id="drawer-settings-panel" class="vault-side-drawer">
-    <button class="drawer-close-trigger">×</button>
-    <h2 class="drawer-title-accent">Core Configuration Array</h2>
-    <div class="drawer-scroll-wrapper">
-      <button id="btn-cfg-theme" class="cfg-matrix-btn">Theme Array Matrix: Dark Void Mode</button>
-      <button id="btn-cfg-signin" class="cfg-matrix-btn highlight-gold-font">Sign In / Register Portal</button>
-      <button id="btn-cfg-upgrade" class="cfg-matrix-btn">Upgrade Infrastructure Capacity ($0.99/mo)</button>
-      <button id="btn-cfg-add-friends" class="cfg-matrix-btn">Network Channels (Add Friends)</button>
-      <button id="btn-cfg-privacy" class="cfg-matrix-btn">Data Distribution Level: Private Mode</button>
-      <button id="btn-cfg-compare" class="cfg-matrix-btn">Compare Juxtaposed Network Vectors (26 Friends)</button>
-      <button id="btn-cfg-fuse" class="cfg-matrix-btn">Fuse Matrix Weighted Rankings Formula (Master Merge)</button>
-      <button id="btn-cfg-wipe" class="cfg-matrix-btn dynamic-danger-btn">Wipe Vault Structure Dictionary (Hard Drop)</button>
-      <button id="btn-cfg-save" class="gold-fluid-button width-100-percent margin-top-auto">Commit Vault Matrix State</button>
+      <form id="vault-auth-form" class="drawer-form-layout">
+        <div class="input-form-block">
+          <label for="auth-email-field">Account Email Routing Address</label>
+          <input type="email" id="auth-email-field" required placeholder="name@domain.com">
+        </div>
+        <div class="input-form-block">
+          <label for="auth-password-field">Cryptographic Passphrase (8-20 Chars)</label>
+          <input type="password" id="auth-password-field" required placeholder="••••••••••••">
+          <small id="password-policy-hint" class="policy-hint-text hidden">Must contain: 1 Uppercase, 1 Lowercase, 1 Number, 1 Character.</small>
+        </div>
+        <button type="submit" id="auth-submit-action" class="gold-luxury-btn full-width">INITIALIZE TOKEN EXCHANGE</button>
+      </form>
+      <div id="auth-status-reporter" class="status-box-reporter"></div>
     </div>
-  </div>
+  </aside>
 
-  <div id="drawer-profile-panel" class="vault-side-drawer">
-    <button class="drawer-close-trigger">×</button>
-    <h2 class="drawer-title-accent">Vault Identity Index</h2>
-    <div class="profile-media-cropper-boundary">
-      <div class="circular-avatar-preview-window">
-        <img id="img-avatar-cropper-preview" src="AppIconTopTens.png" alt="Cropping Focus Preview">
-      </div>
-      <input type="file" id="file-avatar-raw-input" accept="image/*" class="display-none">
-      <button id="btn-trigger-avatar-file-browse" class="mini-gold-button">Upload Profile Image Asset</button>
-    </div>
-    <div class="form-inputs-scroll-stack">
-      <input type="text" id="txt-prof-fullname" placeholder="Full Legal Identity Name">
-      <input type="date" id="txt-prof-dob" placeholder="Date of Birth Profile Record">
-      <input type="text" id="txt-prof-hometown" placeholder="Origin Hometown Base">
-      <input type="text" id="txt-prof-vocation" placeholder="Primary Core Vocation Field">
-      <input type="email" id="txt-prof-display-email" placeholder="Static Access Account ID Reference" readonly>
-      <input type="text" id="txt-prof-recovery" placeholder="Fallback Recovery Path Variable">
-    </div>
-  </div>
+  <aside id="drawer-settings" class="sliding-panel-drawer">
+    <button class="drawer-close-cross-btn">×</button>
+    <div class="drawer-internal-scroller">
+      <h2 class="drawer-header-title">VAULT CONFIGURATIONS</h2>
+      
+      <div class="settings-action-stack-buttons">
+        <button id="settings-signin-shortcut" class="gold-luxury-btn full-width hidden">SIGN IN TO ACCESS PROFILE SYNC</button>
+        
+        <div class="setting-toggle-row">
+          <span>Luminescence Mode</span>
+          <button id="toggle-luminescence" class="pill-switch-btn">DARK MODE</button>
+        </div>
 
-  <div id="modal-media-ingestion" class="custom-media-modal hidden">
-    <div class="media-modal-content-frame">
-      <h3>Ingest Asset File Media Stream Focus</h3>
-      <div class="media-alignment-boundary-box">
-        <div id="media-viewport-cropper" class="circular-media-inner-ring"></div>
+        <button id="action-upgrade-license" class="gold-luxury-btn full-width special-premium-glow">
+          UPGRADE LICENSE ($0.99/mo)<br><small>Unlock 99 Multi-vault slots & No Ads</small>
+        </button>
+
+        <button id="nav-friends-trigger" class="gold-luxury-btn full-width">MANAGE VAULT CIRCLE (FRIENDS)</button>
+        <button id="matrix-compare-trigger" class="gold-luxury-btn full-width">RUN 27-WAY MATRIX CROSS COMPANION LOOKUP</button>
+        <button id="matrix-fuse-trigger" class="gold-luxury-btn full-width">EXECUTE MASS COGNITIVE FUSION (WEIGHTED AVERAGE)</button>
+        <button id="action-global-save" class="gold-luxury-btn full-width dynamic-glow">SYNCHRONIZE SECURE CLOUD STORAGE</button>
+        
+        <div class="dangerous-action-spacer"></div>
+        <button id="action-wipe-vault" class="destructive-action-btn full-width">EXECUTE ENTIRE RECONSTRUCTIVE DATA WIPE</button>
       </div>
-      <input type="file" id="file-generic-item-raw" accept="image/*,video/*">
-      <div class="modal-control-row">
-        <button id="btn-commit-media-ingest" class="gold-fluid-button">Publish Image Asset</button>
-        <button id="btn-cancel-media-ingest" class="gold-outline-button">Abort Ingestion</button>
+    </div>
+  </aside>
+
+  <aside id="drawer-profile" class="sliding-panel-drawer">
+    <button class="drawer-close-cross-btn">×</button>
+    <div class="drawer-internal-scroller">
+      <h2 class="drawer-header-title">VAULT PROFILE GRAPH</h2>
+      
+      <div class="avatar-interactive-upload-wrapper">
+        <div id="avatar-preview-viewport-window" class="avatar-preview-window">
+          <img id="avatar-manipulation-target" src="AppIconTopTens.png" alt="Cropping Interface Vector">
+        </div>
+        <input type="file" id="avatar-file-pipeline-input" accept="image/*" class="hidden-file-input">
+        <button id="avatar-upload-trigger" class="action-add-pill-sm">UPLOAD NEW LOGO / AVATAR</button>
+        <div id="avatar-crop-controls-hub" class="crop-controls-wrapper hidden">
+          <input type="range" id="avatar-zoom-slider" min="1" max="3" step="0.05" value="1">
+          <button id="avatar-crop-commit" class="action-add-pill-sm">CENTER & SAVE MEDIA</button>
+        </div>
+      </div>
+
+      <div class="drawer-form-layout">
+        <div class="input-form-block">
+          <label>Full Identity Legal Name</label>
+          <input type="text" id="profile-name-input" placeholder="Sean D. Woodson">
+        </div>
+        <div class="input-form-block">
+          <label>Temporal Birth Coordinate (D.O.B.)</label>
+          <input type="date" id="profile-dob-input">
+        </div>
+        <div class="input-form-block">
+          <label>Geographic Home Coordinate (Hometown)</label>
+          <input type="text" id="profile-hometown-input" placeholder="New York, NY">
+        </div>
+        <div class="input-form-block">
+          <label>Active Professional Vocation</label>
+          <input type="text" id="profile-vocation-input" placeholder="Independent Trader & Engineer">
+        </div>
+        <div class="input-form-block">
+          <label>Cloud Communications Node (Email - Fixed)</label>
+          <input type="email" id="profile-email-display" readonly disabled>
+        </div>
+        <div class="input-form-block">
+          <label>Fallback Recovery Link (Phone / Alt Email)</label>
+          <input type="text" id="profile-recovery-input" placeholder="+1-555-0199">
+        </div>
+        <button id="profile-save-trigger" class="gold-luxury-btn full-width">COMMIT METADATA ROUTINE</button>
+      </div>
+    </div>
+  </aside>
+
+  <div id="global-entity-modal" class="modal-layer hidden">
+    <div class="modal-window-container">
+      <h3 id="modal-view-headline" class="drawer-header-title">MODIFY SLOT</h3>
+      <div class="drawer-form-layout">
+        <div class="input-form-block">
+          <label id="modal-label-input-text">Name / Literal Descriptor</label>
+          <input type="text" id="modal-literal-text-input">
+        </div>
+        
+        <div id="modal-media-upload-subchain" class="input-form-block hidden">
+          <label>Visual Identity Target Media Asset (Max 6-Second Video / Photo)</label>
+          <input type="file" id="modal-media-pipeline-input" accept="image/*,video/*">
+          <div id="modal-media-preview-viewport" class="media-preview-box"></div>
+          <input type="range" id="modal-media-zoom-slider" min="1" max="3" step="0.05" value="1" class="hidden">
+        </div>
+
+        <div class="modal-action-row-buttons">
+          <button id="modal-cancel-btn" class="destructive-action-btn">ABORT</button>
+          <button id="modal-commit-btn" class="gold-luxury-btn">PUBLISH DATA CHANGES</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="stockitems.js"></script>
+  <script src="canvas-sparks.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,112 +1,124 @@
-// frontend/stockitems.js
-
-const defaultStockVault = {
-  "Shoes": [
-    { rank: 1, name: "Air Jordan 1 Retro High OG", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Adidas Ultraboost Light Running", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Nike Air Max 90 Essentials", media: "AppIconTopTens.png" },
-    { rank: 4, name: "New Balance 990v6 Heritage", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Asics Gel-Kayano 30 Stability", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Puma Suede Classic Street", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Reebok Club C 85 Vintage", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Vans Old Skool Skate Premium", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Converse Chuck 70 High Top", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Balenciaga Triple S Luxury Leather", media: "AppIconTopTens.png" }
+// File: frontend/stockitems.js
+const STOCK_DATA = {
+  "shoes": [
+    { rank: 1, name: "Air Jordan 1 Retro High OG" },
+    { rank: 2, name: "Nike Air Max 90" },
+    { rank: 3, name: "Adidas Ultraboost Light" },
+    { rank: 4, name: "Yeezy Boost 350 V2" },
+    { rank: 5, name: "New Balance 990v6" },
+    { rank: 6, name: "Converse Chuck Taylor All Star" },
+    { rank: 7, name: "Vans Old Skool" },
+    { rank: 8, name: "Puma Suede Classic" },
+    { rank: 9, name: "Asics Gel-Kayano 30" },
+    { rank: 10, name: "Balenciaga Triple S" }
   ],
-  "Inspiring Athletes": [
-    { rank: 1, name: "Muhammad Ali Heavyweight Legend", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Michael Jordan Basketball Champion", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Serena Williams Tennis Icon", media: "AppIconTopTens.png" },
-    { rank: 4, name: "LeBron James All-Time Scorer", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Simone Biles Gymnastics GOAT", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Lionel Messi World Cup Winner", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Usain Bolt World Record Sprinter", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Kobe Bryant Mamba Mentality", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Tom Brady 7x Super Bowl King", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Tiger Woods Masters Icon", media: "AppIconTopTens.png" }
+  "inspiring athletes": [
+    { rank: 1, name: "Muhammad Ali" },
+    { rank: 2, name: "Michael Jordan" },
+    { rank: 3, name: "Serena Williams" },
+    { rank: 4, name: "Pelé" },
+    { rank: 5, name: "Usain Bolt" },
+    { rank: 6, name: "Simone Biles" },
+    { rank: 7, name: "Lionel Messi" },
+    { rank: 8, name: "Tiger Woods" },
+    { rank: 9, name: "Roger Federer" },
+    { rank: 10, name: "Aryton Senna" }
   ],
-  "Tech Devices": [
-    { rank: 1, name: "iPhone 15 Pro Max Titanium", media: "AppIconTopTens.png" },
-    { rank: 2, name: "MacBook Pro M3 Max Workstation", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Samsung Galaxy S24 Ultra AI", media: "AppIconTopTens.png" },
-    { rank: 4, name: "iPad Pro M2 Liquid Retina", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Sony WH-1000XM5 ANC Headset", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Apple Watch Ultra 2 Outdoor GPS", media: "AppIconTopTens.png" },
-    { rank: 7, name: "ASUS ROG Zephyrus G14 Gaming Laptop", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Steam Deck OLED Handheld Engine", media: "AppIconTopTens.png" },
-    { rank: 9, name: "DJI Mini 4 Pro Cinematic Drone", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Meta Quest 3 VR Computing Headset", media: "AppIconTopTens.png" }
+  "tech devices": [
+    { rank: 1, name: "Apple iPhone 15 Pro Max" },
+    { rank: 2, name: "Samsung Galaxy S24 Ultra" },
+    { rank: 3, name: "Apple MacBook Pro M3 Max" },
+    { rank: 4, name: "Sony WH-1000XM5 Headphones" },
+    { rank: 5, name: "Apple Watch Ultra 2" },
+    { rank: 6, name: "iPad Pro M4" },
+    { rank: 7, name: "Steam Deck OLED" },
+    { rank: 8, name: "DJI Mini 4 Pro Drone" },
+    { rank: 9, name: "Meta Quest 3 VR Headset" },
+    { rank: 10, name: "ASUS ROG Zephyrus G14" }
   ],
-  "Celebrities": [
-    { rank: 1, name: "Keanu Reeves Humble Action Star", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Tom Cruise Maverick Flight King", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Denzel Washington Master Class Actor", media: "AppIconTopTens.png" },
-    { rank: 4, name: "Leonardo DiCaprio Cinematic Phenom", media: "AppIconTopTens.png" },
-    { rank: 5, name: "The Rock Dwayne Johnson Blockbuster Star", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Scarlett Johansson Marvel Starlet", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Pedro Pascal Mandalorian Icon", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Margot Robbie Cinematic Barbie Queen", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Tom Hanks America's Vault Actor", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Robert Downey Jr. Cinematic Legend", media: "AppIconTopTens.png" }
+  "celebrities": [
+    { rank: 1, name: "Keanu Reeves" },
+    { rank: 2, name: "Tom Hanks" },
+    { rank: 3, name: "Dwayne Johnson" },
+    { rank: 4, name: "Taylor Swift" },
+    { rank: 5, name: "Leonardo DiCaprio" },
+    { rank: 6, name: "Denzel Washington" },
+    { rank: 7, name: "Margot Robbie" },
+    { rank: 8, name: "Ryan Reynolds" },
+    { rank: 9, name: "Beyoncé" },
+    { rank: 10, name: "Pedro Pascal" }
   ],
-  "Post 2000 Movies": [
-    { rank: 1, name: "The Dark Knight Epic Trilogy", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Inception Reality Structural Script", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Interstellar Deep Space Concept", media: "AppIconTopTens.png" },
-    { rank: 4, name: "Avatar The Way of Water Engine", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Mad Max Fury Road Action Masterpiece", media: "AppIconTopTens.png" },
-    { rank: 6, name: "The Lord of the Rings Return of the King", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Spider-Man Into the Spider-Verse", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Parasite Historical Masterclass Cinema", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Everything Everywhere All At Once", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Dune Part Two Arrakis Epic", media: "AppIconTopTens.png" }
+  "post 2000 movies": [
+    { rank: 1, name: "The Dark Knight (2008)" },
+    { rank: 2, name: "Inception (2010)" },
+    { rank: 3, name: "Interstellar (2014)" },
+    { rank: 4, name: "Parasite (2019)" },
+    { rank: 5, name: "Mad Max: Fury Road (2015)" },
+    { rank: 6, name: "Everything Everywhere All At Once" },
+    { rank: 7, name: "Whiplash (2014)" },
+    { rank: 8, name: "Spirited Away (2001)" },
+    { rank: 9, name: "The Lord of the Rings: Return of the King" },
+    { rank: 10, name: "Spider-Man: Into the Spider-Verse" }
   ],
-  "90s Rap Songs": [
-    { rank: 1, name: "Juicy - Notorious B.I.G.", media: "AppIconTopTens.png" },
-    { rank: 2, name: "California Love - 2Pac Death Row", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Nuthin but a G Thang - Dr. Dre", media: "AppIconTopTens.png" },
-    { rank: 4, name: "C.R.E.A.M. - Wu-Tang Clan NYC Style", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Shook Ones Pt II - Mobb Deep Infamous", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Mind Playing Tricks on Me - Geto Boys Rap", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Mass Appeal - Gang Starr Foundation", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Rosa Parks - Outkast Southern Anthem", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Regulate - Warren G West Coast Classic", media: "AppIconTopTens.png" },
-    { rank: 10, name: "It Was A Good Day - Ice Cube Solo Track", media: "AppIconTopTens.png" }
+  "90s rap songs": [
+    { rank: 1, name: "Juicy - The Notorious B.I.G." },
+    { rank: 2, name: "C.R.E.A.M. - Wu-Tang Clan" },
+    { rank: 3, name: "California Love - 2Pac ft. Dr. Dre" },
+    { rank: 4, name: "Nuthin' But A 'G' Thang - Dr. Dre" },
+    { rank: 5, name: "Shook Ones, Pt. II - Mobb Deep" },
+    { rank: 6, name: "N.Y. State of Mind - Nas" },
+    { rank: 7, name: "Mind Playing Tricks on Me - Geto Boys" },
+    { rank: 8, name: "Dear Mama - 2Pac" },
+    { rank: 9, name: "Regulate - Warren G ft. Nate Dogg" },
+    { rank: 10, name: "Insane in the Brain - Cypress Hill" }
   ],
-  "Post 2010 Video Games": [
-    { rank: 1, name: "Elden Ring FromSoftware Masterpiece", media: "AppIconTopTens.png" },
-    { rank: 2, name: "The Legend of Zelda Breath of the Wild", media: "AppIconTopTens.png" },
-    { rank: 3, name: "The Witcher 3 Wild Hunt RPG Engine", media: "AppIconTopTens.png" },
-    { rank: 4, name: "Red Dead Redemption 2 Rockstar Epics", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Grand Theft Auto V Open World Core", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Baldur's Gate 3 Larian Fantasy Systems", media: "AppIconTopTens.png" },
-    { rank: 7, name: "God of War Ragnarok Santa Monica Studio", media: "AppIconTopTens.png" },
-    { rank: 8, name: "The Last of Us Part II Naughty Dog", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Cyberpunk 2077 Night City Expansion", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Minecraft Base Vanilla Sandbox Core", media: "AppIconTopTens.png" }
+  "post 2010 video games": [
+    { rank: 1, name: "The Legend of Zelda: Breath of the Wild" },
+    { rank: 2, name: "Elden Ring" },
+    { rank: 3, name: "The Witcher 3: Wild Hunt" },
+    { rank: 4, name: "Red Dead Redemption 2" },
+    { rank: 5, name: "Grand Theft Auto V" },
+    { rank: 6, name: "The Last of Us Part I" },
+    { rank: 7, name: "God of War (2018)" },
+    { rank: 8, name: "Minecraft" },
+    { rank: 9, name: "Hades" },
+    { rank: 10, name: "Cyberpunk 2077 Phantom Liberty" }
   ],
-  "Novels": [
-    { rank: 1, name: "The Great Gatsby Classic Literature", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Fahrenheit 451 Ornate Dystopian Tale", media: "AppIconTopTens.png" },
-    { rank: 3, name: "To Kill a Mockingbird Harper Lee", media: "AppIconTopTens.png" },
-    { rank: 4, name: "The Catcher in the Rye JD Salinger", media: "AppIconTopTens.png" },
-    { rank: 5, name: "The Hobbit JRR Tolkien Fantasy Epic", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Crime and Punishment Dostoevsky Matrix", media: "AppIconTopTens.png" },
-    { rank: 7, name: "The Road Cormac McCarthy Dystopia", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Neuromancer William Gibson Cyberpunk Core", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Dune Deluxe Sci-Fi Hardcover", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Project Hail Mary Andy Weir Science", media: "AppIconTopTens.png" }
+  "novels": [
+    { rank: 1, name: "The Great Gatsby" },
+    { rank: 2, name: "To Kill a Mockingbird" },
+    { rank: 3, name: "1984" },
+    { rank: 4, name: "The Catcher in the Rye" },
+    { rank: 5, name: "One Hundred Years of Solitude" },
+    { rank: 6, name: "The Hobbit" },
+    { rank: 7, name: "Brave New World" },
+    { rank: 8, name: "Crime and Punishment" },
+    { rank: 9, name: "The Road" },
+    { rank: 10, name: "Frankenstein" }
   ],
-  "Restaurants": [
-    { rank: 1, name: "The French Laundry Napa Luxury Dine", media: "AppIconTopTens.png" },
-    { rank: 2, name: "Eleven Madison Park Premium Tasting NYC", media: "AppIconTopTens.png" },
-    { rank: 3, name: "Osteria Francescana Modena Fine Dining", media: "AppIconTopTens.png" },
-    { rank: 4, name: "Central Restaurante Gastronomic Lima", media: "AppIconTopTens.png" },
-    { rank: 5, name: "Asador Etxebarri Wood-Fired Spain Epic", media: "AppIconTopTens.png" },
-    { rank: 6, name: "Atomix NYC Refined Korean Gastronomy", media: "AppIconTopTens.png" },
-    { rank: 7, name: "Le Bernardin French Seafood NYC Elite", media: "AppIconTopTens.png" },
-    { rank: 8, name: "Pujol Mexican Gastronomy Mexico City", media: "AppIconTopTens.png" },
-    { rank: 9, name: "Gaggan Anand Progressive Indian Tasting", media: "AppIconTopTens.png" },
-    { rank: 10, name: "Geranium Copenhagen Scandinavian Elite Stars", media: "AppIconTopTens.png" }
+  "restaurants": [
+    { rank: 1, name: "Central (Lima, Peru)" },
+    { rank: 2, name: "Disfrutar (Barcelona, Spain)" },
+    { rank: 3, name: "DiverXO (Madrid, Spain)" },
+    { rank: 4, name: "Asador Etxebarri (Achondo, Spain)" },
+    { rank: 5, name: "Alchemist (Copenhagen, Denmark)" },
+    { rank: 6, name: "Maido (Lima, Peru)" },
+    { rank: 7, name: "A Casa do Porco (São Paulo, Brazil)" },
+    { rank: 8, name: "Atomix (New York City, USA)" },
+    { rank: 9, name: "Quintonil (Mexico City, Mexico)" },
+    { rank: 10, name: "Table by Bruno Verjus (Paris, France)" }
   ]
 };
+
+// Map display names to clean lookup keys
+const STOCK_CATEGORY_KEYS = [
+  { display: "Shoes", key: "shoes" },
+  { display: "Inspiring Athletes", key: "inspiring athletes" },
+  { display: "Tech Devices", key: "tech devices" },
+  { display: "Celebrities", key: "celebrities" },
+  { display: "Post 2000 Movies", key: "post 2000 movies" },
+  { display: "90s Rap Songs", key: "90s rap songs" },
+  { display: "Post 2010 Video Games", key: "post 2010 video games" },
+  { display: "Novels", key: "novels" },
+  { display: "Restaurants", key: "restaurants" }
+];
