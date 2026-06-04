@@ -1,140 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens - Premium Dynamic Vault</title>
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Tens Vault</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme-context">
+<body class="dark-mode">
+  <div id="sparkle-layer" class="sparkle-overlay"></div>
+  <div id="ambient-vault-bg" class="vault-bg-image"></div>
 
-    <div id="sparkle-canvas-layer" class="sparkle-layer-canvas"></div>
-
-    <header class="app-global-header">
-        <button id="header-back-btn" class="nav-control-circle-btn hidden" onclick="window.appEngine.navigateBack()" title="Navigate Back">
-            <i class="lucide-chevron-left"></i>
-        </button>
-        
-        <div class="header-branding-logo" onclick="window.appEngine.handleBrandClick()">
-            <img src="AppIconTopTens.png" alt="Top Tens" class="logo-graphic-img" onerror="this.style.display='none'">
-            <h1 class="header-brand-text">TOP TENS</h1>
-        </div>
-        
-        <div class="header-action-cluster-right">
-            <button id="header-avatar-btn" class="header-user-avatar-trigger hidden" onclick="window.appEngine.openDrawer('profile')" title="Identity Ledger">
-                <div id="avatar-circle-display" class="avatar-display-node"></div>
-            </button>
-            <button id="header-burger-btn" class="nav-control-circle-btn hidden" onclick="window.appEngine.openDrawer('settings')" title="Vault Configuration">
-                <i class="lucide-menu"></i>
-            </button>
-        </div>
-    </header>
-
-    <main id="app-root-viewport" class="master-stage-container"></main>
-
-    <div id="global-drawer-overlay" class="global-blur-curtain hidden" onclick="window.appEngine.closeAllActiveDrawers()">
-        
-        <div id="drawer-signin" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
-            <div class="drawer-header-row">
-                <h3 id="auth-drawer-title">AUTHENTICATE SYSTEM KEY</h3>
-                <button class="drawer-close-cross-btn" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
-            </div>
-            <form id="auth-transmission-form" onsubmit="window.appEngine.handleAuthenticationRun(event)">
-                <div id="auth-mode-toggle" style="margin-bottom:15px; display:flex; gap:10px;">
-                    <button type="button" class="gold-gradient-ui-btn" style="padding:6px 12px; font-size:0.75rem;" onclick="window.appEngine.toggleAuthViewMode('login')">LOGIN</button>
-                    <button type="button" class="gold-gradient-ui-btn" style="padding:6px 12px; font-size:0.75rem;" onclick="window.appEngine.toggleAuthViewMode('register')">SIGN UP</button>
-                </div>
-                <div class="field-input-group" style="margin-bottom:12px;">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:4px;">Identity Email Target</label>
-                    <input type="email" id="auth-email-field" required style="width:100%; padding:10px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;">
-                </div>
-                <div class="field-input-group" style="margin-bottom:12px;">
-                    <label style="display:block; font-size:0.8rem; margin-bottom:4px;">Structural Access Token Key</label>
-                    <input type="password" id="auth-pass-field" required style="width:100%; padding:10px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;" minlength="8" maxlength="20">
-                </div>
-                <button type="submit" id="auth-submit-btn" class="gold-gradient-ui-btn" style="width:100%; margin-top: 10px;">VALIDATE MATRIX</button>
-                <div id="auth-status-log-output" style="margin-top:15px; font-size:0.8rem; line-height:1.4;"></div>
-            </form>
-        </div>
-
-        <div id="drawer-settings" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
-            <div class="drawer-header-row">
-                <h3>VAULT OPTIONS</h3>
-                <button class="drawer-close-cross-btn" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
-            </div>
-            
-            <div style="display:flex; flex-direction:column; gap:20px; overflow-y:auto; flex-grow:1; padding-right:5px;">
-                <div class="drawer-section-block">
-                    <h4 style="font-size:0.85rem; margin-bottom:8px; color:var(--gold-text);">SYSTEM ADAPTIVE THEME MAPPING</h4>
-                    <div style="display:flex; gap:10px;">
-                        <button class="gold-gradient-ui-btn" style="padding:8px; font-size:0.75rem; flex:1;" onclick="window.appEngine.setApplicationTheme('dark')">ONYX DARK</button>
-                        <button class="gold-gradient-ui-btn" style="padding:8px; font-size:0.75rem; flex:1;" onclick="window.appEngine.setApplicationTheme('light')">PLATINUM LIGHT</button>
-                    </div>
-                </div>
-
-                <div class="drawer-section-block">
-                    <h4 style="font-size:0.85rem; margin-bottom:8px; color:var(--gold-text);">ENCRYPTION PRIVACY GATEWAY</h4>
-                    <button class="gold-gradient-ui-btn" style="width:100%; padding:8px; font-size:0.75rem;" onclick="window.appEngine.togglePrivacySettings()">TOGGLE PUBLIC/PRIVATE BUTTON</button>
-                </div>
-
-                <div class="drawer-section-block">
-                    <h4 style="font-size:0.85rem; margin-bottom:8px; color:var(--gold-text);">MATRIX UTILITIES</h4>
-                    <button class="gold-gradient-ui-btn" style="width:100%; padding:8px; font-size:0.75rem; margin-bottom:8px;" onclick="window.appEngine.openDrawer('signin')">SIGN IN VIA CONFIG</button>
-                    <button class="gold-gradient-ui-btn" style="width:100%; padding:8px; font-size:0.75rem; margin-bottom:8px;" onclick="window.appEngine.openFriendsPage()">MANAGE FRIENDS LIST</button>
-                    <button class="gold-gradient-ui-btn" style="width:100%; padding:8px; font-size:0.75rem; margin-bottom:8px;" onclick="window.appEngine.executeComparisonMatrix()">EXECUTE COMPARE (27 MATRIX VIEW)</button>
-                    <button class="gold-gradient-ui-btn" style="width:100%; padding:8px; font-size:0.75rem;" onclick="window.appEngine.executeMultiVaultFusion()">EXECUTE FUSE DATA GRID</button>
-                </div>
-
-                <div class="drawer-section-block">
-                    <h4 style="font-size:0.85rem; margin-bottom:8px; color:var(--gold-text);">PREMIUM LEVEL UPGRADE LINK</h4>
-                    <button class="gold-gradient-ui-btn" style="width:100%;" onclick="window.appEngine.triggerPremiumUpgrade()">UPGRADE TO EXPANDED MATRIX ($0.99/MO)</button>
-                </div>
-
-                <div class="drawer-section-block" style="margin-top:auto; padding-top:15px; border-top:1px solid var(--border-stroke-dark);">
-                    <button onclick="window.appEngine.executeVaultWipeProcedure()" style="width:100%; padding:12px; background:#ff4d4d; border:none; color:#fff; font-weight:700; border-radius:4px; cursor:pointer;">WIPE MASTER VAULT DATABASE</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="drawer-profile" class="drawer-sliding-chassis" onclick="event.stopPropagation()">
-            <div class="drawer-header-row">
-                <h3>IDENTITY LEDGER INDEX</h3>
-                <button class="drawer-close-cross-btn" onclick="window.appEngine.closeAllActiveDrawers()">&times;</button>
-            </div>
-
-            <div style="overflow-y:auto; flex-grow:1; padding-right:5px;">
-                <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
-                    <div id="profile-avatar-preview-container" style="width:100px; height:100px; border-radius:50%; border:2px solid var(--gold-text); margin-bottom:10px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
-                        <div id="profile-avatar-preview-box" style="width:100%; height:100%; background-size:cover; background-position:center;"></div>
-                    </div>
-                    <label style="color:var(--gold-text); font-size:0.8rem; text-decoration:underline; cursor:pointer;">
-                        Upload Avatar Media Asset
-                        <input type="file" id="profile-avatar-file-input" accept="image/*,video/*" onchange="window.appEngine.handleAvatarAssetUpload(event)" style="display:none;">
-                    </label>
-                    
-                    <div id="avatar-crop-controls" class="hidden" style="margin-top:8px; display:flex; gap:5px;">
-                        <button type="button" class="gold-gradient-ui-btn" style="padding:4px 8px; font-size:0.65rem;" onclick="window.appEngine.adjustMediaCenter('avatar', 'up')">▲</button>
-                        <button type="button" class="gold-gradient-ui-btn" style="padding:4px 8px; font-size:0.65rem;" onclick="window.appEngine.adjustMediaCenter('avatar', 'down')">▼</button>
-                    </div>
-                </div>
-
-                <form id="profile-metadata-sync-form" onsubmit="window.appEngine.saveProfileLedgerMetadata(event)">
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Full Moniker Name</label><input type="text" id="prof-name" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Birth Timeline Vector (D.O.B.)</label><input type="date" id="prof-dob" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Origin Coordinate (Hometown)</label><input type="text" id="prof-home" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Primary Vocation Matrix</label><input type="text" id="prof-vocation" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Identity Target Email</label><input type="email" id="prof-email" readonly style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px; opacity:0.5;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Comms Validation Phone</label><input type="tel" id="prof-phone" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;"></div>
-                    <div style="margin-bottom:10px;"><label style="display:block; font-size:0.75rem; margin-bottom:2px;">Recovery Contact Channel</label><input type="text" id="prof-recovery" style="width:100%; padding:8px; background:var(--input-bg); border:1px solid var(--border-stroke-dark); color:#fff; border-radius:4px;" placeholder="backup@email.internal"></div>
-                    <button type="submit" class="gold-gradient-ui-btn" style="width:100%; margin-top:10px;">COMMIT CHANGES</button>
-                </form>
-            </div>
-        </div>
-
+  <header id="app-header" class="hidden">
+    <div class="header-left">
+      <button id="back-btn" class="nav-btn">← BACK</button>
     </div>
+    <div class="header-center">
+      <h1 class="logo-text">TOP TENS</h1>
+    </div>
+    <div class="header-right">
+      <button id="burger-menu-btn" class="header-icon">☰</button>
+      <div id="profile-avatar-btn" class="avatar-icon-frame">
+        <img id="header-avatar-img" src="AppIconTopTens.png" alt="Profile">
+      </div>
+    </div>
+  </header>
 
-    <script src="stockitems.js"></script>
-    <script src="app.js"></script>
+  <main id="viewport-container">
+    <section id="screen-landing" class="screen-view">
+      <div class="landing-hero">
+        <h1 class="landing-title">TOP TENS</h1>
+        <p class="landing-description">Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.</p>
+        <div class="landing-actions">
+          <button id="btn-enter-vault" class="btn-gold">ENTER VAULT</button>
+          <button id="btn-landing-signin" class="btn-gold-outline">SIGN IN</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-categories" class="screen-view hidden">
+      <div class="dashboard-header">
+        <h2 class="section-title">ADD CUSTOM CATEGORIES—UP TO <span id="max-category-count">21</span> TOTAL</h2>
+        <button id="btn-add-custom-cat" class="btn-green">+ Add New Custom Category</button>
+      </div>
+      <div id="categories-grid" class="grid-3x3"></div>
+    </section>
+
+    <section id="screen-list-items" class="screen-view hidden">
+      <h2 id="current-list-title" class="centered-list-title">Category Title</h2>
+      <div id="list-slots-container" class="slots-list"></div>
+    </section>
+
+    <section id="screen-friends" class="screen-view hidden">
+      <h2 class="centered-list-title">Vault Network Connections</h2>
+      <div id="friends-list-container" class="slots-list"></div>
+    </section>
+  </main>
+
+  <div id="drawer-backdrop" class="drawer-overlay hidden"></div>
+
+  <div id="drawer-auth" class="side-drawer hidden">
+    <button class="drawer-close-x">×</button>
+    <h3>Vault Authentication</h3>
+    <form id="auth-form">
+      <div class="input-group">
+        <label>Active Email Address</label>
+        <input type="email" id="auth-email" required>
+      </div>
+      <div class="input-group">
+        <label>Vault Security Password</label>
+        <input type="password" id="auth-password" required>
+        <small class="rules-hint">8-20 chars, 1 Upper, 1 Lower, 1 Number, 1 Special</small>
+      </div>
+      <button type="submit" id="auth-submit-btn" class="btn-gold-block">Submit Secure Handshake</button>
+    </form>
+    <div id="dev-link-catcher" class="hidden">
+      <p class="alert-text">Dev Sandbox URL Catch:</p>
+      <a id="sandbox-anchor" href="#" target="_blank">Click Here to Auto-Verify Staged Account</a>
+    </div>
+  </div>
+
+  <div id="drawer-settings" class="side-drawer hidden">
+    <button class="drawer-close-x">×</button>
+    <h3>Vault Core Matrix</h3>
+    <div class="drawer-actions-stack">
+      <button id="btn-toggle-theme" class="btn-drawer-opt">Toggle Theme: Dark Mode</button>
+      <button id="btn-drawer-signin" class="btn-drawer-opt font-gold">Sign In / Register Account</button>
+      <button id="btn-upgrade-tier" class="btn-drawer-opt">Upgrade Expansion Premium ($0.99/mo)</button>
+      <button id="btn-nav-friends" class="btn-drawer-opt">Add / Manage Friends</button>
+      <button id="btn-wipe-vault" class="btn-drawer-opt danger-red">Wipe Vault Structure Data</button>
+      <button id="btn-save-settings" class="btn-gold-block">Save Global Settings</button>
+    </div>
+  </div>
+
+  <div id="drawer-profile" class="side-drawer hidden">
+    <button class="drawer-close-x">×</button>
+    <h3>Vault Record Profile</h3>
+    <div class="avatar-edit-sandbox">
+      <div class="preview-boundary">
+        <img id="avatar-editor-preview" src="AppIconTopTens.png" alt="Preview">
+      </div>
+      <input type="file" id="avatar-file-input" accept="image/*" class="file-hidden">
+      <button id="btn-trigger-upload" class="btn-mini-gold">Upload New Avatar Icon</button>
+    </div>
+    <div class="input-group-grid">
+      <input type="text" id="prof-fullname" placeholder="Full Name">
+      <input type="date" id="prof-dob" placeholder="Date of Birth">
+      <input type="text" id="prof-hometown" placeholder="Hometown">
+      <input type="text" id="prof-vocation" placeholder="Vocation">
+      <input type="email" id="prof-static-email" placeholder="Email Contact" readonly>
+    </div>
+  </div>
+
+  <script src="stockitems.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
