@@ -3,81 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens</title>
+    <title>Top Tens | The Vault</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <canvas id="sparkle-canvas"></canvas>
+
     <div id="app">
-        <!-- Navigation Header -->
-        <header class="vault-header">
-            <button id="back-btn" class="hidden">←</button>
-            <h1 id="view-title">THE VAULT</h1>
-            <button id="menu-btn">☰</button>
+        <section id="landing-page" class="view">
+            <div class="landing-hero">
+                <h1 class="landing-title">TOP TENS</h1>
+                <p class="landing-description">
+                    Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
+                </p>
+                <div class="landing-actions">
+                    <button id="enter-vault-btn" class="btn-gold-action">ENTER VAULT</button>
+                    <button id="open-auth-drawer-btn" class="btn-gold-action">SIGN IN</button>
+                </div>
+            </div>
+        </section>
+
+        <header id="system-header" class="hidden">
+            <div class="header-left">
+                <img src="AppIconTopTens.png" alt="Logo" class="header-logo-icon">
+                <button id="global-back-btn" class="btn-header-nav">
+                    <span class="arrow-icon">←</span> BACK
+                </button>
+            </div>
+            <h1 class="header-title">TOP TENS</h1>
+            <div class="header-right">
+                <button id="burger-menu-btn" class="btn-icon">☰</button>
+                <div id="header-avatar-btn" class="profile-avatar-circle"></div>
+            </div>
         </header>
 
-        <!-- Main Content Views -->
-        <main id="view-container">
-            <!-- Auth View -->
-            <section id="auth-view" class="view">
-                <div class="auth-box">
-                    <h2>ACCESS GATE</h2>
-                    <input type="email" id="auth-email" placeholder="ENTER EMAIL">
-                    <input type="password" id="auth-password" placeholder="ENTER PIN">
-                    <button id="login-btn" class="btn-primary">VERIFY</button>
-                    <button id="signup-btn" class="btn-secondary">INITIALIZE NEW ACCOUNT</button>
-                    <p id="auth-msg" class="feedback-msg"></p>
-                </div>
-            </section>
+        <section id="categories-page" class="view hidden">
+            <div class="ad-layout-container">
+                <aside class="ad-space left-ad"></aside>
+                <main class="core-content">
+                    <div class="action-bar-centered">
+                        <button id="add-custom-cat-btn" class="btn-add-main">+ Add New Custom Category</button>
+                    </div>
+                    <h2 class="section-banner">ADD CUSTOM CATEGORIES—UP TO <span class="tier-limit-text">21</span> TOTAL</h2>
+                    <div id="categories-grid" class="grid-3x3"></div>
+                </main>
+                <aside class="ad-space right-ad"></aside>
+            </div>
+        </section>
 
-            <!-- Categories View -->
-            <section id="categories-view" class="view hidden">
-                <div class="list-container" id="categories-list"></div>
-            </section>
+        <section id="items-page" class="view hidden">
+            <div class="ad-layout-container">
+                <aside class="ad-space left-ad"></aside>
+                <main class="core-content">
+                    <div class="item-compiler-box">
+                        <h2 id="current-category-title" class="gold-label">CATEGORY INITIALIZATION</h2>
+                        <div class="compiler-row">
+                            <input type="text" id="item-name-input" placeholder="ITEM NAME / TITLE">
+                            <input type="number" id="item-rank-input" placeholder="RANK (1-10)" min="1" max="10">
+                            <button id="trigger-item-media" class="btn-compiler-media">UPLOAD MEDIA</button>
+                            <input type="file" id="item-media-input" accept="image/*,video/*" class="hidden">
+                        </div>
+                        <div class="action-bar-centered">
+                            <button id="add-item-submit-btn" class="btn-add-main">ADD ITEM</button>
+                        </div>
+                    </div>
+                    <div id="items-list-container" class="linear-list"></div>
+                </main>
+                <aside class="ad-space right-ad"></aside>
+            </div>
+        </section>
 
-            <!-- Rankings/Items View -->
-            <section id="items-view" class="view hidden">
-                <div class="list-container" id="items-list"></div>
-                <div class="center-container">
-                    <button id="add-item-btn" class="btn-add">ADD ITEM</button>
-                </div>
-            </section>
+        <section id="friends-page" class="view hidden">
+            <div class="ad-layout-container">
+                <aside class="ad-space left-ad"></aside>
+                <main class="core-content">
+                    <div class="action-bar-centered">
+                        <button id="add-friend-trigger-btn" class="btn-add-main">ADD FRIENDS</button>
+                    </div>
+                    <div id="friends-list-container" class="linear-list"></div>
+                </main>
+                <aside class="ad-space right-ad"></aside>
+            </div>
+        </section>
 
-            <!-- Friends View -->
-            <section id="friends-view" class="view hidden">
-                <h2>CONNECTED KEYS</h2>
-                <div class="list-container" id="friends-list"></div>
-                <div class="center-container">
-                    <input type="text" id="friend-id-input" placeholder="ENTER FRIEND ID">
-                    <button id="add-friend-btn" class="btn-add">ADD FRIEND</button>
-                </div>
-            </section>
-        </main>
+        <section id="analytics-page" class="view hidden">
+            <main class="core-content wide-view">
+                <h2 id="analytics-view-title" class="section-banner">MATRIX VIEW</h2>
+                <div id="analytics-matrix-grid" class="matrix-layout"></div>
+            </main>
+        </section>
 
-        <!-- Settings Drawer Overlay -->
-        <div id="settings-drawer" class="drawer hidden">
+        <div id="drawer-overlay" class="drawer-overlay hidden"></div>
+
+        <div id="auth-drawer" class="drawer hidden">
+            <button class="drawer-close-x">×</button>
             <div class="drawer-content">
-                <button id="close-drawer-btn" class="btn-close">×</button>
-                <h3>SYSTEM SETTINGS</h3>
-                <hr class="drawer-divider">
+                <h3 class="drawer-heading">AUTHENTICATION ACCESS</h3>
+                <div class="form-group">
+                    <label>EMAIL IDENTIFIER</label>
+                    <input type="email" id="auth-email" placeholder="name@domain.com">
+                </div>
+                <div class="form-group">
+                    <label>ACCESS PASSWORD</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="auth-password" placeholder="••••••••">
+                        <button id="toggle-password-visibility" class="password-reveal-btn">👁️</button>
+                    </div>
+                    <span class="password-spec-label">Parameters: 8-20 characters, 1 uppercase, 1 lowercase, 1 special character, 1 number.</span>
+                </div>
+                <div class="drawer-actions-vertical">
+                    <button id="submit-signin-btn" class="btn-drawer-action-gold">SIGN IN</button>
+                    <button id="submit-signup-btn" class="btn-drawer-action-gold">SIGN UP</button>
+                </div>
+                <p id="auth-status-msg" class="drawer-status-text"></p>
+            </div>
+        </div>
+
+        <div id="profile-drawer" class="drawer hidden">
+            <button class="drawer-close-x">×</button>
+            <div class="drawer-content">
+                <h3 class="drawer-heading">USER IDENTITY PROFILE</h3>
+                <div class="avatar-editor-workspace">
+                    <div id="profile-drawer-avatar" class="profile-avatar-circle size-large"></div>
+                    <input type="file" id="profile-avatar-upload" accept=".jpg,.png,.svg" class="hidden">
+                    <button id="trigger-avatar-upload" class="btn-text-gold">UPLOAD NEW PICTURE</button>
+                </div>
                 
-                <!-- Profile Avatar Section -->
-                <div class="avatar-section">
-                    <div id="avatar-preview" class="avatar-placeholder"></div>
-                    <input type="file" id="avatar-upload" accept="image/*" class="hidden">
-                    <button id="change-avatar-btn" class="btn-secondary">UPLOAD AVATAR</button>
+                <div class="profile-scroll-fields">
+                    <div class="editable-field-block">
+                        <label>FULL NAME</label>
+                        <input type="text" id="prof-fullname" disabled value="Sean D Woodson">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
+                    <div class="editable-field-block">
+                        <label>DATE OF BIRTH</label>
+                        <input type="text" id="prof-dob" disabled value="02/09/1996">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
+                    <div class="editable-field-block">
+                        <label>HOMETOWN</label>
+                        <input type="text" id="prof-hometown" disabled value="New Brunswick, NJ">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
+                    <div class="editable-field-block">
+                        <label>VOCATION</label>
+                        <input type="text" id="prof-vocation" disabled value="Algorithmic Architect">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
+                    <div class="editable-field-block">
+                        <label>ACCOUNT EMAIL</label>
+                        <input type="email" id="prof-email" disabled value="yourtoptens@aol.com">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
+                    <div class="editable-field-block">
+                        <label>RECOVERY DATA</label>
+                        <input type="text" id="prof-recovery" disabled value="+1 (732) 555-0199">
+                        <span class="field-edit-icon">✏️</span>
+                    </div>
                 </div>
 
-                <!-- Complete Control Matrix -->
-                <nav class="drawer-nav">
-                    <button id="nav-categories-btn" class="btn-drawer">📁 CATEGORIES</button>
-                    <button id="nav-friends-btn" class="btn-drawer">👥 FRIENDS LIST</button>
-                    <button id="nav-account-btn" class="btn-drawer">🔐 ACCOUNT SECURITY</button>
-                    <button id="nav-theme-btn" class="btn-drawer">🎨 THEME ENGINE</button>
-                    <button id="logout-btn" class="btn-danger">🔒 DISCONNECT SESSION</button>
-                </nav>
+                <div class="drawer-actions-vertical">
+                    <button id="toggle-profile-visibility" class="btn-drawer-action-gold">PROFILE PUBLIC</button>
+                    <button id="save-profile-btn" class="btn-drawer-action-gold">SAVE SYSTEM CHANGES</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settings-drawer" class="drawer hidden">
+            <button class="drawer-close-x">×</button>
+            <div class="drawer-content">
+                <h3 class="drawer-heading">SYSTEM CONSTANTS</h3>
+                <div class="drawer-actions-vertical space-payload">
+                    <button id="toggle-theme-mode" class="btn-drawer-action-gold">LIGHT MODE</button>
+                    <button id="upgrade-tier-btn" class="btn-drawer-action-gold">UPGRADE — $0.99/MONTH</button>
+                    <button id="drawer-add-friends-btn" class="btn-drawer-action-gold">ADD FRIENDS</button>
+                    <button id="drawer-visit-friends-btn" class="btn-drawer-action-gold">VISIT FRIENDS PAGE</button>
+                    <button id="system-wipe-btn" class="btn-drawer-action-danger">VAULT-WIPE</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="global-popup-modal" class="popup-modal hidden">
+            <div class="modal-surface">
+                <h4 id="modal-title" class="gold-label">SYSTEM PROMPT</h4>
+                <div id="modal-body-content"></div>
+                <div class="modal-actions" id="modal-action-wrapper"></div>
             </div>
         </div>
     </div>
+
+    <script src="canvas-sparks.js"></script>
     <script src="stockitems.js"></script>
     <script src="app.js"></script>
 </body>

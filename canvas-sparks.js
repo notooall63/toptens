@@ -1,72 +1,75 @@
 // File: D:/top-tens/frontend/canvas-sparks.js
-class GoldVaultCanvas {
-  constructor() {
-    this.canvas = document.getElementById('bg-canvas');
-    this.ctx = this.canvas.getContext('2d');
-    this.sparks = [];
-    this.init();
-    window.addEventListener('resize', () => this.init());
-  }
+(function () {
+    const canvas = document.getElementById('sparkle-canvas');
+    const ctx = canvas.getContext('2d');
+    let sparks = [];
 
-  init() {
-    this.canvas.width = window.innerWidth;
-    this.canvas.height = window.innerHeight;
-  }
-
-  createSpark() {
-    return {
-      x: Math.random() * this.canvas.width,
-      y: Math.random() * this.canvas.height,
-      size: Math.random() * 2.2 + 0.5,
-      alpha: Math.random() * 0.8 + 0.2,
-      velocity: (Math.random() - 0.5) * 0.3,
-      decay: Math.random() * 0.008 + 0.003
-    };
-  }
-
-  render() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Flowing Golden Background Gradient Overlay
-    let baseGrad = this.ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
-    const isLight = document.body.classList.contains('light-mode');
-    
-    if (isLight) {
-      baseGrad.addColorStop(0, "rgba(235, 238, 243, 0.85)");
-      baseGrad.addColorStop(1, "rgba(215, 210, 195, 0.85)");
-    } else {
-      baseGrad.addColorStop(0, "rgba(10, 12, 16, 0.92)");
-      baseGrad.addColorStop(1, "rgba(22, 18, 12, 0.92)");
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
-    this.ctx.fillStyle = baseGrad;
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-    // Particle Handling Loop
-    if (this.sparks.length < 75) {
-      this.sparks.push(this.createSpark());
+    class Spark {
+        constructor() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5;
+            this.alpha = Math.random() * 0.5 + 0.1;
+            this.velocity = Math.random() * 0.3 + 0.1;
+            this.fadeRate = Math.random() * 0.005 + 0.002;
+        }
+        update() {
+            this.y -= this.velocity;
+            this.alpha -= this.fadeRate;
+            if (this.alpha <= 0 || this.y < 0) {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + Math.random() * 20;
+                this.alpha = Math.random() * 0.5 + 0.2;
+                this.size = Math.random() * 2 + 0.5;
+            }
+        }
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.fillStyle = '#f3e5ab';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#d4af37';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
     }
 
-    for (let i = 0; i < this.sparks.length; i++) {
-      let p = this.sparks[i];
-      p.y += p.velocity;
-      p.alpha -= p.decay;
-
-      if (p.alpha <= 0) {
-        this.sparks[i] = this.createSpark();
-        continue;
-      }
-
-      this.ctx.fillStyle = `rgba(224, 185, 87, ${p.alpha})`;
-      this.ctx.shadowBlur = 4;
-      this.ctx.shadowColor = "#e0b957";
-      this.ctx.beginPath();
-      this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-      this.ctx.fill();
+    function init() {
+        sparks = [];
+        const quantity = Math.min(80, Math.floor(window.innerWidth / 15));
+        for (let i = 0; i < quantity; i++) {
+            sparks.push(new Spark());
+        }
     }
-    this.ctx.shadowBlur = 0; // reset
-    requestAnimationFrame(() => this.render());
-  }
-}
 
-const VaultAesthetic = new GoldVaultCanvas();
-VaultAesthetic.render();
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Fluid Ambient Background Gold Flow Glow
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, 'rgba(7, 9, 14, 0.2)');
+        gradient.addColorStop(0.5, 'rgba(20, 16, 5, 0.08)');
+        gradient.addColorStop(1, 'rgba(7, 9, 14, 0.2)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < sparks.length; i++) {
+            sparks[i].update();
+            sparks[i].draw();
+        }
+        requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
+    window.addEventListener('resize', init);
+})();
