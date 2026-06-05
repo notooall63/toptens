@@ -1,185 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Tens - Vault Application</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Tens</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-mode">
-  <canvas id="bg-canvas"></canvas>
-  <div id="app-background-image"></div>
+<body>
+    <div id="app">
+        <!-- Navigation Header -->
+        <header class="vault-header">
+            <button id="back-btn" class="hidden">←</button>
+            <h1 id="view-title">THE VAULT</h1>
+            <button id="menu-btn">☰</button>
+        </header>
 
-  <header id="app-header" class="hidden">
-    <div class="header-left">
-      <img src="AppIconTopTens.png" alt="Logo" class="header-logo" id="header-logo-home">
-      <button id="back-btn" class="back-button hidden">
-        <span class="arrow-icon">←</span> Back
-      </button>
-    </div>
-    <div class="header-center">
-      <span class="header-app-title">TOP TENS</span>
-    </div>
-    <div class="header-right">
-      <button id="burger-menu-btn" class="burger-btn">☰</button>
-      <div id="header-avatar" class="avatar-icon-frame">
-        <img id="header-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0b957'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" alt="Profile">
-      </div>
-    </div>
-  </header>
+        <!-- Main Content Views -->
+        <main id="view-container">
+            <!-- Auth View -->
+            <section id="auth-view" class="view">
+                <div class="auth-box">
+                    <h2>ACCESS GATE</h2>
+                    <input type="email" id="auth-email" placeholder="ENTER EMAIL">
+                    <input type="password" id="auth-password" placeholder="ENTER PIN">
+                    <button id="login-btn" class="btn-primary">VERIFY</button>
+                    <button id="signup-btn" class="btn-secondary">INITIALIZE NEW ACCOUNT</button>
+                    <p id="auth-msg" class="feedback-msg"></p>
+                </div>
+            </section>
 
-  <main id="main-container">
-    <aside class="ad-block ad-left hidden" id="sidebar-ad-left"></aside>
-    
-    <section id="view-surface">
-      <div id="view-landing" class="screen-view">
-        <div class="landing-centerpiece">
-          <h1 class="landing-title">TOP TENS</h1>
-          <p class="landing-description">
-            Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
-          </p>
-          <div class="landing-actions">
-            <button id="enter-vault-btn" class="gold-btn">ENTER VAULT</button>
-            <button id="landing-signin-btn" class="gold-btn-outline">SIGN IN / CREATE ACCOUNT</button>
-          </div>
+            <!-- Categories View -->
+            <section id="categories-view" class="view hidden">
+                <div class="list-container" id="categories-list"></div>
+            </section>
+
+            <!-- Rankings/Items View -->
+            <section id="items-view" class="view hidden">
+                <div class="list-container" id="items-list"></div>
+                <div class="center-container">
+                    <button id="add-item-btn" class="btn-add">ADD ITEM</button>
+                </div>
+            </section>
+
+            <!-- Friends View -->
+            <section id="friends-view" class="view hidden">
+                <h2>CONNECTED KEYS</h2>
+                <div class="list-container" id="friends-list"></div>
+                <div class="center-container">
+                    <input type="text" id="friend-id-input" placeholder="ENTER FRIEND ID">
+                    <button id="add-friend-btn" class="btn-add">ADD FRIEND</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Settings Drawer Overlay -->
+        <div id="settings-drawer" class="drawer hidden">
+            <div class="drawer-content">
+                <button id="close-drawer-btn" class="btn-close">×</button>
+                <h3>SYSTEM SETTINGS</h3>
+                <hr class="drawer-divider">
+                
+                <!-- Profile Avatar Section -->
+                <div class="avatar-section">
+                    <div id="avatar-preview" class="avatar-placeholder"></div>
+                    <input type="file" id="avatar-upload" accept="image/*" class="hidden">
+                    <button id="change-avatar-btn" class="btn-secondary">UPLOAD AVATAR</button>
+                </div>
+
+                <!-- Complete Control Matrix -->
+                <nav class="drawer-nav">
+                    <button id="nav-categories-btn" class="btn-drawer">📁 CATEGORIES</button>
+                    <button id="nav-friends-btn" class="btn-drawer">👥 FRIENDS LIST</button>
+                    <button id="nav-account-btn" class="btn-drawer">🔐 ACCOUNT SECURITY</button>
+                    <button id="nav-theme-btn" class="btn-drawer">🎨 THEME ENGINE</button>
+                    <button id="logout-btn" class="btn-danger">🔒 DISCONNECT SESSION</button>
+                </nav>
+            </div>
         </div>
-      </div>
-
-      <div id="view-categories" class="screen-view hidden">
-        <div class="action-bar-centered">
-          <button id="add-category-master-btn" class="add-master-btn">ADD CATEGORY</button>
-        </div>
-        <div id="categories-grid" class="horizontal-tabs-container"></div>
-      </div>
-
-      <div id="view-items" class="screen-view hidden">
-        <h2 id="items-view-title" class="centered-view-title"></h2>
-        <div class="action-bar-centered">
-          <button id="add-item-master-btn" class="add-master-btn">ADD ITEM</button>
-        </div>
-        <div id="items-list-vertical" class="slots-vertical-container"></div>
-      </div>
-
-      <div id="view-friends" class="screen-view hidden">
-        <h2 class="centered-view-title">FRIENDS VAULT</h2>
-        <div id="friends-list-container" class="slots-vertical-container"></div>
-      </div>
-
-      <div id="view-compare" class="screen-view hidden">
-        <h2 class="centered-view-title">VAULT COMPARISON GRID (MAX 27)</h2>
-        <div id="compare-matrix-grid" class="compare-grid-layout"></div>
-      </div>
-    </section>
-
-    <aside class="ad-block ad-right hidden" id="sidebar-ad-right"></aside>
-  </main>
-
-  <div class="drawer-overlay" id="global-overlay"></div>
-
-  <div class="app-drawer" id="drawer-auth">
-    <button class="drawer-close-x">✕</button>
-    <div class="drawer-content">
-      <h3 class="drawer-heading">VAULT ENTRY</h3>
-      <div class="tabs-auth-switch">
-        <button id="switch-login-tab" class="auth-tab-btn active">Sign In</button>
-        <button id="switch-register-tab" class="auth-tab-btn">Sign Up</button>
-      </div>
-      <form id="form-auth-engine">
-        <div class="input-group">
-          <label>Email Address</label>
-          <input type="email" id="auth-email" required placeholder="name@domain.com">
-        </div>
-        <div class="input-group">
-          <label>Password</label>
-          <input type="password" id="auth-password" required placeholder="••••••••">
-          <small id="password-requirements" class="hidden">8-20 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char</small>
-        </div>
-        <button type="submit" id="auth-submit-btn" class="gold-btn fill-width">SUBMIT</button>
-      </form>
-      <div id="auth-status-msg" class="status-box"></div>
     </div>
-  </div>
-
-  <div class="app-drawer" id="drawer-settings">
-    <button class="drawer-close-x">✕</button>
-    <div class="drawer-content">
-      <h3 class="drawer-heading">SYSTEM SETTINGS</h3>
-      <button id="settings-signin-trigger" class="gold-btn fill-width margin-v">SIGN IN</button>
-      <div class="setting-row">
-        <span>Display Mode</span>
-        <button id="toggle-theme-btn" class="utility-pill-btn">DARK MODE</button>
-      </div>
-      <button id="btn-upgrade-tier" class="premium-upgrade-btn">UPGRADE TO PRO ($0.99/mo)</button>
-      <button id="btn-add-friends-view" class="gold-btn-outline fill-width margin-v">MANAGE FRIENDS</button>
-      <button id="btn-vault-save" class="gold-btn fill-width margin-v hidden">SAVE ALL DATA</button>
-      <button id="btn-vault-wipe" class="danger-wipe-btn">VAULT WIPE</button>
-    </div>
-  </div>
-
-  <div class="app-drawer" id="drawer-profile">
-    <button class="drawer-close-x">✕</button>
-    <div class="drawer-content scrollable">
-      <h3 class="drawer-heading">USER DOSSIER</h3>
-      <div class="avatar-edit-zone">
-        <div id="profile-drawer-avatar-frame" class="avatar-frame-large">
-          <img id="profile-drawer-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0b957'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" alt="Preview">
-        </div>
-        <label for="upload-avatar-file" class="upload-label-btn">Choose Image</label>
-        <input type="file" id="upload-avatar-file" accept="image/*" class="hidden">
-      </div>
-
-      <div id="avatar-crop-overlay" class="crop-modal hidden">
-        <div class="crop-container">
-          <div id="crop-preview-window"></div>
-          <input type="range" id="crop-zoom-slider" min="1" max="3" step="0.1" value="1">
-          <button id="crop-confirm-btn" class="gold-btn">Center & Apply</button>
-        </div>
-      </div>
-
-      <div class="input-group">
-        <label>Full Name</label>
-        <input type="text" id="profile-fullname">
-      </div>
-      <div class="input-group">
-        <label>D.O.B.</label>
-        <input type="date" id="profile-dob">
-      </div>
-      <div class="input-group">
-        <label>Hometown</label>
-        <input type="text" id="profile-hometown">
-      </div>
-      <div class="input-group">
-        <label>Vocation</label>
-        <input type="text" id="profile-vocation">
-      </div>
-      <div class="input-group">
-        <label>Email Contact</label>
-        <input type="email" id="profile-email" readonly>
-      </div>
-      <div class="input-group">
-        <label>Recovery Phone / Email</label>
-        <input type="text" id="profile-recovery">
-      </div>
-      <button id="profile-save-btn" class="gold-btn fill-width margin-v">SAVE DOSSIER</button>
-    </div>
-  </div>
-
-  <div id="media-upload-modal" class="crop-modal hidden">
-    <div class="crop-container">
-      <h3>Slot Thumbnail Interface</h3>
-      <div id="media-preview-box"></div>
-      <input type="range" id="media-zoom-slider" min="1" max="3" step="0.1" value="1">
-      <label for="input-item-media" class="upload-label-btn">Select Pic or &lt;=6s Video</label>
-      <input type="file" id="input-item-media" accept="image/*,video/*" class="hidden">
-      <div class="modal-actions">
-        <button id="media-cancel-btn" class="danger-wipe-btn">Cancel</button>
-        <button id="media-apply-btn" class="gold-btn">Publish Frame</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="stockitems.js"></script>
-  <script src="canvas-sparks.js"></script>
-  <script src="app.js"></script>
+    <script src="stockitems.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
