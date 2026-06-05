@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Top Tens - Vault</title>
+  <title>Top Tens - Vault Application</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-mode">
@@ -12,8 +12,8 @@
 
   <header id="app-header" class="hidden">
     <div class="header-left">
-      <img src="AppIconTopTens.png" alt="Logo" class="header-logo">
-      <button id="back-btn" class="back-button">
+      <img src="AppIconTopTens.png" alt="Logo" class="header-logo" id="header-logo-home">
+      <button id="back-btn" class="back-button hidden">
         <span class="arrow-icon">←</span> Back
       </button>
     </div>
@@ -29,53 +29,49 @@
   </header>
 
   <main id="main-container">
-    <aside class="ad-block ad-left" id="sidebar-ad-left"></aside>
+    <aside class="ad-block ad-left hidden" id="sidebar-ad-left"></aside>
     
     <section id="view-surface">
       <div id="view-landing" class="screen-view">
-        <div class="landing-logo-container">
-          <img src="AppIconTopTens.png" alt="Top Tens Vault Logo" class="landing-hero-logo">
-        </div>
-        <h1 class="landing-title">TOP TENS</h1>
-        <p class="landing-description">
-          Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
-        </p>
-        <div class="landing-actions">
-          <button id="enter-vault-btn" class="gold-btn">ENTER VAULT</button>
-          <button id="landing-signin-btn" class="gold-btn-outline">SIGN IN</button>
+        <div class="landing-centerpiece">
+          <h1 class="landing-title">TOP TENS</h1>
+          <p class="landing-description">
+            Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
+          </p>
+          <div class="landing-actions">
+            <button id="enter-vault-btn" class="gold-btn">ENTER VAULT</button>
+            <button id="landing-signin-btn" class="gold-btn-outline">SIGN IN / CREATE ACCOUNT</button>
+          </div>
         </div>
       </div>
 
       <div id="view-categories" class="screen-view hidden">
-        <div class="action-bar">
-          <button id="add-category-master-btn" class="green-action-btn">+ Add New Custom Category</button>
+        <div class="action-bar-centered">
+          <button id="add-category-master-btn" class="add-master-btn">ADD CATEGORY</button>
         </div>
         <div id="categories-grid" class="horizontal-tabs-container"></div>
       </div>
 
       <div id="view-items" class="screen-view hidden">
-        <h2 id="items-view-title" class="centered-view-title">Category Name</h2>
-        <div class="action-bar">
-          <button id="add-item-master-btn" class="green-action-btn">+ Add New Item Slot</button>
+        <h2 id="items-view-title" class="centered-view-title"></h2>
+        <div class="action-bar-centered">
+          <button id="add-item-master-btn" class="add-master-btn">ADD ITEM</button>
         </div>
         <div id="items-list-vertical" class="slots-vertical-container"></div>
       </div>
 
       <div id="view-friends" class="screen-view hidden">
-        <h2 class="centered-view-title">Friends Vault Sync</h2>
-        <div class="friends-controls">
-          <button id="friends-back-to-vault-btn" class="gold-btn-outline">Return to Vault</button>
-          <div class="friend-input-row">
-            <input type="email" id="friend-search-email" placeholder="Enter friend's account email">
-            <button id="add-friend-action-btn" class="green-action-btn">Connect Friend</button>
-          </div>
-        </div>
-        <div id="friends-list-wrapper"></div>
-        <div id="comparison-fuse-matrix" class="hidden"></div>
+        <h2 class="centered-view-title">FRIENDS VAULT</h2>
+        <div id="friends-list-container" class="slots-vertical-container"></div>
+      </div>
+
+      <div id="view-compare" class="screen-view hidden">
+        <h2 class="centered-view-title">VAULT COMPARISON GRID (MAX 27)</h2>
+        <div id="compare-matrix-grid" class="compare-grid-layout"></div>
       </div>
     </section>
 
-    <aside class="ad-block ad-right" id="sidebar-ad-right"></aside>
+    <aside class="ad-block ad-right hidden" id="sidebar-ad-right"></aside>
   </main>
 
   <div class="drawer-overlay" id="global-overlay"></div>
@@ -83,12 +79,11 @@
   <div class="app-drawer" id="drawer-auth">
     <button class="drawer-close-x">✕</button>
     <div class="drawer-content">
-      <h3 class="drawer-headline">ACCOUNT VAULT ENTRY</h3>
+      <h3 class="drawer-heading">VAULT ENTRY</h3>
       <div class="tabs-auth-switch">
         <button id="switch-login-tab" class="auth-tab-btn active">Sign In</button>
-        <button id="switch-register-tab" class="auth-tab-btn">Create Account</button>
+        <button id="switch-register-tab" class="auth-tab-btn">Sign Up</button>
       </div>
-      
       <form id="form-auth-engine">
         <div class="input-group">
           <label>Email Address</label>
@@ -97,9 +92,9 @@
         <div class="input-group">
           <label>Password</label>
           <input type="password" id="auth-password" required placeholder="••••••••">
-          <small id="password-requirements" class="hidden">Must be 8-20 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special symbol.</small>
+          <small id="password-requirements" class="hidden">8-20 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char</small>
         </div>
-        <button type="submit" id="auth-submit-btn" class="gold-btn fill-width">SUBMIT APPLICATION</button>
+        <button type="submit" id="auth-submit-btn" class="gold-btn fill-width">SUBMIT</button>
       </form>
       <div id="auth-status-msg" class="status-box"></div>
     </div>
@@ -108,87 +103,77 @@
   <div class="app-drawer" id="drawer-settings">
     <button class="drawer-close-x">✕</button>
     <div class="drawer-content">
-      <h3 class="drawer-headline">VAULT CONFIGURATION</h3>
-      <div class="settings-actions-stack">
-        <button id="settings-signin-trigger" class="gold-btn">SIGN IN / CREATE ACCOUNT</button>
-        <div class="toggle-setting-row">
-          <span>Aesthetic Palette</span>
-          <button id="toggle-theme-btn" class="utility-pill-btn">DARK MODE</button>
-        </div>
-        <hr class="drawer-divider">
-        <button id="btn-upgrade-tier" class="premium-upgrade-btn">UPGRADE TO PRO ($0.99/mo)</button>
-        <button id="btn-nav-friends" class="gold-btn-outline">ADD / VIEW FRIENDS</button>
-        <button id="btn-vault-wipe" class="danger-wipe-btn">WIPE VAULT DATA</button>
-        <hr class="drawer-divider">
-        <button id="btn-save-settings" class="gold-btn fill-width">SAVE CONFIGURATION</button>
+      <h3 class="drawer-heading">SYSTEM SETTINGS</h3>
+      <button id="settings-signin-trigger" class="gold-btn fill-width margin-v">SIGN IN</button>
+      <div class="setting-row">
+        <span>Display Mode</span>
+        <button id="toggle-theme-btn" class="utility-pill-btn">DARK MODE</button>
       </div>
+      <button id="btn-upgrade-tier" class="premium-upgrade-btn">UPGRADE TO PRO ($0.99/mo)</button>
+      <button id="btn-add-friends-view" class="gold-btn-outline fill-width margin-v">MANAGE FRIENDS</button>
+      <button id="btn-vault-save" class="gold-btn fill-width margin-v hidden">SAVE ALL DATA</button>
+      <button id="btn-vault-wipe" class="danger-wipe-btn">VAULT WIPE</button>
     </div>
   </div>
 
   <div class="app-drawer" id="drawer-profile">
     <button class="drawer-close-x">✕</button>
-    <div class="drawer-content">
-      <h3 class="drawer-headline">VAULT OWNER PROFILE</h3>
-      <div class="avatar-cropper-environment">
-        <div id="profile-drawer-avatar-frame" class="avatar-view-window">
+    <div class="drawer-content scrollable">
+      <h3 class="drawer-heading">USER DOSSIER</h3>
+      <div class="avatar-edit-zone">
+        <div id="profile-drawer-avatar-frame" class="avatar-frame-large">
           <img id="profile-drawer-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e0b957'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" alt="Preview">
         </div>
-        <label for="upload-avatar-file" class="file-upload-label">Upload New Identity Image</label>
-        <input type="file" id="upload-avatar-file" accept="image/*" class="hidden-input">
+        <label for="upload-avatar-file" class="upload-label-btn">Choose Image</label>
+        <input type="file" id="upload-avatar-file" accept="image/*" class="hidden">
       </div>
 
-      <form id="form-profile-dossier">
-        <div class="input-group">
-          <label>Full Name</label>
-          <input type="text" id="prof-fullname" placeholder="Not Specified">
+      <div id="avatar-crop-overlay" class="crop-modal hidden">
+        <div class="crop-container">
+          <div id="crop-preview-window"></div>
+          <input type="range" id="crop-zoom-slider" min="1" max="3" step="0.1" value="1">
+          <button id="crop-confirm-btn" class="gold-btn">Center & Apply</button>
         </div>
-        <div class="input-group">
-          <label>Date of Birth</label>
-          <input type="date" id="prof-dob">
-        </div>
-        <div class="input-group">
-          <label>Hometown</label>
-          <input type="text" id="prof-hometown" placeholder="City, State / Country">
-        </div>
-        <div class="input-group">
-          <label>Vocation</label>
-          <input type="text" id="prof-vocation" placeholder="Profession / Trade">
-        </div>
-        <div class="input-group">
-          <label>Recovery Contact</label>
-          <input type="text" id="prof-recovery" placeholder="Phone or Backup Email">
-        </div>
-        <button type="submit" class="gold-btn fill-width">UPDATE DOSSIER</button>
-      </form>
+      </div>
+
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" id="profile-fullname">
+      </div>
+      <div class="input-group">
+        <label>D.O.B.</label>
+        <input type="date" id="profile-dob">
+      </div>
+      <div class="input-group">
+        <label>Hometown</label>
+        <input type="text" id="profile-hometown">
+      </div>
+      <div class="input-group">
+        <label>Vocation</label>
+        <input type="text" id="profile-vocation">
+      </div>
+      <div class="input-group">
+        <label>Email Contact</label>
+        <input type="email" id="profile-email" readonly>
+      </div>
+      <div class="input-group">
+        <label>Recovery Phone / Email</label>
+        <input type="text" id="profile-recovery">
+      </div>
+      <button id="profile-save-btn" class="gold-btn fill-width margin-v">SAVE DOSSIER</button>
     </div>
   </div>
 
-  <div id="modal-category" class="custom-app-modal hidden">
-    <div class="modal-card">
-      <h4 id="modal-cat-title">Create Custom Category</h4>
-      <input type="text" id="modal-cat-input" placeholder="Category Title">
+  <div id="media-upload-modal" class="crop-modal hidden">
+    <div class="crop-container">
+      <h3>Slot Thumbnail Interface</h3>
+      <div id="media-preview-box"></div>
+      <input type="range" id="media-zoom-slider" min="1" max="3" step="0.1" value="1">
+      <label for="input-item-media" class="upload-label-btn">Select Pic or &lt;=6s Video</label>
+      <input type="file" id="input-item-media" accept="image/*,video/*" class="hidden">
       <div class="modal-actions">
-        <button id="modal-cat-cancel" class="utility-pill-btn">Cancel</button>
-        <button id="modal-cat-save" class="gold-btn">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="modal-item" class="custom-app-modal hidden">
-    <div class="modal-card">
-      <h4 id="modal-item-title">Edit Item Slot Entry</h4>
-      <input type="text" id="modal-item-name" placeholder="Item Name or Title">
-      <input type="number" id="modal-item-rank" min="1" max="10" placeholder="Rank Position (1-10)">
-      
-      <div class="media-preview-box">
-        <div id="item-media-window" class="media-window-viewport"></div>
-        <label for="upload-item-media" class="file-upload-label">Choose Media (Img / 6s Video)</label>
-        <input type="file" id="upload-item-media" accept="image/*,video/*" class="hidden-input">
-      </div>
-
-      <div class="modal-actions">
-        <button id="modal-item-cancel" class="utility-pill-btn">Cancel</button>
-        <button id="modal-item-save" class="gold-btn">Save Entry</button>
+        <button id="media-cancel-btn" class="danger-wipe-btn">Cancel</button>
+        <button id="media-apply-btn" class="gold-btn">Publish Frame</button>
       </div>
     </div>
   </div>
