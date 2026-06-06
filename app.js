@@ -300,3 +300,44 @@ function toggleProfilePrivacyState() { alert("Profile state toggled successfully
 function processAvatarCropSequence() { alert("Media parsing loop initialization engine mapping finalized layout window coordinates matrix vectors parameters."); }
 function executeCompareProtocol(key) { alert(`Compare workflow protocol processing framework sequence loop stack trace pointer initialization mapping triggered structural interface vector parameters targeting: ${key}`); }
 function executeFuseProtocol(key) { alert(`Weight Ranking Average formula consolidation execution initialization mapping triggered targeting context target frame structural array links arrays nodes data blocks sets: ${key}`); }
+function triggerCreateCategoryWorkflow() {
+    // Enforce tier allocation ceilings structurally
+    const currentCategoryCount = Object.keys(MASTER_USER_VAULT_CACHE).length;
+    if (currentCategoryCount >= APP_TIER_CEILING) {
+        alert(`Vault Limit Reached! The free tier is limited to ${APP_TIER_CEILING} categories. Please upgrade via Settings ($0.99/month) for up to 99 categories.`);
+        return;
+    }
+
+    // Prompt the user for the new Category data
+    const categoryName = prompt("Enter the name for your new Custom Category:");
+    if (!categoryName || categoryName.trim() === "") return;
+
+    // Sanitize the input into a standard object key format (e.g., "Action Movies" -> "action-movies")
+    const categoryKey = categoryName.trim().toLowerCase().replace(/[^a-z0-9]/g, "-");
+
+    // Prevent overwriting an existing tracking register key
+    if (MASTER_USER_VAULT_CACHE[categoryKey]) {
+        alert("A category with that name or key index signature already exists inside your vault.");
+        return;
+    }
+
+    // Prompt for an optional decorative icon emoji
+    const categoryEmoji = prompt("Enter a single emoji character for this category tab icon (or leave blank for default):", "📂");
+
+    // Inject the pristine data block structured into local application memory cache
+    MASTER_USER_VAULT_CACHE[categoryKey] = {
+        emoji: categoryEmoji && categoryEmoji.trim() !== "" ? categoryEmoji.trim() : "📂",
+        title: categoryName.trim(),
+        items: [] // Initializes an empty nested array capped strictly at 10 items maximum
+    };
+
+    // Force a UI draw refresh matrix loop to immediately show the new tab on screen
+    renderCategoriesMatrix();
+
+    // Push state updates upstream to the Cloudflare Worker datastore if logged in
+    if (CURRENT_USER_SESSION) {
+        synchronizeVaultWithBackendCloud();
+    } else {
+        console.log("Guest Mode active: custom category saved in volatile local session state space.");
+    }
+}
