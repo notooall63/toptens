@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initializeDOMEventMappings() {
     // Structural Navigation Mapping Triggers
+	document.getElementById("action-add-category").addEventListener("click", triggerCreateCategoryWorkflow);
     document.getElementById("action-enter-vault").addEventListener("click", () => {
         transitionViewContext("view-categories");
     });
