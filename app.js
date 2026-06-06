@@ -7,77 +7,98 @@ let MASTER_USER_VAULT_CACHE = {};
 let CURRENT_USER_SESSION = null;
 let WORKING_CATEGORY_KEY = null;
 let SYSTEM_ACTIVE_VIEW_HISTORY = ["view-landing"];
-const APP_TIER_CEILING = 21; // Free/Guest allocation boundary max capacity
+const APP_TIER_CEILING = 21; 
 const API_ENDPOINT = "https://top-tens-backend.swoodson96.workers.dev";
+
+/* ==========================================================================
+   SAFE EVENT LISTENER ATTACHMENT UTILITY
+   ========================================================================== */
+function safeSafeListener(id, event, callback) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.addEventListener(event, callback);
+    } else {
+        console.warn(`[System Notice] Element with ID '${id}' not found in DOM. Skipping binding.`);
+    }
+}
 
 /* ==========================================================================
    INITIALIZATION & EVENT INITIAL INTERFACE MAPS
    ========================================================================== */
 function initializeDOMEventMappings() {
     // Structural Navigation Mapping Triggers
-    document.getElementById("action-enter-vault").addEventListener("click", () => {
+    safeSafeListener("action-enter-vault", "click", () => {
         transitionViewContext("view-categories");
     });
 
-    document.getElementById("action-trigger-auth").addEventListener("click", () => {
+    safeSafeListener("action-trigger-auth", "click", () => {
         openSlidingDrawer("drawer-auth");
     });
 
-    document.getElementById("header-back-btn").addEventListener("click", () => {
+    safeSafeListener("header-back-btn", "click", () => {
         executeBackNavigationHistory();
     });
 
-    // Category Creation Event Map Hook (THE MISSING LINK RESCUE)
-    document.getElementById("action-add-category").addEventListener("click", triggerCreateCategoryWorkflow);
+    // Category Creation Event Map Hook
+    safeSafeListener("action-add-category", "click", triggerCreateCategoryWorkflow);
 
     // Drawer System Trigger Triggers
-    document.getElementById("profile-avatar-trigger").addEventListener("click", () => {
+    safeSafeListener("profile-avatar-trigger", "click", () => {
         openSlidingDrawer("drawer-profile");
     });
 
-    document.getElementById("settings-burger-trigger").addEventListener("click", () => {
+    safeSafeListener("settings-burger-trigger", "click", () => {
         openSlidingDrawer("drawer-settings");
     });
 
     // Global Event Delegation for Dynamic Drawer Dismount Mechanics
-    document.getElementById("global-drawer-overlay").addEventListener("click", closeAllDrawers);
+    const overlay = document.getElementById("global-drawer-overlay");
+    if (overlay) {
+        overlay.addEventListener("click", closeAllDrawers);
+    }
     document.querySelectorAll(".drawer-close-btn").forEach(b => {
         b.addEventListener("click", () => closeAllDrawers());
     });
 
     // Password Reveal Architecture Button Event
-    document.getElementById("auth-password-toggle").addEventListener("click", () => {
+    safeSafeListener("auth-password-toggle", "click", () => {
         const input = document.getElementById("auth-password");
-        input.type = input.type === "password" ? "text" : "password";
+        if (input) {
+            input.type = input.type === "password" ? "text" : "password";
+        }
     });
 
     // Network Authentication Protocol Pipeline Map
-    document.getElementById("action-execute-signup").addEventListener("click", triggerAuthRegisterSequence);
-    document.getElementById("action-execute-signin").addEventListener("click", triggerAuthLoginSequence);
+    safeSafeListener("action-execute-signup", "click", triggerAuthRegisterSequence);
+    safeSafeListener("action-execute-signin", "click", triggerAuthLoginSequence);
 
     // Profile Settings Event Mappings
-    document.getElementById("action-save-profile").addEventListener("click", persistProfileChangesToServer);
-    document.getElementById("profile-privacy-toggle").addEventListener("click", toggleProfilePrivacyState);
-    document.getElementById("action-select-avatar-file").addEventListener("click", () => {
-        document.getElementById("upload-avatar-file-input").click();
+    safeSafeListener("action-save-profile", "click", persistProfileChangesToServer);
+    safeSafeListener("profile-privacy-toggle", "click", toggleProfilePrivacyState);
+    safeSafeListener("action-select-avatar-file", "click", () => {
+        const fileInput = document.getElementById("upload-avatar-file-input");
+        if (fileInput) fileInput.click();
     });
-    if (document.getElementById("upload-avatar-file-input")) {
-        document.getElementById("upload-avatar-file-input").addEventListener("change", processAvatarCropSequence);
+    
+    const avatarInput = document.getElementById("upload-avatar-file-input");
+    if (avatarInput) {
+        avatarInput.addEventListener("change", processAvatarCropSequence);
     }
 
     // App Control Configurations Stack
-    document.getElementById("setting-toggle-theme").addEventListener("click", toggleThemeMode);
-    document.getElementById("setting-upgrade-tier").addEventListener("click", executeTierUpgradePaymentStream);
-    document.getElementById("setting-nav-friends").addEventListener("click", () => {
+    safeSafeListener("setting-toggle-theme", "click", toggleThemeMode);
+    safeSafeListener("setting-upgrade-tier", "click", executeTierUpgradePaymentStream);
+    safeSafeListener("setting-nav-friends", "click", () => {
         closeAllDrawers();
         transitionViewContext("view-friends");
     });
-    document.getElementById("setting-vault-wipe").addEventListener("click", executeVaultWipeProtocol);
+    safeSafeListener("setting-vault-wipe", "click", executeVaultWipeProtocol);
 
     // Item Action Triggers
-    document.getElementById("action-submit-item").addEventListener("click", executeCreateItemRow);
-    document.getElementById("media-dropzone").addEventListener("click", () => {
-        document.getElementById("input-item-file").click();
+    safeSafeListener("action-submit-item", "click", executeCreateItemRow);
+    safeSafeListener("media-dropzone", "click", () => {
+        const itemFileInput = document.getElementById("input-item-file");
+        if (itemFileInput) itemFileInput.click();
     });
 }
 
@@ -85,40 +106,32 @@ function initializeDOMEventMappings() {
    CATEGORY APPLICATION WORKFLOW OPERATIONS
    ========================================================================== */
 function triggerCreateCategoryWorkflow() {
-    // Enforce tier allocation ceilings structurally
     const currentCategoryCount = Object.keys(MASTER_USER_VAULT_CACHE).length;
     if (currentCategoryCount >= APP_TIER_CEILING) {
         alert(`Vault Limit Reached! The free tier is limited to ${APP_TIER_CEILING} categories. Please upgrade via Settings ($0.99/month) for up to 99 categories.`);
         return;
     }
 
-    // Prompt the user for the new Category data
     const categoryName = prompt("Enter the name for your new Custom Category:");
     if (!categoryName || categoryName.trim() === "") return;
 
-    // Sanitize the input into a standard key index signature format
     const categoryKey = categoryName.trim().toLowerCase().replace(/[^a-z0-9]/g, "-");
 
-    // Prevent overwriting an existing tracking register key
     if (MASTER_USER_VAULT_CACHE[categoryKey]) {
-        alert("A category with that name or key index signature already exists inside your vault.");
+        alert("A category with that name already exists inside your vault.");
         return;
     }
 
-    // Prompt for decorative icon emoji
     const categoryEmoji = prompt("Enter a single emoji character for this category tab icon:", "📂");
 
-    // Inject data block structured into local state cache
     MASTER_USER_VAULT_CACHE[categoryKey] = {
         emoji: categoryEmoji && categoryEmoji.trim() !== "" ? categoryEmoji.trim() : "📂",
         title: categoryName.trim(),
-        items: [] // Initializes empty array capped strictly at 10 items max
+        items: [] 
     };
 
-    // Force application UI draw cycle refresh to reflect updates instantly
     renderCategoriesMatrix();
 
-    // Push updates upstream if user validation signature exists
     if (CURRENT_USER_SESSION) {
         synchronizeVaultWithBackendCloud();
     } else {
@@ -166,7 +179,8 @@ function renderCategoriesMatrix() {
 function openCategoryItemsView(key) {
     WORKING_CATEGORY_KEY = key;
     const cat = MASTER_USER_VAULT_CACHE[key];
-    document.getElementById("current-category-title-display").innerText = cat.title;
+    const display = document.getElementById("current-category-title-display");
+    if (display) display.innerText = cat.title;
     renderListItemsStack();
     transitionViewContext("view-list-items");
 }
@@ -178,7 +192,6 @@ function renderListItemsStack() {
     const cat = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY];
     if (!cat) return;
     
-    // Explicitly clamp length allocations structurally to a strict maximum array boundary limit of 10
     const items = (cat.items || []).sort((a,b) => a.rank - b.rank).slice(0, 10);
 
     items.forEach(item => {
@@ -233,17 +246,21 @@ function executeBackNavigationHistory() {
    DRAWER INTERACTION UTILITIES HOOKS CONTEXT
    ========================================================================== */
 function openSlidingDrawer(drawerId) {
-    document.getElementById("global-drawer-overlay").classList.add("active");
-    document.getElementById(drawerId).classList.add("active");
+    const overlay = document.getElementById("global-drawer-overlay");
+    const drawer = document.getElementById(drawerId);
+    if (overlay) overlay.classList.add("active");
+    if (drawer) drawer.classList.add("active");
+}
+
+function closeAllDrawers() {
+    const overlay = document.getElementById("global-drawer-overlay");
+    if (overlay) overlay.classList.remove("active");
+    document.querySelectorAll(".sliding-drawer-panel").forEach(d => d.classList.remove("active"));
 }
 
 /* ==========================================================================
    STUBS & BACKWARD UTILITY COMPATIBILITY BRIDGE LAYERS
    ========================================================================== */
-function closeAllDrawers() {
-    document.getElementById("global-drawer-overlay").classList.remove("active");
-    document.querySelectorAll(".sliding-drawer-panel").forEach(d => d.classList.remove("active"));
-}
 function persistProfileChangesToServer() { console.log("Profile changes tracked dynamically."); }
 function toggleProfilePrivacyState() { console.log("Privacy matrix updated."); }
 function processAvatarCropSequence() { console.log("Crop sequence process initialization completed."); }
@@ -265,6 +282,7 @@ async function triggerAuthRegisterSequence() {
     const email = document.getElementById("auth-email").value;
     const password = document.getElementById("auth-password").value;
     const msgBox = document.getElementById("auth-status-msg");
+    if (!msgBox) return;
 
     msgBox.classList.remove("hidden");
     msgBox.innerText = "Registering system security clearance context link...";
@@ -276,10 +294,10 @@ async function triggerAuthRegisterSequence() {
             body: JSON.stringify({ email, password })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Registration Validation Error Fault Pattern Exception");
+        if (!res.ok) throw new Error(data.error || "Registration Validation Error");
 
         msgBox.style.color = "var(--success-green)";
-        msgBox.innerText = "Verification token sequence transmitted successfully! Verify validation link signature loop inside inbox folder profile window.";
+        msgBox.innerText = "Verification token sequence transmitted successfully!";
     } catch (err) {
         msgBox.style.color = "var(--error-red)";
         msgBox.innerText = err.message;
@@ -307,9 +325,11 @@ async function triggerAuthLoginSequence() {
         closeAllDrawers();
         transitionViewContext("view-categories");
     } catch (err) {
-        msgBox.classList.remove("hidden");
-        msgBox.style.color = "var(--error-red)";
-        msgBox.innerText = err.message;
+        if (msgBox) {
+            msgBox.classList.remove("hidden");
+            msgBox.style.color = "var(--error-red)";
+            msgBox.innerText = err.message;
+        }
     }
 }
 
@@ -350,3 +370,9 @@ async function synchronizeVaultWithBackendCloud() {
         body: JSON.stringify({ vault: MASTER_USER_VAULT_CACHE })
     });
 }
+
+// Global initialization window hook sequence
+window.addEventListener("DOMContentLoaded", () => {
+    initializeDOMEventMappings();
+    renderCategoriesMatrix();
+});
