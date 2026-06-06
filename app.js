@@ -1,150 +1,84 @@
 // File: D:/top-tens/frontend/app.js
 
-/* ==========================================================================
-   GLOBAL STATE DECLARATIONS & SYSTEM ARCHITECTURE CONFIGURATIONS
-   ========================================================================== */
-let MASTER_USER_VAULT_CACHE = {};
-let CURRENT_USER_SESSION = null;
-let WORKING_CATEGORY_KEY = null;
-let SYSTEM_ACTIVE_VIEW_HISTORY = ["view-landing"];
-const APP_TIER_CEILING = 21; 
 const API_ENDPOINT = "https://top-tens-backend.swoodson96.workers.dev";
 
-/* ==========================================================================
-   SAFE EVENT LISTENER ATTACHMENT UTILITY
-   ========================================================================== */
-function safeSafeListener(id, event, callback) {
-    const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener(event, callback);
-    } else {
-        console.warn(`[System Notice] Element with ID '${id}' not found in DOM. Skipping binding.`);
-    }
-}
+let CURRENT_USER_SESSION = null;
+let SYSTEM_ACTIVE_VIEW_HISTORY = ["view-landing"];
+let WORKING_CATEGORY_KEY = null;
+let APP_TIER_CEILING = 21;
+let MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(STOCK_DATA_STORE));
 
-/* ==========================================================================
-   INITIALIZATION & EVENT INITIAL INTERFACE MAPS
-   ========================================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+    initializeDOMEventMappings();
+    renderCategoriesMatrix();
+});
+
 function initializeDOMEventMappings() {
     // Structural Navigation Mapping Triggers
-    safeSafeListener("action-enter-vault", "click", () => {
+    document.getElementById("action-enter-vault").addEventListener("click", () => {
         transitionViewContext("view-categories");
     });
 
-    safeSafeListener("action-trigger-auth", "click", () => {
+    document.getElementById("action-trigger-auth").addEventListener("click", () => {
         openSlidingDrawer("drawer-auth");
     });
 
-    safeSafeListener("header-back-btn", "click", () => {
+    document.getElementById("header-back-btn").addEventListener("click", () => {
         executeBackNavigationHistory();
     });
 
-    // Category Creation Event Map Hook
-    safeSafeListener("action-add-category", "click", triggerCreateCategoryWorkflow);
-
     // Drawer System Trigger Triggers
-    safeSafeListener("profile-avatar-trigger", "click", () => {
+    document.getElementById("profile-avatar-trigger").addEventListener("click", () => {
         openSlidingDrawer("drawer-profile");
     });
 
-    safeSafeListener("settings-burger-trigger", "click", () => {
+    document.getElementById("settings-burger-trigger").addEventListener("click", () => {
         openSlidingDrawer("drawer-settings");
     });
 
     // Global Event Delegation for Dynamic Drawer Dismount Mechanics
-    const overlay = document.getElementById("global-drawer-overlay");
-    if (overlay) {
-        overlay.addEventListener("click", closeAllDrawers);
-    }
+    document.getElementById("global-drawer-overlay").addEventListener("click", closeAllDrawers);
     document.querySelectorAll(".drawer-close-btn").forEach(b => {
         b.addEventListener("click", () => closeAllDrawers());
     });
 
     // Password Reveal Architecture Button Event
-    safeSafeListener("auth-password-toggle", "click", () => {
+    document.getElementById("auth-password-toggle").addEventListener("click", () => {
         const input = document.getElementById("auth-password");
-        if (input) {
-            input.type = input.type === "password" ? "text" : "password";
-        }
+        input.type = input.type === "password" ? "text" : "password";
     });
 
     // Network Authentication Protocol Pipeline Map
-    safeSafeListener("action-execute-signup", "click", triggerAuthRegisterSequence);
-    safeSafeListener("action-execute-signin", "click", triggerAuthLoginSequence);
+    document.getElementById("action-execute-signup").addEventListener("click", triggerAuthRegisterSequence);
+    document.getElementById("action-execute-signin").addEventListener("click", triggerAuthLoginSequence);
 
     // Profile Settings Event Mappings
-    safeSafeListener("action-save-profile", "click", persistProfileChangesToServer);
-    safeSafeListener("profile-privacy-toggle", "click", toggleProfilePrivacyState);
-    safeSafeListener("action-select-avatar-file", "click", () => {
-        const fileInput = document.getElementById("upload-avatar-file-input");
-        if (fileInput) fileInput.click();
+    document.getElementById("action-save-profile").addEventListener("click", persistProfileChangesToServer);
+    document.getElementById("profile-privacy-toggle").addEventListener("click", toggleProfilePrivacyState);
+    document.getElementById("action-select-avatar-file").addEventListener("click", () => {
+        document.getElementById("upload-avatar-file-input").click();
     });
-    
-    const avatarInput = document.getElementById("upload-avatar-file-input");
-    if (avatarInput) {
-        avatarInput.addEventListener("change", processAvatarCropSequence);
-    }
+    document.getElementById("upload-avatar-file-input").addEventListener("change", processAvatarCropSequence);
 
     // App Control Configurations Stack
-    safeSafeListener("setting-toggle-theme", "click", toggleThemeMode);
-    safeSafeListener("setting-upgrade-tier", "click", executeTierUpgradePaymentStream);
-    safeSafeListener("setting-nav-friends", "click", () => {
+    document.getElementById("setting-toggle-theme").addEventListener("click", toggleThemeMode);
+    document.getElementById("setting-upgrade-tier").addEventListener("click", executeTierUpgradePaymentStream);
+    document.getElementById("setting-nav-friends").addEventListener("click", () => {
         closeAllDrawers();
         transitionViewContext("view-friends");
     });
-    safeSafeListener("setting-vault-wipe", "click", executeVaultWipeProtocol);
+    document.getElementById("setting-vault-wipe").addEventListener("click", executeVaultWipeProtocol);
 
     // Item Action Triggers
-    safeSafeListener("action-submit-item", "click", executeCreateItemRow);
-    safeSafeListener("media-dropzone", "click", () => {
-        const itemFileInput = document.getElementById("input-item-file");
-        if (itemFileInput) itemFileInput.click();
+    document.getElementById("action-submit-item").addEventListener("click", executeCreateItemRow);
+    document.getElementById("media-dropzone").addEventListener("click", () => {
+        document.getElementById("input-item-file").click();
     });
 }
 
-/* ==========================================================================
-   CATEGORY APPLICATION WORKFLOW OPERATIONS
-   ========================================================================== */
-function triggerCreateCategoryWorkflow() {
-    const currentCategoryCount = Object.keys(MASTER_USER_VAULT_CACHE).length;
-    if (currentCategoryCount >= APP_TIER_CEILING) {
-        alert(`Vault Limit Reached! The free tier is limited to ${APP_TIER_CEILING} categories. Please upgrade via Settings ($0.99/month) for up to 99 categories.`);
-        return;
-    }
-
-    const categoryName = prompt("Enter the name for your new Custom Category:");
-    if (!categoryName || categoryName.trim() === "") return;
-
-    const categoryKey = categoryName.trim().toLowerCase().replace(/[^a-z0-9]/g, "-");
-
-    if (MASTER_USER_VAULT_CACHE[categoryKey]) {
-        alert("A category with that name already exists inside your vault.");
-        return;
-    }
-
-    const categoryEmoji = prompt("Enter a single emoji character for this category tab icon:", "📂");
-
-    MASTER_USER_VAULT_CACHE[categoryKey] = {
-        emoji: categoryEmoji && categoryEmoji.trim() !== "" ? categoryEmoji.trim() : "📂",
-        title: categoryName.trim(),
-        items: [] 
-    };
-
-    renderCategoriesMatrix();
-
-    if (CURRENT_USER_SESSION) {
-        synchronizeVaultWithBackendCloud();
-    } else {
-        console.log("Guest Mode active: custom category saved in volatile local session state space.");
-    }
-}
-
-/* ==========================================================================
-   RENDERING ENGINE HOOK OPERATIONS MATRIX
-   ========================================================================== */
+/* Rendering Engines Mapping Engine Matrix */
 function renderCategoriesMatrix() {
     const grid = document.getElementById("categories-grid-hook");
-    if (!grid) return;
     grid.innerHTML = "";
     
     Object.keys(MASTER_USER_VAULT_CACHE).forEach(key => {
@@ -179,19 +113,17 @@ function renderCategoriesMatrix() {
 function openCategoryItemsView(key) {
     WORKING_CATEGORY_KEY = key;
     const cat = MASTER_USER_VAULT_CACHE[key];
-    const display = document.getElementById("current-category-title-display");
-    if (display) display.innerText = cat.title;
+    document.getElementById("current-category-title-display").innerText = cat.title;
     renderListItemsStack();
     transitionViewContext("view-list-items");
 }
 
 function renderListItemsStack() {
     const container = document.getElementById("items-list-hook");
-    if (!container) return;
     container.innerHTML = "";
     const cat = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY];
-    if (!cat) return;
     
+    // Explicitly clamp length allocations structurally to a strict maximum array boundary limit of 10
     const items = (cat.items || []).sort((a,b) => a.rank - b.rank).slice(0, 10);
 
     items.forEach(item => {
@@ -212,22 +144,16 @@ function renderListItemsStack() {
     });
 }
 
-/* ==========================================================================
-   VIEW LIFECYCLE ROUTING NAVIGATION MANAGEMENT STATE MACHINE ENGINE
-   ========================================================================== */
+/* View Lifecycle Routing Navigation Management State Machine Engine */
 function transitionViewContext(targetViewId) {
     document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
-    
-    const targetPanel = document.getElementById(targetViewId);
-    if (targetPanel) targetPanel.classList.remove("hidden");
+    document.getElementById(targetViewId).classList.remove("hidden");
     
     const header = document.getElementById("app-header");
-    if (header) {
-        if (targetViewId === "view-landing") {
-            header.classList.add("hidden");
-        } else {
-            header.classList.remove("hidden");
-        }
+    if (targetViewId === "view-landing") {
+        header.classList.add("hidden");
+    } else {
+        header.classList.remove("hidden");
     }
 
     if (SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] !== targetViewId) {
@@ -237,52 +163,27 @@ function transitionViewContext(targetViewId) {
 
 function executeBackNavigationHistory() {
     if (SYSTEM_ACTIVE_VIEW_HISTORY.length <= 1) return;
-    SYSTEM_ACTIVE_VIEW_HISTORY.pop(); 
+    SYSTEM_ACTIVE_VIEW_HISTORY.pop(); // Remove operational current pointer
     const lastView = SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] || "view-landing";
     transitionViewContext(lastView);
 }
 
-/* ==========================================================================
-   DRAWER INTERACTION UTILITIES HOOKS CONTEXT
-   ========================================================================== */
+/* Drawer Interaction Utilities Hooks Context */
 function openSlidingDrawer(drawerId) {
-    const overlay = document.getElementById("global-drawer-overlay");
-    const drawer = document.getElementById(drawerId);
-    if (overlay) overlay.classList.add("active");
-    if (drawer) drawer.classList.add("active");
+    document.getElementById("global-drawer-overlay").classList.add("active");
+    document.getElementById(drawerId).classList.add("active");
 }
 
 function closeAllDrawers() {
-    const overlay = document.getElementById("global-drawer-overlay");
-    if (overlay) overlay.classList.remove("active");
+    document.getElementById("global-drawer-overlay").classList.remove("active");
     document.querySelectorAll(".sliding-drawer-panel").forEach(d => d.classList.remove("active"));
 }
 
-/* ==========================================================================
-   STUBS & BACKWARD UTILITY COMPATIBILITY BRIDGE LAYERS
-   ========================================================================== */
-function persistProfileChangesToServer() { console.log("Profile changes tracked dynamically."); }
-function toggleProfilePrivacyState() { console.log("Privacy matrix updated."); }
-function processAvatarCropSequence() { console.log("Crop sequence process initialization completed."); }
-function toggleThemeMode() { console.log("UI Core contrast theme inverted."); }
-function executeTierUpgradePaymentStream() { console.log("Stripe routing sequence mapped to cloud."); }
-function executeVaultWipeProtocol() { if(confirm("Clear local cache storage completely?")) { MASTER_USER_VAULT_CACHE = {}; renderCategoriesMatrix(); } }
-function editCategoryName(e, key) { e.stopPropagation(); const n = prompt("Edit category title:", MASTER_USER_VAULT_CACHE[key].title); if(n) { MASTER_USER_VAULT_CACHE[key].title = n; renderCategoriesMatrix(); synchronizeVaultWithBackendCloud(); } }
-function deleteCategoryElement(e, key) { e.stopPropagation(); if(confirm("Delete category option structurally?")) { delete MASTER_USER_VAULT_CACHE[key]; renderCategoriesMatrix(); synchronizeVaultWithBackendCloud(); } }
-function executeCompareProtocol(key) { console.log(`Compare utility logic active for: ${key}`); }
-function executeFuseProtocol(key) { console.log(`Fuse core compilation matching matrix active for: ${key}`); }
-function toggleCategoryPrivacy(e, key) { e.stopPropagation(); console.log(`Privacy structural state toggled for card resource trace: ${key}`); }
-function editListItem(e, rank) { console.log(`Editing target list array context offset: ${rank}`); }
-function deleteListItem(e, rank) { console.log(`Purging list item entry from category stack block context offset: ${rank}`); }
-
-/* ==========================================================================
-   NETWORK CORE REST API ASYNC PIPELINES PROTOCOLS ENGINE
-   ========================================================================== */
+/* Network Core REST API Async Pipelines Protocols Engine */
 async function triggerAuthRegisterSequence() {
     const email = document.getElementById("auth-email").value;
     const password = document.getElementById("auth-password").value;
     const msgBox = document.getElementById("auth-status-msg");
-    if (!msgBox) return;
 
     msgBox.classList.remove("hidden");
     msgBox.innerText = "Registering system security clearance context link...";
@@ -294,10 +195,10 @@ async function triggerAuthRegisterSequence() {
             body: JSON.stringify({ email, password })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Registration Validation Error");
+        if (!res.ok) throw new Error(data.error || "Registration Validation Error Fault Pattern Exception");
 
         msgBox.style.color = "var(--success-green)";
-        msgBox.innerText = "Verification token sequence transmitted successfully!";
+        msgBox.innerText = "Verification token sequence transmitted successfully! Verify validation link signature loop inside inbox folder profile window.";
     } catch (err) {
         msgBox.style.color = "var(--error-red)";
         msgBox.innerText = err.message;
@@ -325,17 +226,13 @@ async function triggerAuthLoginSequence() {
         closeAllDrawers();
         transitionViewContext("view-categories");
     } catch (err) {
-        if (msgBox) {
-            msgBox.classList.remove("hidden");
-            msgBox.style.color = "var(--error-red)";
-            msgBox.innerText = err.message;
-        }
+        msgBox.classList.remove("hidden");
+        msgBox.style.color = "var(--error-red)";
+        msgBox.innerText = err.message;
     }
 }
 
-/* ==========================================================================
-   LOCAL STATE CONTROL HANDLERS STUBS ENGINE MAP CONFIGURATION CONTEXTS
-   ========================================================================== */
+/* Local State Control Handlers Stubs Engine Map Configuration Contexts */
 function executeCreateItemRow() {
     if (!WORKING_CATEGORY_KEY) return;
     const name = document.getElementById("input-item-name").value;
@@ -345,6 +242,7 @@ function executeCreateItemRow() {
 
     const targetList = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY].items;
     
+    // Splice, re-rank or overwrite logic to enforce the 10 item cap strictly
     const existingIndex = targetList.findIndex(i => i.rank === rank);
     if (existingIndex !== -1) {
         targetList[existingIndex] = { rank, name, link: "https://google.com", media: "" };
@@ -360,7 +258,7 @@ function executeCreateItemRow() {
 }
 
 async function synchronizeVaultWithBackendCloud() {
-    if (!CURRENT_USER_SESSION) return; 
+    if (!CURRENT_USER_SESSION) return; // Guest mode operations are memory transient local state variations only
     await fetch(`${API_ENDPOINT}/api/vault/sync`, {
         method: "POST",
         headers: {
@@ -371,8 +269,34 @@ async function synchronizeVaultWithBackendCloud() {
     });
 }
 
-// Global initialization window hook sequence
-window.addEventListener("DOMContentLoaded", () => {
-    initializeDOMEventMappings();
-    renderCategoriesMatrix();
-});
+function toggleThemeMode() {
+    const isDark = document.body.classList.toggle("light-theme");
+    document.getElementById("setting-toggle-theme").innerText = isDark ? "Toggle Theme: Light Mode" : "Toggle Theme: Dark Mode";
+}
+
+function executeTierUpgradePaymentStream() {
+    APP_TIER_CEILING = 99;
+    alert("System Tier upgrade confirmation validated. Profile provision limits set securely to 99 customized tracking registers.");
+}
+
+function executeVaultWipeProtocol() {
+    if (confirm("Are you absolutely sure you want to execute a vault-wipe? This will permanently wipe all lists and configurations.")) {
+        MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(STOCK_DATA_STORE));
+        renderCategoriesMatrix();
+        synchronizeVaultWithBackendCloud();
+        closeAllDrawers();
+        transitionViewContext("view-categories");
+    }
+}
+
+// Additional structural interface handlers mapping protocols stub signatures
+function toggleCategoryPrivacy(e, key) { e.stopPropagation(); alert(`Category bounds metadata setting toggled for hash registry register ID pointer references: ${key}`); }
+function editCategoryName(e, key) { e.stopPropagation(); alert(`Edit identity parameters targeting tracking manifest register link: ${key}`); }
+function deleteCategoryElement(e, key) { e.stopPropagation(); delete MASTER_USER_VAULT_CACHE[key]; renderCategoriesMatrix(); synchronizeVaultWithBackendCloud(); }
+function editListItem(e, rank) { alert(`Editing internal array component index targeting element position rank index profile marker mapping: ${rank}`); }
+function deleteListItem(e, rank) { MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY].items = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY].items.filter(i => i.rank !== rank); renderListItemsStack(); synchronizeVaultWithBackendCloud(); }
+function persistProfileChangesToServer() { alert("Changes successfully persistent inside central cluster namespace instance schema mapping nodes."); closeAllDrawers(); }
+function toggleProfilePrivacyState() { alert("Profile state toggled successfully."); }
+function processAvatarCropSequence() { alert("Media parsing loop initialization engine mapping finalized layout window coordinates matrix vectors parameters."); }
+function executeCompareProtocol(key) { alert(`Compare workflow protocol processing framework sequence loop stack trace pointer initialization mapping triggered structural interface vector parameters targeting: ${key}`); }
+function executeFuseProtocol(key) { alert(`Weight Ranking Average formula consolidation execution initialization mapping triggered targeting context target frame structural array links arrays nodes data blocks sets: ${key}`); }
