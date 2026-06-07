@@ -52,7 +52,6 @@ function initializeDOMEventMappings() {
 
     safeBindListener("profile-avatar-trigger", "click", () => {
         openSlidingDrawer("drawer-profile");
-        // Automatically populate input boxes with saved cache records upon opening the drawer panel
         syncProfileDOMInputsFromCache();
     });
 
@@ -108,8 +107,40 @@ function initializeDOMEventMappings() {
 
     // Profile Settings Event Mappings - Core Production Implementation
     safeBindListener("action-save-profile", "click", () => {
-        const drawer = document.getElementById("drawer-profile");
+        const drawer = document.getElementById("drawer-profile") || document.querySelector(".sliding-drawer-panel");
         if (!drawer) return;
+
+        // Extract every text input and textarea inside the drawer container
+        const inputs = drawer.querySelectorAll("input[type='text'], textarea");
+        
+        if (!MASTER_USER_VAULT_CACHE._profile) {
+            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
+        }
+
+        // Assign data dynamically based on what fields exist in the markup
+        if (inputs.length > 0) {
+            inputs.forEach((inputField, index) => {
+                // If it's a short input field, it's the username; if it's a large box/textarea, it's the bio
+                if (inputField.tagName === "TEXTAREA" || index === 1) {
+                    MASTER_USER_VAULT_CACHE._profile.bio = inputField.value.trim();
+                } else if (index === 0) {
+                    MASTER_USER_VAULT_CACHE._profile.username = inputField.value.trim();
+                }
+            });
+        }
+
+        // Persist the staged avatar string if present
+        if (window.STAGED_AVATAR_BASE64) {
+            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
+        }
+
+        // Backup safety layer to local storage to protect against local initialization resets
+        localStorage.setItem("TOPTENS_PROFILE_BACKUP", JSON.stringify(MASTER_USER_VAULT_CACHE._profile));
+
+        synchronizeVaultWithBackendCloud();
+        alert("Premium profile parameters synchronized to cloud vault!");
+        closeAllDrawers();
+    });   
 
         // Target by exact tag roles to bypass any hidden or layout elements
         const usernameInput = drawer.querySelector("input[type='text']");
@@ -668,43 +699,41 @@ window.addEventListener("DOMContentLoaded", () => {
 // Precise Location: Append this helper function to the absolute bottom of D:/top-tens/frontend/app.js
 
 function syncProfileDOMInputsFromCache() {
+    // Attempt to pull from active cache or recover from our localStorage backup layer
+    if (!MASTER_USER_VAULT_CACHE._profile) {
+        const backup = localStorage.getItem("TOPTENS_PROFILE_BACKUP");
+        if (backup) MASTER_USER_VAULT_CACHE._profile = JSON.parse(backup);
+    }
+    
     const profile = MASTER_USER_VAULT_CACHE._profile;
     if (!profile) return;
 
-    const drawer = document.getElementById("drawer-profile");
+    const drawer = document.getElementById("drawer-profile") || document.querySelector(".sliding-drawer-panel");
     if (!drawer) return;
 
-    // Explicitly target inputs by their structural tag taxonomy
-    const usernameInput = drawer.querySelector("input[type='text']");
-    const bioInput = drawer.querySelector("textarea");
-    
-    // Fill the text back into the inputs cleanly
-    if (usernameInput && profile.username) usernameInput.value = profile.username;
-    if (bioInput && profile.bio) bioInput.value = profile.bio;
+    const inputs = drawer.querySelectorAll("input[type='text'], textarea");
+    if (inputs.length > 0) {
+        inputs.forEach((inputField, index) => {
+            if ((inputField.tagName === "TEXTAREA" || index === 1) && profile.bio) {
+                inputField.value = profile.bio;
+            } else if (index === 0 && profile.username) {
+                inputField.value = profile.username;
+            }
+        });
+    }
 
-    // Apply avatar to the profile circles across the entire view
     if (profile.avatar) {
-        const triggerCircle = document.getElementById("profile-avatar-trigger") || document.querySelector(".profile-avatar-circle");
-        const drawerCircle = document.getElementById("drawer-avatar-display-target") || drawer.querySelector(".cropper-circle");
+        window.STAGED_AVATAR_BASE64 = profile.avatar;
+        const displayNodes = document.querySelectorAll("#profile-avatar-trigger, .profile-avatar-circle, #drawer-avatar-display-target, .cropper-circle, .cropper-circle img");
         
-        // Force the background image style pattern directly onto the circle container frames
-        if (triggerCircle) {
-            triggerCircle.style.backgroundImage = `url(${profile.avatar})`;
-            triggerCircle.style.backgroundSize = "cover";
-            triggerCircle.style.backgroundPosition = "center";
-            
-            // If the element has a nested img tag inside, update that too
-            const nestedImg = triggerCircle.querySelector("img");
-            if (nestedImg) nestedImg.src = profile.avatar;
-        }
-        
-        if (drawerCircle) {
-            drawerCircle.style.backgroundImage = `url(${profile.avatar})`;
-            drawerCircle.style.backgroundSize = "cover";
-            drawerCircle.style.backgroundPosition = "center";
-            
-            const nestedImg = drawerCircle.querySelector("img");
-            if (nestedImg) nestedImg.src = profile.avatar;
-        }
+        displayNodes.forEach(node => {
+            if (node.tagName === "IMG") {
+                node.src = profile.avatar;
+            } else {
+                node.style.backgroundImage = `url(${profile.avatar})`;
+                node.style.backgroundSize = "cover";
+                node.style.backgroundPosition = "center";
+            }
+        });
     }
 }
