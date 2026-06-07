@@ -146,3 +146,7 @@ const STOCK_DATA_STORE = {
         ]
     }
 };
+// File: D:/top-tens/frontend/stockitems.js
+// Precise Location: The absolute bottom of the file after the data object closes.
+
+window.INITIAL_STOCK_VAULT = STOCK_DATA_STORE;
