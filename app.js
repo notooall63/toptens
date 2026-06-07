@@ -47,8 +47,38 @@ function initializeDOMEventMappings() {
 
     safeBindListener("action-add-category", "click", triggerCreateCategoryWorkflow);
 
+    // Precise Location: Inside initializeDOMEventMappings() in D:/top-tens/frontend/app.js
+// Replace your avatar-trigger click and action-save-profile blocks with this synchronized engine:
+
     safeBindListener("profile-avatar-trigger", "click", () => {
         openSlidingDrawer("drawer-profile");
+        // Automatically populate input boxes with saved cache records upon opening the drawer panel
+        syncProfileDOMInputsFromCache();
+    });
+
+    safeBindListener("action-save-profile", "click", () => {
+        // Target fields cleanly by structural DOM sequence matching your specific markup layout
+        const scrollBody = document.querySelector(".drawer-body-scrollable") || document.querySelector("#drawer-profile .drawer-body");
+        if (!scrollBody) return;
+
+        const textInputs = scrollBody.querySelectorAll("input[type='text'], input:not([type]), textarea");
+        
+        if (!MASTER_USER_VAULT_CACHE._profile) {
+            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
+        }
+        
+        // Save text records sequentially based on their placement order inside your profile layout fields
+        if (textInputs.length >= 1) MASTER_USER_VAULT_CACHE._profile.username = textInputs[0].value.trim();
+        if (textInputs.length >= 2) MASTER_USER_VAULT_CACHE._profile.bio = textInputs[1].value.trim();
+        
+        // Lock in the uploaded avatar base64 string permanently if one was staged
+        if (window.STAGED_AVATAR_BASE64) {
+            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
+        }
+        
+        synchronizeVaultWithBackendCloud();
+        alert("Premium profile parameters synchronized to cloud vault!");
+        closeAllDrawers();
     });
 
     safeBindListener("settings-burger-trigger", "click", () => {
@@ -168,10 +198,30 @@ function processAvatarLocalPreview(event) {
         closeAllDrawers();
         transitionViewContext("view-friends");
     });
+    // Precise Location: Inside initializeDOMEventMappings() in D:/top-tens/frontend/app.js
+// Replace the old safeBindListener("setting-vault-wipe", ...) block with this version:
+
     safeBindListener("setting-vault-wipe", "click", () => {
-        if(confirm("Clear local cache storage completely?")) { 
-            MASTER_USER_VAULT_CACHE = {}; 
+        if (confirm("Reset layout to factory defaults and clear custom vault overrides?")) { 
+            // 1. Locate the master original stock source layout
+            const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
+            
+            if (stockSource) {
+                // 2. Perform a deep clone to safely re-populate your 9 categories layout natively
+                MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(stockSource));
+                console.log("[Vault Reset] Successfully restored clean master stock layout items.");
+            } else {
+                MASTER_USER_VAULT_CACHE = {};
+                console.warn("[Vault Reset] Clear complete, but stock backup template array was inaccessible.");
+            }
+            
+            // 3. Clear temporary file-staging caches
+            window.STAGED_AVATAR_BASE64 = null;
+            
+            // 4. Force immediate DOM matrix layout refreshes
             renderCategoriesMatrix(); 
+            synchronizeVaultWithBackendCloud();
+            alert("Vault wiped successfully! Stock categories have been fully repopulated.");
         }
     });
 
@@ -597,20 +647,51 @@ async function synchronizeVaultWithBackendCloud() {
    APPLICATION ENTRY ENGINE BOOTSTRAPPER
    ========================================================================== */
 window.addEventListener("DOMContentLoaded", () => {
-    // 1. Establish precise click and drag-drop event routing matrices
     initializeDOMEventMappings();
     
-    // 2. Identify and assign the core 9 stock categories fallback data layout
     const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
     
-    // 3. Safely load the dataset array if no pre-existing user cloud cache overrides it
     if (stockSource && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
-        MASTER_USER_VAULT_CACHE = stockSource;
+        // Deep clone data map representation into active execution space cleanly
+        MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(stockSource));
         console.log("[Data Sync] Successfully loaded stock categories layout matrix into memory.");
     } else if (Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
         console.warn("[Data Sync] Warning: Could not locate stock items variable template frame inside window space.");
     }
     
-    // 4. Render the clean dark-mode interface categories layout grid
     renderCategoriesMatrix();
+    
+    // 🌟 Run your initial data check script instantly to populate your text data configurations upon application initialization loop completion
+    syncProfileDOMInputsFromCache();
 });
+// Precise Location: Append this helper function to the absolute bottom of D:/top-tens/frontend/app.js
+
+function syncProfileDOMInputsFromCache() {
+    const profile = MASTER_USER_VAULT_CACHE._profile;
+    if (!profile) return;
+
+    const scrollBody = document.querySelector(".drawer-body-scrollable") || document.querySelector("#drawer-profile .drawer-body");
+    if (!scrollBody) return;
+
+    const textInputs = scrollBody.querySelectorAll("input[type='text'], input:not([type]), textarea");
+    
+    // Write text details back into the physical text fields natively
+    if (textInputs.length >= 1 && profile.username) textInputs[0].value = profile.username;
+    if (textInputs.length >= 2 && profile.bio) textInputs[1].value = profile.bio;
+
+    // Persist your avatar image layout source targets natively across render pipelines
+    if (profile.avatar) {
+        const triggerImg = document.getElementById("profile-avatar-trigger");
+        const drawerImg = document.getElementById("drawer-avatar-display-target") || scrollBody.querySelector(".cropper-circle img");
+        
+        if (triggerImg) {
+            if (triggerImg.tagName === "IMG") {
+                triggerImg.src = profile.avatar;
+            } else {
+                triggerImg.style.backgroundImage = `url(${profile.avatar})`;
+                triggerImg.style.backgroundSize = "cover";
+            }
+        }
+        if (drawerImg) drawerImg.src = profile.avatar;
+    }
+}
