@@ -1,4 +1,5 @@
 // File: D:/top-tens/frontend/app.js
+// Directory: D:/top-tens/frontend/
 
 console.log("[System Core] Initializing fine-tuned app.js execution loop...");
 
@@ -106,7 +107,6 @@ function initializeDOMEventMappings() {
     
     // Single Invocation Event Listener: Eliminates the Double File-Manager Activation Bug completely
     safeBindListener("media-dropzone", "click", (e) => {
-        // Stop bubbling down if click triggered subelements
         if (e.target.id === "input-item-file") return; 
         const itemFileInput = document.getElementById("input-item-file");
         if (itemFileInput) itemFileInput.click();
@@ -116,6 +116,7 @@ function initializeDOMEventMappings() {
     if (itemFileInput) {
         itemFileInput.addEventListener("change", processItemMediaLocalStaging);
     }
+} // <-- FIXED: Added the critical structural closing loop bracket here!
 
 /* ==========================================================================
    CATEGORY APPLICATION WORKFLOW OPERATIONS
@@ -192,6 +193,7 @@ function getCategoryCardTemplate(key, cat, totalItems) {
     `;
 }
 
+// Fixed Bracket Closure for item viewing states
 function openCategoryItemsView(key) {
     WORKING_CATEGORY_KEY = key;
     const cat = MASTER_USER_VAULT_CACHE[key];
@@ -210,9 +212,6 @@ function renderListItemsStack() {
     
     const items = (cat.items || []).sort((a,b) => a.rank - b.rank).slice(0, 10);
 
-// File: D:/top-tens/frontend/app.js
-// Precise Location: Inside renderListItemsStack(), replace the internal loop row allocation innerHTML assignment
-
     items.forEach(item => {
         const row = document.createElement("div");
         row.className = "slot-row-tab";
@@ -220,7 +219,6 @@ function renderListItemsStack() {
         const defaultThumb = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><rect width='24' height='24' fill='%23222'/><text x='50%' y='65%' font-size='12' text-anchor='middle' fill='%23d4af37'>📦</text></svg>";
         const itemImage = item.media || defaultThumb;
         
-        // Auto-generate high-value affiliate reference target links dynamically based on the item title if an explicit link is unassigned
         const computedAffiliateLink = item.link && item.link !== "https://google.com" && item.link !== ""
             ? item.link 
             : `https://www.amazon.com/s?k=${encodeURIComponent(item.name)}&tag=toptensvault-20`;
@@ -238,6 +236,7 @@ function renderListItemsStack() {
         `;
         container.appendChild(row);
     });
+}
 
 /* ==========================================================================
    DYNAMIC INTERACTION EDIT/DELETE ROUTINES FOR STRUCTURAL ELEMENTS
@@ -293,9 +292,6 @@ window.deleteListItem = function(e, rank) {
 /* ==========================================================================
    VIEW LIFECYCLE ROUTING NAVIGATION MANAGEMENT STATE MACHINE ENGINE
    ========================================================================== */
-// File: D:/top-tens/frontend/app.js
-// Precise Location: Replace the transitionViewContext and executeBackNavigationHistory functions completely
-
 function transitionViewContext(targetViewId) {
     document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
     
@@ -311,7 +307,6 @@ function transitionViewContext(targetViewId) {
         }
     }
 
-    // Fixed Sequential Navigation State Tracking Array History Loop Logic
     if (SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] !== targetViewId) {
         SYSTEM_ACTIVE_VIEW_HISTORY.push(targetViewId);
     }
@@ -320,13 +315,9 @@ function transitionViewContext(targetViewId) {
 function executeBackNavigationHistory() {
     if (SYSTEM_ACTIVE_VIEW_HISTORY.length <= 1) return;
     
-    // Pop current view out of history stack matrix
     SYSTEM_ACTIVE_VIEW_HISTORY.pop(); 
-    
-    // Read the true preceding step pointer location sequence cleanly
     const precedingView = SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] || "view-landing";
     
-    // Update active view panels natively without generating duplicate history traces
     document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
     const targets = document.getElementById(precedingView);
     if (targets) targets.classList.remove("hidden");
@@ -440,7 +431,6 @@ async function triggerAuthLoginSequence() {
         CURRENT_USER_SESSION = data.token;
         CURRENT_USER_EMAIL = email.trim();
         
-        // Safety Fallback: Only overwrite if database contains pre-saved vaults
         if (data.vault && Object.keys(data.vault).length > 0) {
             MASTER_USER_VAULT_CACHE = data.vault;
         } else {
@@ -486,7 +476,6 @@ function executeCreateItemRow() {
 
     const targetList = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY].items;
     
-    // Captured with support for explicit link pasting or device media data staging strings
     const newItem = { 
         rank: rank, 
         name: name.trim(), 
@@ -501,7 +490,6 @@ function executeCreateItemRow() {
         targetList.push(newItem);
     }
 
-    // Reset input fields instantly
     nameInput.value = "";
     rankInput.value = "";
     if (linkInput) linkInput.value = "";
@@ -534,7 +522,7 @@ async function synchronizeVaultWithBackendCloud() {
 
 /* ==========================================================================
    APPLICATION ENTRY ENGINE BOOTSTRAPPER
-/*   ========================================================================== */
+   ========================================================================== */
 window.addEventListener("DOMContentLoaded", () => {
     // 1. Establish precise click and drag-drop event routing matrices
     initializeDOMEventMappings();
@@ -553,4 +541,3 @@ window.addEventListener("DOMContentLoaded", () => {
     // 4. Render the clean dark-mode interface categories layout grid
     renderCategoriesMatrix();
 });
-*/
