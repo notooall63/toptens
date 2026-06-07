@@ -202,16 +202,15 @@ body {
 
 /* View 1 Architecture: Premium Landing Interface UI */
 .landing-hero-card {
-    background: var(--card-surface);
-    border: 1px solid var(--border-glow);
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    padding: 48px 36px;
-    border-radius: 24px;
+    background: transparent;
+    border: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    padding: 0;
     max-width: 680px;
     width: 90%;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    box-shadow: none;
     animation: fadeInContainer 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
