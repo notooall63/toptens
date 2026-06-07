@@ -108,26 +108,27 @@ function initializeDOMEventMappings() {
 
     // Profile Settings Event Mappings - Core Production Implementation
     safeBindListener("action-save-profile", "click", () => {
-        const usernameInput = document.getElementById("profile-username-input") || document.querySelector(".drawer-body-scrollable input[type='text']");
-        const bioInput = document.getElementById("profile-bio-input") || document.querySelector(".drawer-body-scrollable textarea");
+        const drawer = document.getElementById("drawer-profile");
+        if (!drawer) return;
+
+        // Target by exact tag roles to bypass any hidden or layout elements
+        const usernameInput = drawer.querySelector("input[type='text']");
+        const bioInput = drawer.querySelector("textarea");
         
-        // 1. Initialize user sub-object structure if it doesn't exist natively
         if (!MASTER_USER_VAULT_CACHE._profile) {
             MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
         }
         
-        // 2. Extract values from input frames safely
+        // Extract values strictly by input type matches
         if (usernameInput) MASTER_USER_VAULT_CACHE._profile.username = usernameInput.value.trim();
         if (bioInput) MASTER_USER_VAULT_CACHE._profile.bio = bioInput.value.trim();
         
-        // 3. Lock in any newly uploaded base64 avatar token 
+        // Save the base64 image if a new one was uploaded
         if (window.STAGED_AVATAR_BASE64) {
             MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
         }
         
-        // 4. Synchronize state with your backend Cloudflare Worker
         synchronizeVaultWithBackendCloud();
-        
         alert("Premium profile parameters synchronized to cloud vault!");
         closeAllDrawers();
     });
@@ -670,28 +671,40 @@ function syncProfileDOMInputsFromCache() {
     const profile = MASTER_USER_VAULT_CACHE._profile;
     if (!profile) return;
 
-    const scrollBody = document.querySelector(".drawer-body-scrollable") || document.querySelector("#drawer-profile .drawer-body");
-    if (!scrollBody) return;
+    const drawer = document.getElementById("drawer-profile");
+    if (!drawer) return;
 
-    const textInputs = scrollBody.querySelectorAll("input[type='text'], input:not([type]), textarea");
+    // Explicitly target inputs by their structural tag taxonomy
+    const usernameInput = drawer.querySelector("input[type='text']");
+    const bioInput = drawer.querySelector("textarea");
     
-    // Write text details back into the physical text fields natively
-    if (textInputs.length >= 1 && profile.username) textInputs[0].value = profile.username;
-    if (textInputs.length >= 2 && profile.bio) textInputs[1].value = profile.bio;
+    // Fill the text back into the inputs cleanly
+    if (usernameInput && profile.username) usernameInput.value = profile.username;
+    if (bioInput && profile.bio) bioInput.value = profile.bio;
 
-    // Persist your avatar image layout source targets natively across render pipelines
+    // Apply avatar to the profile circles across the entire view
     if (profile.avatar) {
-        const triggerImg = document.getElementById("profile-avatar-trigger");
-        const drawerImg = document.getElementById("drawer-avatar-display-target") || scrollBody.querySelector(".cropper-circle img");
+        const triggerCircle = document.getElementById("profile-avatar-trigger") || document.querySelector(".profile-avatar-circle");
+        const drawerCircle = document.getElementById("drawer-avatar-display-target") || drawer.querySelector(".cropper-circle");
         
-        if (triggerImg) {
-            if (triggerImg.tagName === "IMG") {
-                triggerImg.src = profile.avatar;
-            } else {
-                triggerImg.style.backgroundImage = `url(${profile.avatar})`;
-                triggerImg.style.backgroundSize = "cover";
-            }
+        // Force the background image style pattern directly onto the circle container frames
+        if (triggerCircle) {
+            triggerCircle.style.backgroundImage = `url(${profile.avatar})`;
+            triggerCircle.style.backgroundSize = "cover";
+            triggerCircle.style.backgroundPosition = "center";
+            
+            // If the element has a nested img tag inside, update that too
+            const nestedImg = triggerCircle.querySelector("img");
+            if (nestedImg) nestedImg.src = profile.avatar;
         }
-        if (drawerImg) drawerImg.src = profile.avatar;
+        
+        if (drawerCircle) {
+            drawerCircle.style.backgroundImage = `url(${profile.avatar})`;
+            drawerCircle.style.backgroundSize = "cover";
+            drawerCircle.style.backgroundPosition = "center";
+            
+            const nestedImg = drawerCircle.querySelector("img");
+            if (nestedImg) nestedImg.src = profile.avatar;
+        }
     }
 }
