@@ -1,6 +1,3 @@
-// File: D:/top-tens/frontend/app.js
-// Directory: D:/top-tens/frontend/
-
 console.log("[System Core] Initializing fine-tuned app.js execution loop...");
 
 /* ==========================================================================
@@ -8,12 +5,15 @@ console.log("[System Core] Initializing fine-tuned app.js execution loop...");
    ========================================================================== */
 let MASTER_USER_VAULT_CACHE = {};
 let CURRENT_USER_SESSION = null;
-let CURRENT_USER_EMAIL = null; // Tracked to ensure cloud cross-referencing maps correctly
+let CURRENT_USER_EMAIL = null; 
 let WORKING_CATEGORY_KEY = null;
 let SYSTEM_ACTIVE_VIEW_HISTORY = ["view-landing"];
 let APP_TIER_CEILING = 21; 
-let STAGED_MEDIA_BASE64 = ""; // Holds the processing item thumbnail raw storage string
+let STAGED_MEDIA_BASE64 = ""; 
 const API_ENDPOINT = "https://top-tens-backend.swoodson96.workers.dev";
+
+// Global staging variable for user profile avatar uploads
+window.STAGED_AVATAR_BASE64 = null;
 
 /* ==========================================================================
    SAFE EVENT LISTENER ATTACHMENT UTILITY
@@ -33,6 +33,7 @@ function safeBindListener(id, event, callback) {
 function initializeDOMEventMappings() {
     console.log("[System Core] Mapping DOM Event Listeners...");
 
+    // View Transitions
     safeBindListener("action-enter-vault", "click", () => {
         transitionViewContext("view-categories");
     });
@@ -45,123 +46,21 @@ function initializeDOMEventMappings() {
         executeBackNavigationHistory();
     });
 
+    safeBindListener("settings-burger-trigger", "click", () => {
+        openSlidingDrawer("drawer-settings");
+    });
+
+    // Custom Category Management Actions
     safeBindListener("action-add-category", "click", triggerCreateCategoryWorkflow);
 
-    // Precise Location: Inside initializeDOMEventMappings() in D:/top-tens/frontend/app.js
-// Replace your avatar-trigger click and action-save-profile blocks with this synchronized engine:
-
+    // Profile Settings Action Controls
     safeBindListener("profile-avatar-trigger", "click", () => {
         openSlidingDrawer("drawer-profile");
         syncProfileDOMInputsFromCache();
     });
 
     safeBindListener("action-save-profile", "click", () => {
-        // Target fields cleanly by structural DOM sequence matching your specific markup layout
-        const scrollBody = document.querySelector(".drawer-body-scrollable") || document.querySelector("#drawer-profile .drawer-body");
-        if (!scrollBody) return;
-
-        const textInputs = scrollBody.querySelectorAll("input[type='text'], input:not([type]), textarea");
-        
-        if (!MASTER_USER_VAULT_CACHE._profile) {
-            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
-        }
-        
-        // Save text records sequentially based on their placement order inside your profile layout fields
-        if (textInputs.length >= 1) MASTER_USER_VAULT_CACHE._profile.username = textInputs[0].value.trim();
-        if (textInputs.length >= 2) MASTER_USER_VAULT_CACHE._profile.bio = textInputs[1].value.trim();
-        
-        // Lock in the uploaded avatar base64 string permanently if one was staged
-        if (window.STAGED_AVATAR_BASE64) {
-            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
-        }
-        
-        synchronizeVaultWithBackendCloud();
-        alert("Premium profile parameters synchronized to cloud vault!");
-        closeAllDrawers();
-    });
-
-    safeBindListener("settings-burger-trigger", "click", () => {
-        openSlidingDrawer("drawer-settings");
-    });
-
-    const overlay = document.getElementById("global-drawer-overlay");
-    if (overlay) {
-        overlay.addEventListener("click", closeAllDrawers);
-    }
-    document.querySelectorAll(".drawer-close-btn").forEach(b => {
-        b.addEventListener("click", () => closeAllDrawers());
-    });
-
-    safeBindListener("auth-password-toggle", "click", () => {
-        const input = document.getElementById("auth-password");
-        if (input) {
-            input.type = input.type === "password" ? "text" : "password";
-        }
-    });
-
-    safeBindListener("action-execute-signup", "click", triggerAuthRegisterSequence);
-    safeBindListener("action-execute-signin", "click", triggerAuthLoginSequence);
-
-    // Profile Settings Event Mappings
-    // Precise Location: Insert this right inside initializeDOMEventMappings() replacing the two placeholder profile alert listeners
-
-    // Profile Settings Event Mappings - Core Production Implementation
-    safeBindListener("action-save-profile", "click", () => {
-        const drawer = document.getElementById("drawer-profile") || document.querySelector(".sliding-drawer-panel");
-        if (!drawer) return;
-
-        // Extract every text input and textarea inside the drawer container
-        const inputs = drawer.querySelectorAll("input[type='text'], textarea");
-        
-        if (!MASTER_USER_VAULT_CACHE._profile) {
-            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
-        }
-
-        // Assign data dynamically based on what fields exist in the markup
-        if (inputs.length > 0) {
-            inputs.forEach((inputField, index) => {
-                // If it's a short input field, it's the username; if it's a large box/textarea, it's the bio
-                if (inputField.tagName === "TEXTAREA" || index === 1) {
-                    MASTER_USER_VAULT_CACHE._profile.bio = inputField.value.trim();
-                } else if (index === 0) {
-                    MASTER_USER_VAULT_CACHE._profile.username = inputField.value.trim();
-                }
-            });
-        }
-
-        // Persist the staged avatar string if present
-        if (window.STAGED_AVATAR_BASE64) {
-            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
-        }
-
-        // Backup safety layer to local storage to protect against local initialization resets
-        localStorage.setItem("TOPTENS_PROFILE_BACKUP", JSON.stringify(MASTER_USER_VAULT_CACHE._profile));
-
-        synchronizeVaultWithBackendCloud();
-        alert("Premium profile parameters synchronized to cloud vault!");
-        closeAllDrawers();
-    });   
-
-        // Target by exact tag roles to bypass any hidden or layout elements
-        const usernameInput = drawer.querySelector("input[type='text']");
-        const bioInput = drawer.querySelector("textarea");
-        
-        if (!MASTER_USER_VAULT_CACHE._profile) {
-            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
-        }
-        
-        // Extract values strictly by input type matches
-        if (usernameInput) MASTER_USER_VAULT_CACHE._profile.username = usernameInput.value.trim();
-        if (bioInput) MASTER_USER_VAULT_CACHE._profile.bio = bioInput.value.trim();
-        
-        // Save the base64 image if a new one was uploaded
-        if (window.STAGED_AVATAR_BASE64) {
-            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
-        }
-        
-        synchronizeVaultWithBackendCloud();
-        alert("Premium profile parameters synchronized to cloud vault!");
-        closeAllDrawers();
+        saveProfileDataDirectly();
     });
 
     safeBindListener("profile-privacy-toggle", "click", (e) => {
@@ -180,48 +79,37 @@ function initializeDOMEventMappings() {
         }
         synchronizeVaultWithBackendCloud();
     });
-    
-    // Avatar Upload Pipeline
+
+    // Avatar Selection Input Simulation Trigger
     safeBindListener("action-select-avatar-file", "click", () => {
         const fileInput = document.getElementById("upload-avatar-file-input");
         if (fileInput) fileInput.click();
     });
-    
+
     const avatarInput = document.getElementById("upload-avatar-file-input");
-    // File: D:/top-tens/frontend/app.js
-// Precise Location: Replace the processAvatarLocalPreview function completely
+    if (avatarInput) {
+        avatarInput.addEventListener("change", processAvatarLocalPreview);
+    }
 
-function processAvatarLocalPreview(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    // Global Overlay & Drawer Closers
+    const overlay = document.getElementById("global-drawer-overlay");
+    if (overlay) {
+        overlay.addEventListener("click", closeAllDrawers);
+    }
+    document.querySelectorAll(".drawer-close-btn").forEach(b => {
+        b.addEventListener("click", () => closeAllDrawers());
+    });
 
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const rawBase64 = e.target.result;
-        
-        // Stash globally so the profile save trigger can access it
-        window.STAGED_AVATAR_BASE64 = rawBase64;
-        
-        // Update elements instantly across your user layout screens
-        const triggerImg = document.getElementById("profile-avatar-trigger");
-        const drawerImg = document.getElementById("drawer-avatar-display-target");
-        
-        // If your landing avatar icon is inside an <img> tag wrapper
-        if (triggerImg) {
-            if (triggerImg.tagName === "IMG") {
-                triggerImg.src = rawBase64;
-            } else {
-                // If it's a div layer container, update its background pattern instead
-                triggerImg.style.backgroundImage = `url(${rawBase64})`;
-                triggerImg.style.backgroundSize = "cover";
-            }
+    // Authentication Actions
+    safeBindListener("auth-password-toggle", "click", () => {
+        const input = document.getElementById("auth-password");
+        if (input) {
+            input.type = input.type === "password" ? "text" : "password";
         }
-        if (drawerImg) drawerImg.src = rawBase64;
-        
-        console.log("[Avatar Engine] Image loaded into local memory cache buffer successfully.");
-    };
-    reader.readAsDataURL(file);
-}
+    });
+
+    safeBindListener("action-execute-signup", "click", triggerAuthRegisterSequence);
+    safeBindListener("action-execute-signin", "click", triggerAuthLoginSequence);
 
     // App Control Configurations Stack
     safeBindListener("setting-toggle-theme", "click", () => alert("Theme switching system processing context update."));
@@ -230,16 +118,13 @@ function processAvatarLocalPreview(event) {
         closeAllDrawers();
         transitionViewContext("view-friends");
     });
-    // Precise Location: Inside initializeDOMEventMappings() in D:/top-tens/frontend/app.js
-// Replace the old safeBindListener("setting-vault-wipe", ...) block with this version:
 
+    // Reset Engine Factory Defaults Setup
     safeBindListener("setting-vault-wipe", "click", () => {
         if (confirm("Reset layout to factory defaults and clear custom vault overrides?")) { 
-            // 1. Locate the master original stock source layout
             const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
             
             if (stockSource) {
-                // 2. Perform a deep clone to safely re-populate your 9 categories layout natively
                 MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(stockSource));
                 console.log("[Vault Reset] Successfully restored clean master stock layout items.");
             } else {
@@ -247,20 +132,18 @@ function processAvatarLocalPreview(event) {
                 console.warn("[Vault Reset] Clear complete, but stock backup template array was inaccessible.");
             }
             
-            // 3. Clear temporary file-staging caches
             window.STAGED_AVATAR_BASE64 = null;
+            localStorage.removeItem("TOPTENS_PROFILE_BACKUP");
             
-            // 4. Force immediate DOM matrix layout refreshes
             renderCategoriesMatrix(); 
             synchronizeVaultWithBackendCloud();
             alert("Vault wiped successfully! Stock categories have been fully repopulated.");
         }
     });
 
-    // Item Action Triggers Harmonized to HTML Dropzone Layout
+    // Item Submission Actions
     safeBindListener("action-submit-item", "click", executeCreateItemRow);
     
-    // Single Invocation Event Listener: Eliminates the Double File-Manager Activation Bug completely
     safeBindListener("media-dropzone", "click", (e) => {
         if (e.target.id === "input-item-file") return; 
         const itemFileInput = document.getElementById("input-item-file");
@@ -271,13 +154,13 @@ function processAvatarLocalPreview(event) {
     if (itemFileInput) {
         itemFileInput.addEventListener("change", processItemMediaLocalStaging);
     }
-} // <-- FIXED: Added the critical structural closing loop bracket here!
+}
 
 /* ==========================================================================
    CATEGORY APPLICATION WORKFLOW OPERATIONS
    ========================================================================== */
 function triggerCreateCategoryWorkflow() {
-    const currentCategoryCount = Object.keys(MASTER_USER_VAULT_CACHE).length;
+    const currentCategoryCount = Object.keys(MASTER_USER_VAULT_CACHE).filter(k => !k.startsWith('_')).length;
     if (currentCategoryCount >= APP_TIER_CEILING) {
         alert(`Vault Limit Reached! Your current tier limit is ${APP_TIER_CEILING} categories. Please upgrade via Settings ($0.99/month) for up to 99 categories.`);
         return;
@@ -314,6 +197,7 @@ function renderCategoriesMatrix() {
     grid.innerHTML = "";
     
     Object.keys(MASTER_USER_VAULT_CACHE).forEach(key => {
+        if (key.startsWith('_')) return; // Skip internal states like _profile
         const cat = MASTER_USER_VAULT_CACHE[key];
         const totalItems = cat.items ? cat.items.length : 0;
         
@@ -348,7 +232,6 @@ function getCategoryCardTemplate(key, cat, totalItems) {
     `;
 }
 
-// Fixed Bracket Closure for item viewing states
 function openCategoryItemsView(key) {
     WORKING_CATEGORY_KEY = key;
     const cat = MASTER_USER_VAULT_CACHE[key];
@@ -518,11 +401,21 @@ function processAvatarLocalPreview(event) {
 
     const reader = new FileReader();
     reader.onload = function(e) {
-        const triggerImg = document.getElementById("profile-avatar-trigger");
-        const drawerImg = document.getElementById("drawer-avatar-display-target");
-        if (triggerImg) triggerImg.src = e.target.result;
-        if (drawerImg) drawerImg.src = e.target.result;
-        alert("Avatar image preview updated successfully!");
+        const rawBase64 = e.target.result;
+        window.STAGED_AVATAR_BASE64 = rawBase64;
+        
+        // Render directly onto DOM preview nodes instantly
+        const displayTargets = document.querySelectorAll("#profile-avatar-trigger, #drawer-avatar-display-target");
+        displayTargets.forEach(node => {
+            if (node.tagName === "IMG") {
+                node.src = rawBase64;
+            } else {
+                node.style.backgroundImage = `url(${rawBase64})`;
+                node.style.backgroundSize = "cover";
+                node.style.backgroundPosition = "center";
+            }
+        });
+        console.log("[Avatar Engine] Image loaded into localized memory frame successfully.");
     };
     reader.readAsDataURL(file);
 }
@@ -593,6 +486,7 @@ async function triggerAuthLoginSequence() {
         }
         
         renderCategoriesMatrix();
+        syncProfileDOMInputsFromCache();
         closeAllDrawers();
         transitionViewContext("view-categories");
     } catch (err) {
@@ -605,7 +499,7 @@ async function triggerAuthLoginSequence() {
 }
 
 /* ==========================================================================
-   LOCAL STATE CONTROL HANDLERS STUBS ENGINE MAP CONFIGURATION CONTEXTS
+   LOCAL STATE CONTROL HANDLERS ENGINE
    ========================================================================== */
 function executeCreateItemRow() {
     if (!WORKING_CATEGORY_KEY) return;
@@ -676,57 +570,50 @@ async function synchronizeVaultWithBackendCloud() {
 }
 
 /* ==========================================================================
-   APPLICATION ENTRY ENGINE BOOTSTRAPPER
+   ISOLATED PROFILE ENGINE MANAGEMENT HANDLERS
    ========================================================================== */
-window.addEventListener("DOMContentLoaded", () => {
-    initializeDOMEventMappings();
-    
-    const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
-    
-    if (stockSource && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
-        // Deep clone data map representation into active execution space cleanly
-        MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(stockSource));
-        console.log("[Data Sync] Successfully loaded stock categories layout matrix into memory.");
-    } else if (Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
-        console.warn("[Data Sync] Warning: Could not locate stock items variable template frame inside window space.");
+function saveProfileDataDirectly() {
+    const userField = document.getElementById("profile-username-input");
+    const bioField = document.getElementById("profile-bio-input");
+
+    if (!MASTER_USER_VAULT_CACHE._profile) {
+        MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
     }
+
+    if (userField) MASTER_USER_VAULT_CACHE._profile.username = userField.value.trim();
+    if (bioField) MASTER_USER_VAULT_CACHE._profile.bio = bioField.value.trim();
+
+    if (window.STAGED_AVATAR_BASE64) {
+        MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
+    }
+
+    localStorage.setItem("TOPTENS_PROFILE_BACKUP", JSON.stringify(MASTER_USER_VAULT_CACHE._profile));
+    synchronizeVaultWithBackendCloud();
     
-    renderCategoriesMatrix();
-    
-    // 🌟 Run your initial data check script instantly to populate your text data configurations upon application initialization loop completion
-    syncProfileDOMInputsFromCache();
-});
-// Precise Location: Append this helper function to the absolute bottom of D:/top-tens/frontend/app.js
+    alert("Premium profile parameters synchronized to cloud vault!");
+    closeAllDrawers();
+}
 
 function syncProfileDOMInputsFromCache() {
-    // Attempt to pull from active cache or recover from our localStorage backup layer
     if (!MASTER_USER_VAULT_CACHE._profile) {
         const backup = localStorage.getItem("TOPTENS_PROFILE_BACKUP");
         if (backup) MASTER_USER_VAULT_CACHE._profile = JSON.parse(backup);
     }
-    
+
     const profile = MASTER_USER_VAULT_CACHE._profile;
     if (!profile) return;
 
-    const drawer = document.getElementById("drawer-profile") || document.querySelector(".sliding-drawer-panel");
-    if (!drawer) return;
+    const userField = document.getElementById("profile-username-input");
+    const bioField = document.getElementById("profile-bio-input");
 
-    const inputs = drawer.querySelectorAll("input[type='text'], textarea");
-    if (inputs.length > 0) {
-        inputs.forEach((inputField, index) => {
-            if ((inputField.tagName === "TEXTAREA" || index === 1) && profile.bio) {
-                inputField.value = profile.bio;
-            } else if (index === 0 && profile.username) {
-                inputField.value = profile.username;
-            }
-        });
-    }
+    if (userField && profile.username) userField.value = profile.username;
+    if (bioField && profile.bio) bioField.value = profile.bio;
 
     if (profile.avatar) {
         window.STAGED_AVATAR_BASE64 = profile.avatar;
-        const displayNodes = document.querySelectorAll("#profile-avatar-trigger, .profile-avatar-circle, #drawer-avatar-display-target, .cropper-circle, .cropper-circle img");
+        const displayTargets = document.querySelectorAll("#profile-avatar-trigger, #drawer-avatar-display-target");
         
-        displayNodes.forEach(node => {
+        displayTargets.forEach(node => {
             if (node.tagName === "IMG") {
                 node.src = profile.avatar;
             } else {
@@ -737,3 +624,20 @@ function syncProfileDOMInputsFromCache() {
         });
     }
 }
+
+/* ==========================================================================
+   APPLICATION ENTRY ENGINE BOOTSTRAPPER
+   ========================================================================== */
+window.addEventListener("DOMContentLoaded", () => {
+    initializeDOMEventMappings();
+    
+    const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
+    
+    if (stockSource && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
+        MASTER_USER_VAULT_CACHE = JSON.parse(JSON.stringify(stockSource));
+        console.log("[Data Sync] Successfully loaded stock categories layout matrix into memory.");
+    }
+    
+    renderCategoriesMatrix();
+    syncProfileDOMInputsFromCache();
+});
