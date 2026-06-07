@@ -534,7 +534,7 @@ async function synchronizeVaultWithBackendCloud() {
 
 /* ==========================================================================
    APPLICATION ENTRY ENGINE BOOTSTRAPPER
-   ========================================================================== */
+/*   ========================================================================== */
 window.addEventListener("DOMContentLoaded", () => {
     // 1. Establish precise click and drag-drop event routing matrices
     initializeDOMEventMappings();
@@ -553,3 +553,4 @@ window.addEventListener("DOMContentLoaded", () => {
     // 4. Render the clean dark-mode interface categories layout grid
     renderCategoriesMatrix();
 });
+*/
