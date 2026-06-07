@@ -467,6 +467,8 @@ function executeCreateItemRow() {
     
     const nameInput = document.getElementById("input-item-name");
     const rankInput = document.getElementById("input-item-rank");
+    const linkInput = document.getElementById("input-item-link");
+    const mediaUrlInput = document.getElementById("input-item-media-url");
 
     if (!nameInput || !rankInput) return;
 
@@ -483,10 +485,13 @@ function executeCreateItemRow() {
     }
 
     const targetList = MASTER_USER_VAULT_CACHE[WORKING_CATEGORY_KEY].items;
+    
+    // Captured with support for explicit link pasting or device media data staging strings
     const newItem = { 
-        rank, 
+        rank: rank, 
         name: name.trim(), 
-        media: STAGED_MEDIA_BASE64 || "" 
+        link: linkInput ? linkInput.value.trim() : "",
+        media: STAGED_MEDIA_BASE64 || (mediaUrlInput ? mediaUrlInput.value.trim() : "")
     };
     
     const existingIndex = targetList.findIndex(i => i.rank === rank);
@@ -496,12 +501,15 @@ function executeCreateItemRow() {
         targetList.push(newItem);
     }
 
-    // Reset input states instantly
+    // Reset input fields instantly
     nameInput.value = "";
     rankInput.value = "";
+    if (linkInput) linkInput.value = "";
+    if (mediaUrlInput) mediaUrlInput.value = "";
+    
     STAGED_MEDIA_BASE64 = "";
     const label = document.getElementById("upload-label");
-    if (label) label.innerText = "Upload Media (Img/6s Video)";
+    if (label) label.innerText = "📷 Upload Local Device Image Token File";
 
     renderListItemsStack();
     synchronizeVaultWithBackendCloud();
@@ -523,9 +531,10 @@ async function synchronizeVaultWithBackendCloud() {
         console.error("Cloud synchronization stream error:", e);
     }
 }
-// File: D:/top-tens/frontend/app.js
-// Precise Location: Directly following line 494 (the end of synchronizeVaultWithBackendCloud)
 
+/* ==========================================================================
+   APPLICATION ENTRY ENGINE BOOTSTRAPPER
+   ========================================================================== */
 window.addEventListener("DOMContentLoaded", () => {
     // 1. Establish precise click and drag-drop event routing matrices
     initializeDOMEventMappings();
