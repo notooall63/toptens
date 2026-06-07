@@ -176,10 +176,23 @@
     }
 
     // DRAWERS CONTROL SUBSYSTEMS
+    // Preceded by: your collapseAllDrawers() function definition or global declarations
+// Followed by: your next UI event listener or helper function
+
     function expandDrawer(drawerNode) {
+        if (!drawerNode) {
+            console.error("expandDrawer error: drawerNode is undefined or null.");
+            return;
+        }
+        
         collapseAllDrawers();
         drawerNode.classList.remove('state-collapsed');
-        UI.overlay.classList.remove('modal-overlay-hidden');
+        
+        if (UI && UI.overlay) {
+            UI.overlay.classList.remove('modal-overlay-hidden');
+        } else {
+            console.warn("expandDrawer warning: UI.overlay elements are not initialized yet.");
+        }
     }
 
     function collapseAllDrawers() {
@@ -937,3 +950,34 @@
     // RUN THE RUNTIME SYSTEM BOOTSTRAPPER CONTEXT EXECUTIONS ENGINE INSTANTIATOR
     document.addEventListener('DOMContentLoaded', initialize);
 })();
+// Example of the structural trap to check for:
+function initializeDOMEventMappings() {
+    // If ANY of these selectors return null, the script crashes here...
+    document.getElementById('settings-btn').addEventListener('click', () => expandDrawer(UI.settingsDrawer));
+    document.getElementById('profile-btn').addEventListener('click', () => expandDrawer(UI.profileDrawer));
+    
+    // ...And these lines below will NEVER execute!
+    document.querySelectorAll('.back-button').forEach(btn => {
+        btn.addEventListener('click', handleBackNavigation);
+    });
+}
+function safeBindClick(elementId, callback) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.addEventListener('click', callback);
+        } else {
+            console.warn(`UI Initialization Warning: Element #${elementId} not found in DOM.`);
+        }
+    }
+
+    // Apply this to your broken components:
+    safeBindClick('settings-trigger-id', () => expandDrawer(UI.settingsDrawer));
+    safeBindClick('profile-trigger-id', () => expandDrawer(UI.profileDrawer));
+
+    // For your back buttons:
+    document.querySelectorAll('.back-button-class').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Your back navigation handling logic here
+        });
+    });
