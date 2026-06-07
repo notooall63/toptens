@@ -2,173 +2,284 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens Vault | Premium Rank Matrix</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Top Tens - Your Personal Dynamic Favorite-Things Vault</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-mode">
+    <canvas id="spark-matrix-canvas"></canvas>
+    
+    <div id="toast-notification-system" class="toast-hidden"></div>
+    <div id="modal-overlay-container" class="modal-overlay-hidden"></div>
 
-    <div id="canvas-spark-container"></div>
-    <div id="global-watermark"></div>
-
-    <header id="app-header" class="hidden">
-        <button id="header-back-btn" class="header-action-icon">←</button>
-        <div id="header-app-branding">TOP TENS</div>
-        <div class="header-right-utilities">
-            <div id="profile-avatar-trigger" class="profile-avatar-circle" title="View Profile State"></div>
-            <button id="settings-burger-trigger" class="header-action-icon">☰</button>
+    <header id="master-application-header" class="header-hidden">
+        <div class="header-left-cluster">
+            <img src="AppIconTopTens.png" alt="Logo" class="header-logo-icon">
+            <button id="header-back-button" class="action-back-btn">
+                <span class="back-arrow-vector">←</span> Back
+            </button>
+        </div>
+        <h1 class="header-app-title">TOP TENS</h1>
+        <div class="header-right-cluster">
+            <button id="header-burger-settings" class="burger-menu-trigger" aria-label="Settings Menu">
+                <div class="burger-bar"></div>
+                <div class="burger-bar"></div>
+                <div class="burger-bar"></div>
+            </button>
+            <div id="header-profile-avatar-anchor" class="avatar-circle-wrapper">
+                <img id="header-profile-avatar-img" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" alt="User Avatar">
+            </div>
         </div>
     </header>
 
-    <main id="view-layer-container">
-
-        <section id="view-landing" class="view-panel">
-            <div class="landing-hero-card">
-                <h1 class="landing-main-title">TOP TENS</h1>
-                <p class="landing-tagline-description">Curate, orchestrate, and lock your personal asset parameters inside an isolated financial vault module ecosystem.</p>
-                <div class="landing-actions-row">
-                    <button id="action-trigger-auth" class="btn-luxury">Authenticate Engine</button>
-                    <button id="action-enter-vault" class="btn-luxury">Access Local Sandbox</button>
+    <main id="application-viewport-context">
+        
+        <section id="view-landing-page" class="app-page-view state-active">
+            <div class="landing-hero-card-container">
+                <h1 class="landing-brand-title">TOP TENS</h1>
+                <p class="landing-brand-description">
+                    Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
+                </p>
+                <div class="landing-action-button-row">
+                    <button id="btn-landing-enter-vault" class="luxury-gold-button">ENTER VAULT</button>
+                    <button id="btn-landing-sign-gateway" class="luxury-gold-button">SIGN IN</button>
                 </div>
             </div>
         </section>
 
-        <section id="view-categories" class="view-panel hidden">
-            <div class="view-section-header">
-                <h2>MASTER VAULT CATEGORIES</h2>
-                <button id="action-add-category" class="btn-premium-action">+ Create Custom Category</button>
-            </div>
-            <div id="categories-grid-hook" class="categories-grid-container">
+        <section id="view-categories-page" class="app-page-view state-hidden">
+            <div class="page-content-wrapper">
+                <div class="advertisement-lane left-lane"></div>
+                <div class="center-content-backbone">
+                    <div class="action-trigger-ribbon">
+                        <button id="btn-trigger-custom-category-modal" class="neon-green-action-button">+ Add New Custom Category</button>
+                    </div>
+                    <div id="categories-grid-viewport" class="categories-matrix-layout">
+                        </div>
                 </div>
+                <div class="advertisement-lane right-lane"></div>
+            </div>
         </section>
 
-        <section id="view-list-items" class="view-panel hidden">
-            <div class="view-section-header">
-                <h2 id="current-category-title-display">CATEGORY REGISTRY MATRIX</h2>
+        <section id="view-items-page" class="app-page-view state-hidden">
+            <div class="page-content-wrapper">
+                <div class="advertisement-lane left-lane"></div>
+                <div class="center-content-backbone">
+                    <div id="items-entry-form-panel" class="item-injection-control-panel">
+                        <h3 id="items-panel-context-title" class="contextual-section-heading">MANAGE TARGET LIST DIMENSIONS</h3>
+                        <div class="injection-form-row">
+                            <input type="text" id="input-item-title" placeholder="Item Name/Title Reference Match">
+                            <input type="number" id="input-item-rank" min="1" max="10" placeholder="Rank (1-10)">
+                            <div class="file-uploader-surrogate-wrapper">
+                                <label for="input-item-media" class="surrogate-label">Upload Thumbnail (Image/6s Video)</label>
+                                <input type="file" id="input-item-media" accept="image/*,video/*">
+                            </div>
+                            <button id="btn-commit-item-injection" class="neon-green-action-button">Add Item</button>
+                        </div>
+                    </div>
+                    <div id="items-list-vertical-stack" class="items-ordered-linear-layout">
+                        </div>
+                </div>
+                <div class="advertisement-lane right-lane"></div>
             </div>
-
-            <div class="slot-insertion-form-panel">
-                <h3>Inject New Item Stream Parameters</h3>
-                <div class="form-grid-inputs">
-                    <input type="text" id="input-item-name" placeholder="Item Name Field Registry" autocomplete="off" />
-                    <input type="number" id="input-item-rank" placeholder="Rank Index Selection (1-10)" min="1" max="10" />
-                    <input type="url" id="input-item-link" placeholder="Affiliate Target Action URL Link (Optional)" />
-                    <input type="url" id="input-item-media-url" placeholder="Direct Image Target Content URL Web Address" />
-                </div>
-                
-                <div id="media-dropzone" class="media-upload-dropzone">
-                    <span id="upload-label">📷 Upload Local Device Image Token File</span>
-                    <input type="file" id="input-item-file" accept="image/*" style="display: none;" />
-                </div>
-
-                <button id="action-submit-item" class="btn-luxury form-submission-trigger-btn">Commit Asset To Rank Slot</button>
-            </div>
-
-            <div id="items-list-hook" class="items-list-vertical-stack">
-                </div>
         </section>
 
-        <section id="view-friends" class="view-panel hidden">
-            <div class="view-section-header">
-                <h2>VAULT DECENTRALIZED SYNC NETWORK</h2>
+        <section id="view-friends-page" class="app-page-view state-hidden">
+            <div class="page-content-wrapper">
+                <div class="advertisement-lane left-lane"></div>
+                <div class="center-content-backbone">
+                    <div class="action-trigger-ribbon">
+                        <button id="btn-trigger-friends-discovery-modal" class="luxury-gold-button">Add Friends</button>
+                    </div>
+                    <div id="friends-list-vertical-stack" class="items-ordered-linear-layout">
+                        </div>
+                </div>
+                <div class="advertisement-lane right-lane"></div>
             </div>
-            <p style="color: var(--text-secondary); text-align: center; margin-top: 40px;">No external secure peer nodes linked to current vault registry ledger.</p>
+        </section>
+        
+        <section id="view-compare-page" class="app-page-view state-hidden">
+            <div class="page-content-wrapper clear-lanes">
+                <div id="compare-matrix-scrollable-canvas" class="compare-matrix-horizontal-plane">
+                    </div>
+            </div>
+        </section>
+
+        <section id="view-fuse-page" class="app-page-view state-hidden">
+            <div class="page-content-wrapper">
+                <div class="advertisement-lane left-lane"></div>
+                <div class="center-content-backbone">
+                    <h2 id="fuse-title-header" class="contextual-section-heading" style="color:var(--gold-primary); text-align:center;">MASTER FUSED REPOSITORY MATRIX</h2>
+                    <div id="fuse-list-vertical-stack" class="items-ordered-linear-layout">
+                        </div>
+                </div>
+                <div class="advertisement-lane right-lane"></div>
+            </div>
         </section>
 
     </main>
 
-    <div id="global-drawer-overlay"></div>
-
-    <div id="drawer-auth" class="sliding-drawer-panel">
-        <div class="drawer-header-row">
-            <h3>Engine Secure Authentication Matrix</h3>
-            <button class="drawer-close-btn">×</button>
+    <section id="drawer-authentication-gateway" class="universal-docked-drawer state-collapsed">
+        <div class="drawer-header-ribbon">
+            <h2 class="drawer-structural-title">SECURE ACCOUNT PORTAL</h2>
+            <button class="drawer-close-trigger-x" data-target="drawer-authentication-gateway">×</button>
         </div>
-        <div class="drawer-body-scrollable">
+        <div class="drawer-scrollable-body-context">
             <div class="form-input-element-wrapper">
-                <label>User Cloud Email Address Tracker</label>
-                <input type="email" id="auth-email" placeholder="identity@domain.com" />
+                <label>Account Email Identifier Address</label>
+                <input type="email" id="auth-email-field" placeholder="name@domain.com">
             </div>
-            <div class="form-input-element-wrapper">
-                <label>Secure Vault Signature Key Passphrase</label>
-                <div style="position: relative; display: flex; width: 100%;">
-                    <input type="password" id="auth-password" placeholder="••••••••••••" style="flex: 1;" />
-                    <button id="auth-password-toggle" class="btn-inline-util" style="margin-left: 8px;">Reveal</button>
+            <div class="form-input-element-wrapper positional-relative-hook">
+                <label>Cryptographic Passphrase String Matrix</label>
+                <div class="password-input-composite-container">
+                    <input type="password" id="auth-password-field" placeholder="••••••••••••">
+                    <button id="btn-auth-toggle-visibility" class="password-reveal-eye-button">👁️</button>
                 </div>
+                <p class="password-structural-parameter-legend">
+                    Parameters: 8-20 characters, 1 uppercase, 1 lowercase, 1 special character, 1 numerical digit.
+                </p>
             </div>
-            <div id="auth-status-msg" class="auth-message-notification-banner hidden"></div>
-            <div class="drawer-action-buttons-group">
-                <button id="action-execute-signin" class="btn-luxury">Initialize Session</button>
-                <button id="action-execute-signup" class="btn-card-util">Generate Secure Registry Node</button>
+            <div class="drawer-action-vertical-stack">
+                <button id="btn-auth-execute-signin" class="luxury-gold-button">Sign In</button>
+                <button id="btn-auth-execute-signup" class="luxury-gold-button">Sign Up</button>
             </div>
+        </div>
+    </section>
+
+    <section id="drawer-profile-management" class="universal-docked-drawer state-collapsed">
+        <div class="drawer-header-ribbon">
+            <h2 class="drawer-structural-title">EDIT VAULT OPERATOR PROFILE</h2>
+            <button class="drawer-close-trigger-x" data-target="drawer-profile-management">×</button>
+        </div>
+        <div class="drawer-scrollable-body-context">
+            <div class="profile-avatar-mutation-center">
+                <div class="avatar-large-preview-circle">
+                    <img id="profile-drawer-avatar-preview" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z'/></svg>" alt="Preview Container">
+                </div>
+                <label for="input-avatar-file-binder" class="luxury-gold-button text-center-forced">Upload/Replace Image</label>
+                <input type="file" id="input-avatar-file-binder" accept="image/*" style="display:none;">
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Full Operator Identity Legal Name</label>
+                <input type="text" id="profile-field-fullname" placeholder="John Doe">
+                <span class="field-edit-indicator-icon">✏️</span>
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Date of Birth Chronological Record</label>
+                <input type="date" id="profile-field-dob">
+                <span class="field-edit-indicator-icon">✏️</span>
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Hometown Geographic Origin Coordinates</label>
+                <input type="text" id="profile-field-hometown" placeholder="City, State, Country">
+                <span class="field-edit-indicator-icon">✏️</span>
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Vocation Professional Sector Designation</label>
+                <input type="text" id="profile-field-vocation" placeholder="Algorithmic Systems Engineer">
+                <span class="field-edit-indicator-icon">✏️</span>
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Primary Account Correspondence Email</label>
+                <input type="email" id="profile-field-email" readonly disabled>
+                <span class="field-edit-indicator-icon">🔒</span>
+            </div>
+            <div class="form-input-element-wrapper unique-edit-icon-hook">
+                <label>Recovery Comms Subsystem Routing Target</label>
+                <input type="text" id="profile-field-recovery" placeholder="recovery@backup.com or +15555555555">
+                <span class="field-edit-indicator-icon">✏️</span>
+            </div>
+            <div class="toggle-control-strip-wrapper">
+                <span class="toggle-structural-label">Profile Visibility Mode State</span>
+                <button id="btn-profile-visibility-toggle" class="luxury-gold-button toggle-active">Profile Public</button>
+            </div>
+            <button id="btn-profile-save-and-synchronize" class="luxury-gold-button width-100-forced">Save Changes</button>
+        </div>
+    </section>
+
+    <section id="drawer-settings-configuration" class="universal-docked-drawer state-collapsed">
+        <div class="drawer-header-ribbon">
+            <h2 class="drawer-structural-title">VAULT CONFIGURATIONS</h2>
+            <button class="drawer-close-trigger-x" data-target="drawer-settings-configuration">×</button>
+        </div>
+        <div class="drawer-scrollable-body-context">
+            <div class="drawer-action-vertical-stack gap-incremented">
+                <button id="btn-settings-toggle-theme-matrix" class="luxury-gold-button">Toggle Theme Mode</button>
+                <button id="btn-settings-tier-upgrade" class="luxury-gold-button intentional-accented-border">Upgrade to Premium ($0.99/mo)</button>
+                <button id="btn-settings-add-friends-shortcut" class="luxury-gold-button">Add Friends Engine</button>
+                <button id="btn-settings-route-friends-view" class="luxury-gold-button">Visit Friends Page View</button>
+                <button id="btn-settings-wipe-vault-sequence" class="luxury-gold-button dynamic-danger-color-theme">Vault-Wipe Initialization</button>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal-crop-interface" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header">CENTER AND FOCUS AVATAR MATRICES</h3>
+        <div class="crop-viewport-bounded-canvas">
+            <img id="image-node-target-for-crop" src="" alt="Cropping Source Element">
+            <div class="overlay-cropping-mask-ring"></div>
+        </div>
+        <div class="modal-control-button-strip">
+            <button id="btn-crop-cancel-discard" class="luxury-gold-button dynamic-danger-color-theme">Cancel</button>
+            <button id="btn-crop-commit-transform" class="neon-green-action-button">Commit Alignment</button>
         </div>
     </div>
 
-    <div id="drawer-profile" class="sliding-drawer-panel">
-        <div class="drawer-header-row">
-            <h3>Premium Identity Parameters</h3>
-            <button class="drawer-close-btn">×</button>
-        </div>
-        <div class="drawer-body-scrollable">
-            <div class="profile-avatar-cropper-workspace">
-                <div class="cropper-circle">
-                    <img id="drawer-avatar-display-target" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23666'><rect width='24' height='24' fill='%23111'/><text x='50%' y='65%' font-size='10' text-anchor='middle' fill='%23666'>AVATAR</text></svg>" alt="Identity Target Avatar Thumbnail Frame Graphic" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
-                </div>
-                <button id="action-select-avatar-file" class="btn-card-util" style="margin-top: 15px;">Modify Token Asset Image File</button>
-                <input type="file" id="upload-avatar-file-input" accept="image/*" style="display: none;" />
-            </div>
-
-            <div class="form-input-element-wrapper">
-                <label>Public Profile Handles Name Alias</label>
-                <input type="text" id="profile-username-input" placeholder="Elite Trader System Variant Name" />
-            </div>
-
-            <div class="form-input-element-wrapper">
-                <label>Profile Statement Biography Information Metadata Record</label>
-                <textarea id="profile-bio-input" placeholder="Enter structural personal bio information tags..."></textarea>
-            </div>
-
-            <div class="form-input-element-wrapper toggle-row-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
-                <div>
-                    <label style="margin-bottom: 2px; display: block;">Vault Visibility Shield State</label>
-                    <span style="font-size: 11px; color: var(--text-secondary);">Toggle visibility of your ranked categories.</span>
-                </div>
-                <button id="profile-privacy-toggle" class="btn-toggle-switch">PUBLIC</button>
-            </div>
-
-            <button id="action-save-profile" class="btn-luxury" style="width: 100%; margin-top: 35px; height: 50px;">Synchronize Identity Changes</button>
+    <div id="modal-confirmation-vault-wipe" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header dynamic-danger-text">CRITICAL DESTRUCTION WARNING</h3>
+        <p class="modal-paragraph-warning-body">Are you absolutely certain you wish to instantiate a terminal wipe sequence? This instantly erases all user-inputted data and restores the application to its default settings, with its stock Categories and stock List Items. This operation cannot be reversed.</p>
+        <div class="modal-control-button-strip">
+            <button id="btn-wipe-abort-sequence" class="luxury-gold-button">Cancel</button>
+            <button id="btn-wipe-confirm-destruction" class="neon-green-action-button dynamic-danger-color-theme">Confirm Destruction</button>
         </div>
     </div>
 
-    <div id="drawer-settings" class="sliding-drawer-panel">
-        <div class="drawer-header-row">
-            <h3>Global Dashboard Matrix Controls</h3>
-            <button class="drawer-close-btn">×</button>
+    <div id="modal-custom-category-injection" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header">CREATE CUSTOM CATEGORY TAB</h3>
+        <div class="form-input-element-wrapper">
+            <label>Category Metric Label Name</label>
+            <input type="text" id="input-modal-category-name" placeholder="E.g., Crypto Arbitrage Bot Architecture">
         </div>
-        <div class="drawer-body-scrollable">
-            <div class="setting-action-row-item" id="setting-toggle-theme">
-                <span>Toggle Visual Dark Interface Aesthetics</span>
-                <span class="setting-chevron">⚙️</span>
-            </div>
-            <div class="setting-action-row-item" id="setting-nav-friends">
-                <span>Interfacing Connection Peer Nodes Network</span>
-                <span class="setting-chevron">🔗</span>
-            </div>
-            <div class="setting-action-row-item highlight-upgrade" id="setting-upgrade-tier">
-                <span>Unlock Advanced Tier Architecture Limits</span>
-                <span class="badge-premium">$0.99</span>
-            </div>
-            
-            <hr class="drawer-separator-line" style="border: 0; border-top: 1px solid #222; margin: 25px 0;" />
-            
-            <div class="setting-action-row-item danger-zone-trigger" id="setting-vault-wipe" style="color: var(--error-red); border-color: rgba(239,68,68,0.2);">
-                <span>Wipe Active Local Cache Data Vault Parameters</span>
-                <span class="setting-chevron">⚠️</span>
-            </div>
+        <div class="modal-control-button-strip">
+            <button id="btn-category-modal-cancel" class="luxury-gold-button">Cancel</button>
+            <button id="btn-category-modal-commit" class="neon-green-action-button">Inject Category</button>
+        </div>
+    </div>
+
+    <div id="modal-friends-search-discovery" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header">NETWORK USER DISCOVERY</h3>
+        <div class="form-input-element-wrapper">
+            <label>Query Operator Handle</label>
+            <input type="text" id="input-modal-friends-query" placeholder="Enter target profile name tag identifier...">
+        </div>
+        <div id="friends-search-results-output-node" class="search-results-scrollable-container"></div>
+        <div class="modal-control-button-strip">
+            <button id="btn-friends-modal-close" class="luxury-gold-button">Close Interface</button>
+        </div>
+    </div>
+
+    <div id="modal-comparison-friends-picker" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header">SELECT MATRICES FOR TRANS-COMPARISON</h3>
+        <p class="modal-paragraph-warning-body" style="color: var(--text-muted)">Select up to 26 network connections to generate a 27-row analytical breakdown matrix simultaneously.</p>
+        <div id="comparison-checkbox-selection-matrix" class="search-results-scrollable-container"></div>
+        <div class="modal-control-button-strip">
+            <button id="btn-compare-picker-cancel" class="luxury-gold-button">Cancel</button>
+            <button id="btn-compare-picker-submit" class="neon-green-action-button">Submit Compilation</button>
+        </div>
+    </div>
+
+    <div id="modal-fuse-friends-picker" class="structural-floating-modal modal-hidden">
+        <h3 class="modal-contextual-header">SELECT EXTENSIONS FOR WEIGHTED FUSION MATRIX</h3>
+        <p class="modal-paragraph-warning-body" style="color: var(--text-muted)">Fuses target structures via a mathematical Weight Ranking Average formula to build an optimized master list representation node.</p>
+        <div id="fuse-checkbox-selection-matrix" class="search-results-scrollable-container"></div>
+        <div class="modal-control-button-strip">
+            <button id="btn-fuse-picker-cancel" class="luxury-gold-button">Cancel</button>
+            <button id="btn-fuse-picker-submit" class="neon-green-action-button">Execute Fusion</button>
         </div>
     </div>
 
     <script src="stockitems.js"></script>
+    <script src="canvas-sparks.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
