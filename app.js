@@ -527,11 +527,13 @@ async function synchronizeVaultWithBackendCloud() {
 // Precise Location: Directly following line 494 (the end of synchronizeVaultWithBackendCloud)
 
 window.addEventListener("DOMContentLoaded", () => {
+    // 1. Establish precise click and drag-drop event routing matrices
     initializeDOMEventMappings();
     
-    // Multi-bridge fallback configuration to catch stockitems.js variables no matter the format
+    // 2. Identify and assign the core 9 stock categories fallback data layout
     const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
     
+    // 3. Safely load the dataset array if no pre-existing user cloud cache overrides it
     if (stockSource && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
         MASTER_USER_VAULT_CACHE = stockSource;
         console.log("[Data Sync] Successfully loaded stock categories layout matrix into memory.");
@@ -539,14 +541,6 @@ window.addEventListener("DOMContentLoaded", () => {
         console.warn("[Data Sync] Warning: Could not locate stock items variable template frame inside window space.");
     }
     
-    renderCategoriesMatrix();
-});
-
-window.addEventListener("DOMContentLoaded", () => {
-    initializeDOMEventMappings();
-    // Verify if stockitems.js loaded core values into the window space first
-    if (window.INITIAL_STOCK_VAULT && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
-        MASTER_USER_VAULT_CACHE = window.INITIAL_STOCK_VAULT;
-    }
+    // 4. Render the clean dark-mode interface categories layout grid
     renderCategoriesMatrix();
 });
