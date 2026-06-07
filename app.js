@@ -492,6 +492,24 @@ async function synchronizeVaultWithBackendCloud() {
         console.error("Cloud synchronization stream error:", e);
     }
 }
+// File: D:/top-tens/frontend/app.js
+// Precise Location: Directly following line 494 (the end of synchronizeVaultWithBackendCloud)
+
+window.addEventListener("DOMContentLoaded", () => {
+    initializeDOMEventMappings();
+    
+    // Multi-bridge fallback configuration to catch stockitems.js variables no matter the format
+    const stockSource = window.INITIAL_STOCK_VAULT || window.stockItems || window.STOCK_ITEMS || window.initialStockItems;
+    
+    if (stockSource && Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
+        MASTER_USER_VAULT_CACHE = stockSource;
+        console.log("[Data Sync] Successfully loaded stock categories layout matrix into memory.");
+    } else if (Object.keys(MASTER_USER_VAULT_CACHE).length === 0) {
+        console.warn("[Data Sync] Warning: Could not locate stock items variable template frame inside window space.");
+    }
+    
+    renderCategoriesMatrix();
+});
 
 window.addEventListener("DOMContentLoaded", () => {
     initializeDOMEventMappings();
