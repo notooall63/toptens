@@ -1,157 +1,110 @@
-// D:/top-tens/frontend/stockitems.js
-
-const INITIAL_STOCK_CATEGORIES = [
-  {
-    id: "stock-shoes",
-    name: "Shoes",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "Air Jordan 1 Retro High OG", link: "https://nike.com", media: "" },
-      { rank: 2, name: "Adidas Yeezy Boost 350 V2", link: "https://adidas.com", media: "" },
-      { rank: 3, name: "Nike Air Max 90", link: "https://nike.com", media: "" },
-      { rank: 4, name: "Balenciaga Triple S", link: "https://balenciaga.com", media: "" },
-      { rank: 5, name: "New Balance 990v5", link: "https://newbalance.com", media: "" },
-      { rank: 6, name: "Converse Chuck Taylor All Star", link: "https://converse.com", media: "" },
-      { rank: 7, name: "Vans Old Skool", link: "https://vans.com", media: "" },
-      { rank: 8, name: "Puma Suede Classic", link: "https://puma.com", media: "" },
-      { rank: 9, name: "Asics Gel-Kayano 14", link: "https://asics.com", media: "" },
-      { rank: 10, name: "Common Projects Achilles Low", link: "https://commonprojects.com", media: "" }
+const SYSTEM_INITIAL_VAULT_DEFAULTS = {
+    "Shoes": [
+        { "rank": 1, "name": "Air Jordan 1 Retro High OG", "link": "https://nike.com/jordan" },
+        { "rank": 2, "name": "Adidas Ultraboost Light", "link": "https://adidas.com/ultraboost" },
+        { "rank": 3, "name": "Nike Air Max 90 Essentials", "link": "https://nike.com/airmax" },
+        { "rank": 4, "name": "New Balance 990v6 Metallic", "link": "https://newbalance.com" },
+        { "rank": 5, "name": "Asics Gel-Kayano 30 Premium", "link": "https://asics.com" },
+        { "rank": 6, "name": "Puma Clyde Classic Leather", "link": "https://puma.com" },
+        { "rank": 7, "name": "Vans Old Skool Core Black", "link": "https://vans.com" },
+        { "rank": 8, "name": "Converse Chuck Taylor All Star", "link": "https://converse.com" },
+        { "rank": 9, "name": "Salomon XT-6 Expanse Trail", "link": "https://salomon.com" },
+        { "rank": 10, "name": "Reebok Club C 85 Vintage", "link": "https://reebok.com" }
+    ],
+    "Inspiring Athletes": [
+        { "rank": 1, "name": "Muhammad Ali", "link": "https://wikipedia.org/wiki/Muhammad_Ali" },
+        { "rank": 2, "name": "Michael Jordan", "link": "https://nba.com" },
+        { "rank": 3, "name": "Serena Williams", "link": "https://serenawilliams.com" },
+        { "rank": 4, "name": "Lionel Messi", "link": "https://intermiamicf.com" },
+        { "rank": 5, "name": "Usain Bolt", "link": "https://usainbolt.com" },
+        { "rank": 6, "name": "Simone Biles", "link": "https://simonebiles.com" },
+        { "rank": 7, "name": "Kobe Bryant", "link": "https://mambaout.com" },
+        { "rank": 8, "name": "Tiger Woods", "link": "https://tigerwoods.com" },
+        { "rank": 9, "name": "Tom Brady", "link": "https://nfl.com" },
+        { "rank": 10, "name": "Lewis Hamilton", "link": "https://lewishamilton.com" }
+    ],
+    "Tech Devices": [
+        { "rank": 1, "name": "iPhone 17 Pro Max", "link": "https://apple.com/iphone" },
+        { "rank": 2, "name": "MacBook Pro M5 Max", "link": "https://apple.com/macbook" },
+        { "rank": 3, "name": "Samsung Galaxy S26 Ultra", "link": "https://samsung.com" },
+        { "rank": 4, "name": "Sony WH-1000XM6 Headphones", "link": "https://sony.com" },
+        { "rank": 5, "name": "iPad Pro OLED 13-inch", "link": "https://apple.com/ipad" },
+        { "rank": 6, "name": "ASUS ROG Zephyrus G16", "link": "https://asus.com" },
+        { "rank": 7, "name": "Google Pixel 10 Pro XL", "link": "https://google.com" },
+        { "rank": 8, "name": "Nintendo Switch 2 Pro", "link": "https://nintendo.com" },
+        { "rank": 9, "name": "DJI Mini 5 Pro Cine", "link": "https://dji.com" },
+        { "rank": 10, "name": "Steam Deck OLED 1TB", "link": "https://steampowered.com" }
+    ],
+    "Celebrities": [
+        { "rank": 1, "name": "Keanu Reeves", "link": "https://imdb.com" },
+        { "rank": 2, "name": "Tom Hanks", "link": "https://imdb.com" },
+        { "rank": 3, "name": "Denzel Washington", "link": "https://imdb.com" },
+        { "rank": 4, "name": "Pedro Pascal", "link": "https://imdb.com" },
+        { "rank": 5, "name": "Margot Robbie", "link": "https://imdb.com" },
+        { "rank": 6, "name": "Cillian Murphy", "link": "https://imdb.com" },
+        { "rank": 7, "name": "Zendaya", "link": "https://imdb.com" },
+        { "rank": 8, "name": "Ryan Reynolds", "link": "https://imdb.com" },
+        { "rank": 9, "name": "Robert Downey Jr.", "link": "https://imdb.com" },
+        { "rank": 10, "name": "Hugh Jackman", "link": "https://imdb.com" }
+    ],
+    "Post 2000 Movies": [
+        { "rank": 1, "name": "The Dark Knight (2008)", "link": "https://warnerbros.com" },
+        { "rank": 2, "name": "Inception (2010)", "link": "https://warnerbros.com" },
+        { "rank": 3, "name": "Interstellar (2014)", "link": "https://paramount.com" },
+        { "rank": 4, "name": "Mad Max: Fury Road (2015)", "link": "https://warnerbros.com" },
+        { "rank": 5, "name": "Spider-Man: Into the Spider-Verse", "link": "https://sonypictures.com" },
+        { "rank": 6, "name": "Dune: Part Two (2024)", "link": "https://legendary.com" },
+        { "rank": 7, "name": "Everything Everywhere All At Once", "link": "https://a24films.com" },
+        { "rank": 8, "name": "Parasite (2019)", "link": "https://cj智能.com" },
+        { "rank": 9, "name": "Whiplash (2014)", "link": "https://sonypictures.com" },
+        { "rank": 10, "name": "The Lord of the Rings: Return of the King", "link": "https://newline.com" }
+    ],
+    "90s Rap Songs": [
+        { "rank": 1, "name": "Juicy - Notorious B.I.G.", "link": "https://badboyrecords.com" },
+        { "rank": 2, "name": "C.R.E.A.M. - Wu-Tang Clan", "link": "https://wutangclan.com" },
+        { "rank": 3, "name": "California Love - 2Pac & Dr. Dre", "link": "https://deathrowrecords.com" },
+        { "rank": 4, "name": "Nuthin' But A G Thang - Dr. Dre", "link": "https://deathrowrecords.com" },
+        { "rank": 5, "name": "Shook Ones Pt. II - Mobb Deep", "link": "https://loudrecords.com" },
+        { "rank": 6, "name": "The World Is Yours - Nas", "link": "https://columbiarecords.com" },
+        { "rank": 7, "name": "Mind Playing Tricks on Me - Geto Boys", "link": "https://rapalotrecords.com" },
+        { "rank": 8, "name": "Dear Mama - 2Pac", "link": "https://deathrowrecords.com" },
+        { "rank": 9, "name": "Gin and Juice - Snoop Dogg", "link": "https://deathrowrecords.com" },
+        { "rank": 10, "name": "Hypnotize - Notorious B.I.G.", "link": "https://badboyrecords.com" }
+    ],
+    "Post 2010 Video Games": [
+        { "rank": 1, "name": "GTA VI", "link": "https://rockstargames.com" },
+        { "rank": 2, "name": "Hades II", "link": "https://supergiantgames.com/hades2" },
+        { "rank": 3, "name": "Death Stranding 2", "link": "https://kojimaproductions.jp" },
+        { "rank": 4, "name": "Hollow Knight: Silksong", "link": "https://teamcherry.com.au" },
+        { "rank": 5, "name": "The Witcher 4", "link": "https://cdprojektred.com" },
+        { "rank": 6, "name": "Metroid Prime 4", "link": "https://nintendo.com" },
+        { "rank": 7, "name": "Fable", "link": "https://xbox.com/games/fable" },
+        { "rank": 8, "name": "Perfect Dark", "link": "https://theinitiative.xbox" },
+        { "rank": 9, "name": "Wolverine", "link": "https://insomniac.games" },
+        { "rank": 10, "name": "Star Wars: Eclipse", "link": "https://starwarseclipse.com" }
+    ],
+    "Novels": [
+        { "rank": 1, "name": "Dune - Frank Herbert", "link": "https://penguinrandomhouse.com" },
+        { "rank": 2, "name": "1984 - George Orwell", "link": "https://penguinrandomhouse.com" },
+        { "rank": 3, "name": "The Great Gatsby - F. Scott Fitzgerald", "link": "https://simonandschuster.com" },
+        { "rank": 4, "name": "To Kill a Mockingbird - Harper Lee", "link": "https://harpercollins.com" },
+        { "rank": 5, "name": "The Fellowship of the Ring - Tolkien", "link": "https://hmhbooks.com" },
+        { "rank": 6, "name": "Neuromancer - William Gibson", "link": "https://penguinrandomhouse.com" },
+        { "rank": 7, "name": "Snow Crash - Neal Stephenson", "link": "https://penguinrandomhouse.com" },
+        { "rank": 8, "name": "Project Hail Mary - Andy Weir", "link": "https://penguinrandomhouse.com" },
+        { "rank": 9, "name": "Blood Meridian - Cormac McCarthy", "link": "https://penguinrandomhouse.com" },
+        { "rank": 10, "name": "The Count of Monte Cristo - Dumas", "link": "https://penguinrandomhouse.com" }
+    ],
+    "Restaurants": [
+        { "rank": 1, "name": "The French Laundry (Yountville)", "link": "https://thomaskeller.com" },
+        { "rank": 2, "name": "Central (Lima)", "link": "https://centralrestaurante.com.pe" },
+        { "rank": 3, "name": "Atomix (New York)", "link": "https://atomixnyc.com" },
+        { "rank": 4, "name": "Asador Etxebarri (Axe)", "link": "https://asadoretxebarri.com" },
+        { "rank": 5, "name": "DiverXO (Madrid)", "link": "https://diverxo.com" },
+        { "rank": 6, "name": "Osteria Francescana (Modena)", "link": "https://osteriafrancescana.it" },
+        { "rank": 7, "name": "Alchemist (Copenhagen)", "link": "https://alchemist.dk" },
+        { "rank": 8, "name": "Gaggan Anand (Bangkok)", "link": "https://gaggananand.com" },
+        { "rank": 9, "name": "Pujol (Mexico City)", "link": "https://pujol.com.mx" },
+        { "rank": 10, "name": "Eleven Madison Park (New York)", "link": "https://elevenmadisonpark.com" }
     ]
-  },
-  {
-    id: "stock-athletes",
-    name: "Inspiring Athletes",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "Muhammad Ali", link: "https://wikipedia.org", media: "" },
-      { rank: 2, name: "Michael Jordan", link: "https://nba.com", media: "" },
-      { rank: 3, name: "Serena Williams", link: "https://serenawilliams.com", media: "" },
-      { rank: 4, name: "Usain Bolt", link: "https://usainbolt.com", media: "" },
-      { rank: 5, name: "Simone Biles", link: "https://simonebiles.com", media: "" },
-      { rank: 6, name: "Roger Federer", link: "https://rogerfederer.com", media: "" },
-      { rank: 7, name: "Lionel Messi", link: "https://messi.com", media: "" },
-      { rank: 8, name: "Tiger Woods", link: "https://tigerwoods.com", media: "" },
-      { rank: 9, name: "Ayrton Senna", link: "https://ayrtonsenna.com.br", media: "" },
-      { rank: 10, name: "Tom Brady", link: "https://tombrady.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-tech",
-    name: "Tech Devices",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "iPhone 17 Pro Max", link: "https://apple.com", media: "" },
-      { rank: 2, name: "MacBook Pro M5", link: "https://apple.com", media: "" },
-      { rank: 3, name: "Samsung Galaxy S26 Ultra", link: "https://samsung.com", media: "" },
-      { rank: 4, name: "Sony WH-1000XM6", link: "https://sony.com", media: "" },
-      { rank: 5, name: "iPad Pro OLED", link: "https://apple.com", media: "" },
-      { rank: 6, name: "ASUS ROG Zephyrus G16", link: "https://asus.com", media: "" },
-      { rank: 7, name: "Steam Deck OLED", link: "https://valvesoftware.com", media: "" },
-      { rank: 8, name: "DJI Avata 2", link: "https://dji.com", media: "" },
-      { rank: 9, name: "Apple Vision Pro 2", link: "https://apple.com", media: "" },
-      { rank: 10, name: "Raspberry Pi 5", link: "https://raspberrypi.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-celebrities",
-    name: "Celebrities",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "Keanu Reeves", link: "https://imdb.com", media: "" },
-      { rank: 2, name: "Tom Hanks", link: "https://imdb.com", media: "" },
-      { rank: 3, name: "Dwayne Johnson", link: "https://imdb.com", media: "" },
-      { rank: 4, name: "Taylor Swift", link: "https://taylorswift.com", media: "" },
-      { rank: 5, name: "Leonardo DiCaprio", link: "https://imdb.com", media: "" },
-      { rank: 6, name: "Margot Robbie", link: "https://imdb.com", media: "" },
-      { rank: 7, name: "Denzel Washington", link: "https://imdb.com", media: "" },
-      { rank: 8, name: "Scarlett Johansson", link: "https://imdb.com", media: "" },
-      { rank: 9, name: "Cillian Murphy", link: "https://imdb.com", media: "" },
-      { rank: 10, name: "Pedro Pascal", link: "https://imdb.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-movies",
-    name: "Post 2000 Movies",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "The Dark Knight", link: "https://warnerbros.com", media: "" },
-      { rank: 2, name: "Inception", link: "https://warnerbros.com", media: "" },
-      { rank: 3, name: "Interstellar", link: "https://warnerbros.com", media: "" },
-      { rank: 4, name: "Mad Max: Fury Road", link: "https://warnerbros.com", media: "" },
-      { rank: 5, name: "Parasite", link: "https://imdb.com", media: "" },
-      { rank: 6, name: "The Lord of the Rings: The Return of the King", link: "https://newline.com", media: "" },
-      { rank: 7, name: "Spirited Away", link: "https://ghibli.jp", media: "" },
-      { rank: 8, name: "Whiplash", link: "https://sonyclassics.com", media: "" },
-      { rank: 9, name: "No Country for Old Men", link: "https://miramax.com", media: "" },
-      { rank: 10, name: "Spider-Man: Into the Spider-Verse", link: "https://sonypictures.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-rap",
-    name: "90s Rap Songs",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "Juicy - Notorious B.I.G.", link: "https://badboy.com", media: "" },
-      { rank: 2, name: "C.R.E.A.M. - Wu-Tang Clan", link: "https://wutangclan.com", media: "" },
-      { rank: 3, name: "California Love - 2Pac", link: "https://deathrowrecords.com", media: "" },
-      { rank: 4, name: "Nuthin' But A G Thang - Dr. Dre", link: "https://deathrowrecords.com", media: "" },
-      { rank: 5, name: "Shook Ones Pt. II - Mobb Deep", link: "https://loud.com", media: "" },
-      { rank: 6, name: "The World Is Yours - Nas", link: "https://columbiarecords.com", media: "" },
-      { rank: 7, name: "Hypnotize - Notorious B.I.G.", link: "https://badboy.com", media: "" },
-      { rank: 8, name: "Dear Mama - 2Pac", link: "https://deathrowrecords.com", media: "" },
-      { rank: 9, name: "Mind Playing Tricks on Me - Geto Boys", link: "https://rapalotrecords.com", media: "" },
-      { rank: 10, name: "Scenario - A Tribe Called Quest", link: "https://jive.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-videogames",
-    name: "Post 2010 Video Games",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "GTA VI", link: "https://rockstargames.com", media: "" },
-      { rank: 2, name: "Elden Ring", link: "https://bandainamcoent.com", media: "" },
-      { rank: 3, name: "The Legend of Zelda: Breath of the Wild", link: "https://nintendo.com", media: "" },
-      { rank: 4, name: "The Witcher 3: Wild Hunt", link: "https://cdprojektred.com", media: "" },
-      { rank: 5, name: "Red Dead Redemption 2", link: "https://rockstargames.com", media: "" },
-      { rank: 6, name: "The Last of Us Part I", link: "https://naughtydog.com", media: "" },
-      { rank: 7, name: "God of War (2018)", link: "https://playstation.com", media: "" },
-      { rank: 8, name: "Hades", link: "https://supergiantgames.com", media: "" },
-      { rank: 9, name: "Minecraft", link: "https://mojang.com", media: "" },
-      { rank: 10, name: "Cyberpunk 2077", link: "https://cdprojektred.com", media: "" }
-    ]
-  },
-  {
-    id: "stock-novels",
-    name: "Novels",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "To Kill a Mockingbird", link: "https://wikipedia.org", media: "" },
-      { rank: 2, name: "1984", link: "https://wikipedia.org", media: "" },
-      { rank: 3, name: "The Great Gatsby", link: "https://wikipedia.org", media: "" },
-      { rank: 4, name: "One Hundred Years of Solitude", link: "https://wikipedia.org", media: "" },
-      { rank: 5, name: "Moby-Dick", link: "https://wikipedia.org", media: "" },
-      { rank: 6, name: "The Catcher in the Rye", link: "https://wikipedia.org", media: "" },
-      { rank: 7, name: "The Lord of the Rings", link: "https://wikipedia.org", media: "" },
-      { rank: 8, name: "Crime and Punishment", link: "https://wikipedia.org", media: "" },
-      { rank: 9, name: "Brave New World", link: "https://wikipedia.org", media: "" },
-      { rank: 10, name: "The Hobbit", link: "https://wikipedia.org", media: "" }
-    ]
-  },
-  {
-    id: "stock-restaurants",
-    name: "Restaurants",
-    isPublic: true,
-    items: [
-      { rank: 1, name: "Central (Lima)", link: "https://centralrestaurante.com.pe", media: "" },
-      { rank: 2, name: "Disfrutar (Barcelona)", link: "https://disfrutarbarcelona.com", media: "" },
-      { rank: 3, name: "Diverxo (Madrid)", link: "https://diverxo.com", media: "" },
-      { rank: 4, name: "Asador Etxebarri (Achondo)", link: "https://asadoretxebarri.com", media: "" },
-      { rank: 5, name: "Alchemist (Copenhagen)", link: "https://alchemist.dk", media: "" },
-      { rank: 6, name: "Maido (Lima)", link: "https://maido.pe", media: "" },
-      { rank: 7, name: "Lido 84 (Gardone Riviera)", link: "https://kuisinaria.it", media: "" },
-      { rank: 8, name: "Atomix (New York)", link: "https://atomixnyc.com", media: "" },
-      { rank: 9, name: "Quintonil (Mexico City)", link: "https://quintonil.com", media: "" },
-      { rank: 10, name: "The Chairman (Hong Kong)", link: "https://thechairmangroup.com", media: "" }
-    ]
-  }
-];
+};
