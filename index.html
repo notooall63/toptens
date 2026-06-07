@@ -69,15 +69,21 @@
                 <div class="content-core">
                     <div class="item-form-card">
                         <h3 id="current-category-title-display">Category Name</h3>
-                        <div class="form-row-inputs">
-                            <input type="text" id="input-item-name" placeholder="Name/Title of Item">
-                            <input type="number" id="input-item-rank" placeholder="Rank (1-10)" min="1" max="10">
-                            <div class="media-upload-dropzone" id="media-dropzone">
-                                <span id="upload-label">Upload Media (Img/6s Video)</span>
-                                <input type="file" id="input-item-file" accept="image/*,video/*" class="hidden">
+                        <div class="form-row-inputs" style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="input-item-name" placeholder="Name/Title of Item" style="flex: 2;">
+                                <input type="number" id="input-item-rank" placeholder="Rank (1-10)" min="1" max="10" style="flex: 1;">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="input-item-link" placeholder="Affiliate Reference Link URL (Optional)" style="flex: 1;">
+                                <input type="text" id="input-item-media-url" placeholder="Direct Image / Thumbnail Web URL (Optional)" style="flex: 1;">
+                            </div>
+                            <div class="media-upload-dropzone" id="media-dropzone" style="cursor: pointer; padding: 15px; border: 2px dashed #d4af37; text-align: center; border-radius: 6px; background: #1a1a1a;">
+                                <span id="upload-label" style="color: #d4af37; font-size: 13px;">📷 Upload Local Device Image Token File</span>
+                                <input type="file" id="input-item-file" accept="image/*,video/*" class="hidden" style="display: none;">
                             </div>
                         </div>
-                        <button class="btn-luxury-solid" id="action-submit-item">Add Item</button>
+                        <button class="btn-luxury-solid" id="action-submit-item" style="margin-top: 12px; width: 100%;">Add Item to List</button>
                     </div>
                     <div class="list-stack-10-slots" id="items-list-hook">
                         </div>

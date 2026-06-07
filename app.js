@@ -104,7 +104,10 @@ function initializeDOMEventMappings() {
     // Item Action Triggers Harmonized to HTML Dropzone Layout
     safeBindListener("action-submit-item", "click", executeCreateItemRow);
     
-    safeBindListener("media-dropzone", "click", () => {
+    // Single Invocation Event Listener: Eliminates the Double File-Manager Activation Bug completely
+    safeBindListener("media-dropzone", "click", (e) => {
+        // Stop bubbling down if click triggered subelements
+        if (e.target.id === "input-item-file") return; 
         const itemFileInput = document.getElementById("input-item-file");
         if (itemFileInput) itemFileInput.click();
     });
@@ -113,7 +116,6 @@ function initializeDOMEventMappings() {
     if (itemFileInput) {
         itemFileInput.addEventListener("change", processItemMediaLocalStaging);
     }
-}
 
 /* ==========================================================================
    CATEGORY APPLICATION WORKFLOW OPERATIONS
@@ -208,18 +210,27 @@ function renderListItemsStack() {
     
     const items = (cat.items || []).sort((a,b) => a.rank - b.rank).slice(0, 10);
 
+// File: D:/top-tens/frontend/app.js
+// Precise Location: Inside renderListItemsStack(), replace the internal loop row allocation innerHTML assignment
+
     items.forEach(item => {
         const row = document.createElement("div");
         row.className = "slot-row-tab";
         
         const defaultThumb = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23d4af37'><rect width='24' height='24' fill='%23222'/><text x='50%' y='65%' font-size='12' text-anchor='middle' fill='%23d4af37'>📦</text></svg>";
         const itemImage = item.media || defaultThumb;
+        
+        // Auto-generate high-value affiliate reference target links dynamically based on the item title if an explicit link is unassigned
+        const computedAffiliateLink = item.link && item.link !== "https://google.com" && item.link !== ""
+            ? item.link 
+            : `https://www.amazon.com/s?k=${encodeURIComponent(item.name)}&tag=toptensvault-20`;
 
         row.innerHTML = `
             <span class="slot-hashtag">#</span>
             <span class="slot-rank-num">${item.rank}</span>
-            <span class="slot-item-title">${item.name}</span>
-            <div class="slot-thumbnail-container" style="width:40px; height:40px; border-radius:4px; overflow:hidden; background:#222; margin-left: auto; margin-right: 15px;">
+            <span class="slot-item-title" style="flex: 2; margin-left: 10px;">${item.name}</span>
+            <a href="${computedAffiliateLink}" target="_blank" class="slot-affiliate-link" style="color: #d4af37; text-decoration: underline; font-size: 12px; margin-right: 15px; display: inline-block;">Shop Item</a>
+            <div class="slot-thumbnail-container" style="width:40px; height:40px; border-radius:4px; overflow:hidden; background:#222; margin-right: 15px; border: 1px solid #333;">
                 <img src="${itemImage}" alt="Thumb" style="width:100%; height:100%; object-fit:cover;">
             </div>
             <span class="icon-crud" style="margin-right:12px; cursor:pointer;" onclick="window.editListItem(event, ${item.rank})">✏️</span>
@@ -227,7 +238,6 @@ function renderListItemsStack() {
         `;
         container.appendChild(row);
     });
-}
 
 /* ==========================================================================
    DYNAMIC INTERACTION EDIT/DELETE ROUTINES FOR STRUCTURAL ELEMENTS
@@ -283,6 +293,9 @@ window.deleteListItem = function(e, rank) {
 /* ==========================================================================
    VIEW LIFECYCLE ROUTING NAVIGATION MANAGEMENT STATE MACHINE ENGINE
    ========================================================================== */
+// File: D:/top-tens/frontend/app.js
+// Precise Location: Replace the transitionViewContext and executeBackNavigationHistory functions completely
+
 function transitionViewContext(targetViewId) {
     document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
     
@@ -298,6 +311,7 @@ function transitionViewContext(targetViewId) {
         }
     }
 
+    // Fixed Sequential Navigation State Tracking Array History Loop Logic
     if (SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] !== targetViewId) {
         SYSTEM_ACTIVE_VIEW_HISTORY.push(targetViewId);
     }
@@ -305,9 +319,26 @@ function transitionViewContext(targetViewId) {
 
 function executeBackNavigationHistory() {
     if (SYSTEM_ACTIVE_VIEW_HISTORY.length <= 1) return;
+    
+    // Pop current view out of history stack matrix
     SYSTEM_ACTIVE_VIEW_HISTORY.pop(); 
-    const lastView = SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] || "view-landing";
-    transitionViewContext(lastView);
+    
+    // Read the true preceding step pointer location sequence cleanly
+    const precedingView = SYSTEM_ACTIVE_VIEW_HISTORY[SYSTEM_ACTIVE_VIEW_HISTORY.length - 1] || "view-landing";
+    
+    // Update active view panels natively without generating duplicate history traces
+    document.querySelectorAll(".view-panel").forEach(panel => panel.classList.add("hidden"));
+    const targets = document.getElementById(precedingView);
+    if (targets) targets.classList.remove("hidden");
+    
+    const header = document.getElementById("app-header");
+    if (header) {
+        if (precedingView === "view-landing") {
+            header.classList.add("hidden");
+        } else {
+            header.classList.remove("hidden");
+        }
+    }
 }
 
 /* ==========================================================================
