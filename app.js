@@ -74,8 +74,50 @@ function initializeDOMEventMappings() {
     safeBindListener("action-execute-signin", "click", triggerAuthLoginSequence);
 
     // Profile Settings Event Mappings
-    safeBindListener("action-save-profile", "click", () => alert("Profile properties synchronized locally."));
-    safeBindListener("profile-privacy-toggle", "click", () => alert("Profile vault privacy matrix toggled."));
+    // Precise Location: Insert this right inside initializeDOMEventMappings() replacing the two placeholder profile alert listeners
+
+    // Profile Settings Event Mappings - Core Production Implementation
+    safeBindListener("action-save-profile", "click", () => {
+        const usernameInput = document.getElementById("profile-username-input") || document.querySelector(".drawer-body-scrollable input[type='text']");
+        const bioInput = document.getElementById("profile-bio-input") || document.querySelector(".drawer-body-scrollable textarea");
+        
+        // 1. Initialize user sub-object structure if it doesn't exist natively
+        if (!MASTER_USER_VAULT_CACHE._profile) {
+            MASTER_USER_VAULT_CACHE._profile = { username: "", bio: "", avatar: "" };
+        }
+        
+        // 2. Extract values from input frames safely
+        if (usernameInput) MASTER_USER_VAULT_CACHE._profile.username = usernameInput.value.trim();
+        if (bioInput) MASTER_USER_VAULT_CACHE._profile.bio = bioInput.value.trim();
+        
+        // 3. Lock in any newly uploaded base64 avatar token 
+        if (window.STAGED_AVATAR_BASE64) {
+            MASTER_USER_VAULT_CACHE._profile.avatar = window.STAGED_AVATAR_BASE64;
+        }
+        
+        // 4. Synchronize state with your backend Cloudflare Worker
+        synchronizeVaultWithBackendCloud();
+        
+        alert("Premium profile parameters synchronized to cloud vault!");
+        closeAllDrawers();
+    });
+
+    safeBindListener("profile-privacy-toggle", "click", (e) => {
+        if (!MASTER_USER_VAULT_CACHE._profile) MASTER_USER_VAULT_CACHE._profile = {};
+        MASTER_USER_VAULT_CACHE._profile.isPrivate = !MASTER_USER_VAULT_CACHE._profile.isPrivate;
+        
+        const btn = e.target;
+        if (btn && btn.classList.contains("btn-toggle-switch")) {
+            if (MASTER_USER_VAULT_CACHE._profile.isPrivate) {
+                btn.innerText = "PRIVATE";
+                btn.classList.add("private");
+            } else {
+                btn.innerText = "PUBLIC";
+                btn.classList.remove("private");
+            }
+        }
+        synchronizeVaultWithBackendCloud();
+    });
     
     // Avatar Upload Pipeline
     safeBindListener("action-select-avatar-file", "click", () => {
@@ -84,9 +126,40 @@ function initializeDOMEventMappings() {
     });
     
     const avatarInput = document.getElementById("upload-avatar-file-input");
-    if (avatarInput) {
-        avatarInput.addEventListener("change", processAvatarLocalPreview);
-    }
+    // File: D:/top-tens/frontend/app.js
+// Precise Location: Replace the processAvatarLocalPreview function completely
+
+function processAvatarLocalPreview(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const rawBase64 = e.target.result;
+        
+        // Stash globally so the profile save trigger can access it
+        window.STAGED_AVATAR_BASE64 = rawBase64;
+        
+        // Update elements instantly across your user layout screens
+        const triggerImg = document.getElementById("profile-avatar-trigger");
+        const drawerImg = document.getElementById("drawer-avatar-display-target");
+        
+        // If your landing avatar icon is inside an <img> tag wrapper
+        if (triggerImg) {
+            if (triggerImg.tagName === "IMG") {
+                triggerImg.src = rawBase64;
+            } else {
+                // If it's a div layer container, update its background pattern instead
+                triggerImg.style.backgroundImage = `url(${rawBase64})`;
+                triggerImg.style.backgroundSize = "cover";
+            }
+        }
+        if (drawerImg) drawerImg.src = rawBase64;
+        
+        console.log("[Avatar Engine] Image loaded into local memory cache buffer successfully.");
+    };
+    reader.readAsDataURL(file);
+}
 
     // App Control Configurations Stack
     safeBindListener("setting-toggle-theme", "click", () => alert("Theme switching system processing context update."));
