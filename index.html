@@ -1,255 +1,208 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Tens - Your Personal Favorite-Things Vault</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top Tens - The Dynamic Favorite-Things Vault</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <canvas id="sparksCanvas"></canvas>
-    <div id="appBackgroundImage"></div>
 
-    <header id="globalHeader" class="hidden-element">
-        <div class="header-left">
-            <div class="small-logo-container"></div>
-            <button id="headerBackButton" class="back-nav-btn">
-                <span class="arrow-icon">←</span> Back
-            </button>
-        </div>
-        <h1 class="header-title">Top Tens</h1>
-        <div class="header-right">
-            <button id="settingsBurgerBtn" class="burger-btn" aria-label="Settings">
-                <span></span><span></span><span></span>
-            </button>
-            <div id="profileAvatarCircle" class="avatar-clickable"></div>
-        </div>
+  <canvas id="bg-canvas"></canvas>
+  <div class="app-bg-logo"></div>
+
+  <div id="app-view-wrapper">
+
+    <header id="app-universal-header" class="universal-header" style="display: none;">
+      <div class="header-left-wing">
+        <img src="AppIconTopTens.png" alt="Top Tens Icon" class="header-logo-icon">
+        <button id="global-back-nav-trigger" class="header-back-btn">
+          <span>&#8592;</span> BACK
+        </button>
+      </div>
+      <div class="header-center-title">TOP TENS</div>
+      <div class="header-right-wing">
+        <button id="global-burger-menu-trigger" class="burger-menu-btn">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <img id="global-profile-avatar-trigger" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 42 42'><rect width='42' height='42' fill='%23222'/></svg>" alt="User Profile" class="header-profile-avatar">
+      </div>
     </header>
 
-    <main id="viewContainer">
-        
-        <section id="view-landing" class="active-view text-center">
-            <div class="landing-content">
-                <h1 class="landing-title">Top Tens</h1>
-                <p class="landing-description">
-                    Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your tastes with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
-                </p>
-                <div class="landing-actions">
-                    <button id="btnEnterVault" class="gold-action-btn">Enter Vault</button>
-                    <button id="btnTriggerAuthDrawer" class="gold-action-btn">Sign In / Sign Up</button>
-                </div>
-            </div>
-        </section>
-
-        <section id="view-categories" class="hidden-element">
-            <div class="ads-wrapper">
-                <div class="ad-rail left-ad"></div>
-                <div class="center-content-box">
-                    <div class="action-row-center">
-                        <button id="btnCreateCustomCategory" class="green-action-btn">+ Add New Custom Category</button>
-                    </div>
-                    <div id="categoriesGrid" class="categories-grid-layout"></div>
-                </div>
-                <div class="ad-rail right-ad"></div>
-            </div>
-        </section>
-
-        <section id="view-items" class="hidden-element">
-            <div class="ads-wrapper">
-                <div class="ad-rail left-ad"></div>
-                <div class="center-content-box">
-                    <div id="itemCreationPanel" class="form-panel-card">
-                        <h3 class="panel-heading">Add New Vault Item</h3>
-                        <div class="form-grid-three">
-                            <input type="text" id="inputItemName" placeholder="Item Name/Title">
-                            <input type="number" id="inputItemRank" min="1" max="10" placeholder="Rank (1-10)">
-                            <div class="file-upload-stub">
-                                <label for="inputItemMedia">Upload Media (Img/6s Video)</label>
-                                <input type="file" id="inputItemMedia" accept="image/*,video/*">
-                            </div>
-                        </div>
-                        <button id="btnCommitItem" class="gold-action-btn unified-width-btn">Add Item to List</button>
-                    </div>
-                    <div id="itemsVerticalList" class="vertical-item-stack"></div>
-                </div>
-                <div class="ad-rail right-ad"></div>
-            </div>
-        </section>
-
-        <section id="view-friends" class="hidden-element">
-            <div class="ads-wrapper">
-                <div class="ad-rail left-ad"></div>
-                <div class="center-content-box">
-                    <div class="action-row-center">
-                        <button id="btnTriggerAddFriendSearch" class="gold-action-btn">+ Discover Friends</button>
-                    </div>
-                    <div id="friendsVerticalList" class="vertical-item-stack"></div>
-                </div>
-                <div class="ad-rail right-ad"></div>
-            </div>
-        </section>
-
-        <section id="view-compare" class="hidden-element">
-            <div class="matrix-scroll-container">
-                <h2 class="section-title-gold">Cross-Vault Matrix Comparison</h2>
-                <div id="compareMatrixGrid" class="matrix-comparison-grid"></div>
-            </div>
-        </section>
-
-        <section id="view-fused" class="hidden-element">
-            <div class="center-content-box">
-                <h2 class="section-title-gold">Fused Master List (Weighted Average)</h2>
-                <div id="fusedItemsStack" class="vertical-item-stack"></div>
-            </div>
-        </section>
-
+    <main id="view-landing-space" class="view-segment active-view">
+      <div class="landing-content-node">
+        <h1 class="landing-title-text">TOP TENS</h1>
+        <p class="landing-desc-text">
+          Your personal dynamic Favorite-Things vault. Rank, sort, track, and purchase your favorite things in real time. Compare your lists with your friends' similar lists or fuse your lists with any number of your friends' lists to see what truly reigns supreme.
+        </p>
+        <div class="landing-actions-row">
+          <button id="landing-action-enter-vault" class="landing-btn-gold">ENTER VAULT</button>
+          <button id="landing-action-sign-in-drawer" class="landing-btn-gold">SIGN IN / SIGN UP</button>
+        </div>
+      </div>
     </main>
 
-    <div id="modalOverlay" class="modal-overlay-hidden"></div>
-
-    <aside id="drawerAuth" class="sliding-drawer-panel state-collapsed">
-        <button class="drawer-close-x">×</button>
-        <div class="drawer-inner-flow">
-            <h2 class="drawer-header-title">Vault Authentication</h2>
-            <div class="input-group">
-                <label>Email Address</label>
-                <input type="email" id="authEmail" placeholder="name@domain.com">
-            </div>
-            <div class="input-group relative-container">
-                <label>Password</label>
-                <input type="password" id="authPassword" placeholder="••••••••">
-                <button id="btnTogglePasswordReveal" class="reveal-password-toggle">👁</button>
-            </div>
-            <p class="password-constraints-text">
-                Requirements: 8-20 characters, 1 uppercase letter, 1 lowercase letter, 1 special character, 1 numerical digit.
-            </p>
-            <div id="authDrawerMessage" class="feedback-toast hidden-element"></div>
-            <div class="drawer-action-vertical-stack">
-                <button id="btnExecuteSignIn" class="gold-action-btn">Sign In</button>
-                <button id="btnExecuteSignUp" class="gold-action-btn">Sign Up Account</button>
-            </div>
+    <section id="view-categories-matrix" class="view-segment">
+      <div class="workspace-central-layout">
+        <div class="center-control-action-bar">
+          <button id="trigger-add-category-panel" class="app-ui-button btn-variant-green">+ ADD NEW CUSTOM CATEGORY</button>
         </div>
-    </aside>
-
-    <aside id="drawerProfile" class="sliding-drawer-panel state-collapsed">
-        <button class="drawer-close-x">×</button>
-        <div class="drawer-inner-flow">
-            <h2 class="drawer-header-title">Personal Vault Profile</h2>
-            
-            <div class="avatar-management-block">
-                <div id="drawerAvatarPreview" class="large-avatar-display"></div>
-                <button id="btnTriggerAvatarUpload" class="gold-action-btn clean-sm-btn">Upload / Replace Image</button>
-                <input type="file" id="hiddenAvatarInput" accept="image/jpeg,image/png,image/svg+xml" class="hidden-element">
+        
+        <div id="inline-category-composition-panel" class="inline-composition-overlay-panel" style="display: none;">
+          <div class="inline-form-flex-row">
+            <div class="form-field-group">
+              <label>Custom Category Name</label>
+              <input type="text" id="input-new-category-title" class="form-input-control" placeholder="e.g., Luxury Watches">
             </div>
-
-            <div class="editable-profile-fields-list">
-                <div class="profile-field-item">
-                    <label>Full Name</label>
-                    <div class="field-input-wrapper">
-                        <input type="text" id="profFullName" readonly value="Anonymous User">
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
-                <div class="profile-field-item">
-                    <label>Date of Birth</label>
-                    <div class="field-input-wrapper">
-                        <input type="date" id="profDOB" readonly>
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
-                <div class="profile-field-item">
-                    <label>Hometown</label>
-                    <div class="field-input-wrapper">
-                        <input type="text" id="profHometown" readonly value="Unknown Vault">
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
-                <div class="profile-field-item">
-                    <label>Vocation</label>
-                    <div class="field-input-wrapper">
-                        <input type="text" id="profVocation" readonly value="Developer">
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
-                <div class="profile-field-item">
-                    <label>Account Email</label>
-                    <div class="field-input-wrapper">
-                        <input type="email" id="profEmail" readonly value="">
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
-                <div class="profile-field-item">
-                    <label>Recovery Contact</label>
-                    <div class="field-input-wrapper">
-                        <input type="text" id="profRecovery" readonly value="">
-                        <span class="edit-icon-btn">✏️</span>
-                    </div>
-                </div>
+            <div class="form-field-group" style="flex: 0; min-width: 80px;">
+              <label>Emoji Icon</label>
+              <input type="text" id="input-new-category-emoji" class="form-input-control" value="📁" maxlength="4" style="text-align: center;">
             </div>
+            <button id="commit-add-category-action" class="app-ui-button btn-variant-solid-gold" style="height: 45px;">SAVE CATEGORY</button>
+          </div>
+        </div>
 
-            <div class="toggle-row-space">
-                <span>Privacy Visibility:</span>
-                <button id="btnToggleProfilePrivacy" class="gold-action-btn clean-sm-btn">Profile Public</button>
+        <h2 class="layout-section-heading">ADD CUSTOM CATEGORIES—UP TO <span id="max-categories-display-label">21</span> TOTAL</h2>
+        
+        <div class="categories-display-matrix">
+          <div class="advertisement-wing-slot slot-empty" id="ad-slot-left">Advertisement Scope Area</div>
+          <div class="inner-cards-grid" id="categories-injection-grid-target"></div>
+          <div class="advertisement-wing-slot slot-empty" id="ad-slot-right">Advertisement Scope Area</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-items-linear-rows" class="view-segment">
+      <div class="workspace-central-layout">
+        <div class="center-control-action-bar">
+          <button id="trigger-add-item-panel" class="app-ui-button btn-variant-green">+ ADD NEW VAULT ITEM</button>
+        </div>
+
+        <div id="inline-item-composition-panel" class="inline-composition-overlay-panel" style="display: none;">
+          <div class="inline-form-flex-row">
+            <div class="form-field-group" style="flex: 2;">
+              <label>Item Title / Name</label>
+              <input type="text" id="input-new-item-title" class="form-input-control" placeholder="Enter name...">
             </div>
-
-            <button id="btnSaveProfileData" class="gold-action-btn unified-width-btn">Save Changes</button>
-        </div>
-    </aside>
-
-    <aside id="drawerSettings" class="sliding-drawer-panel state-collapsed">
-        <button class="drawer-close-x">×</button>
-        <div class="drawer-inner-flow">
-            <h2 class="drawer-header-title">System Settings</h2>
-            <div class="drawer-action-vertical-stack spacing-heavy">
-                <button id="btnToggleThemeMode" class="gold-action-btn">Toggle Light Mode</button>
-                <button id="btnUpgradeTier" class="gold-action-btn">Upgrade to Unlimited Tier ($0.99/mo)</button>
-                <button id="btnNavDiscoverFriends" class="gold-action-btn">Add Friends</button>
-                <button id="btnNavFriendsRoster" class="gold-action-btn">Visit Friends Page</button>
-                <button id="btnTriggerVaultWipe" class="danger-action-btn">Vault-Wipe</button>
+            <div class="form-field-group" style="flex: 0; min-width: 90px;">
+              <label>Rank Position</label>
+              <select id="input-new-item-rank" class="form-input-control">
+                <option value="1">1</option><option value="2">2</option>
+                <option value="3">3</option><option value="4">4</option>
+                <option value="5">5</option><option value="6">6</option>
+                <option value="7">7</option><option value="8">8</option>
+                <option value="9">9</option><option value="10">10</option>
+              </select>
             </div>
+            <div class="form-field-group" style="flex: 1;">
+              <label>Media Source Asset</label>
+              <input type="file" id="input-new-item-media" class="form-input-control" accept="image/*,video/*" style="padding: 8px;">
+            </div>
+            <button id="commit-add-item-action" class="app-ui-button btn-variant-solid-gold" style="height: 45px;">COMMIT ITEM</button>
+          </div>
         </div>
-    </aside>
 
-    <div id="popupCropFrame" class="universal-alert-popup hidden-element">
-        <h3>Adjust Media Centering</h3>
-        <div class="crop-canvas-container">
-            <img id="imageToCropTarget" src="" alt="Target positioning preview">
+        <h2 id="items-view-category-header-title" class="layout-section-heading">USER LIST: NOVELS v1.0</h2>
+        
+        <div class="categories-display-matrix">
+          <div class="advertisement-wing-slot slot-empty">Advertisement Scope Area</div>
+          <div class="linear-data-stack" id="items-injection-stack-target"></div>
+          <div class="advertisement-wing-slot slot-empty">Advertisement Scope Area</div>
         </div>
-        <div class="alert-actions-layout">
-            <button id="btnCancelCrop" class="gold-action-btn simple-border-btn">Cancel</button>
-            <button id="btnCommitCropPosition" class="gold-action-btn">Commit Placement</button>
+      </div>
+    </section>
+
+    <section id="view-friends-roster" class="view-segment">
+      <div class="workspace-central-layout">
+        <div class="center-control-action-bar">
+          <button id="trigger-search-friends-action" class="app-ui-button btn-variant-green">+ ADD DYNAMIC NETWORK FRIEND</button>
         </div>
+        <h2 class="layout-section-heading">YOUR VERIFIED NETWORK ROSTER</h2>
+        <div class="categories-display-matrix">
+          <div class="advertisement-wing-slot slot-empty">Advertisement Scope Area</div>
+          <div class="linear-data-stack" id="friends-injection-stack-target"></div>
+          <div class="advertisement-wing-slot slot-empty">Advertisement Scope Area</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-algorithmic-compare" class="view-segment">
+      <div class="workspace-central-layout">
+        <h2 id="compare-view-heading-title" class="layout-section-heading">CROSS-NETWORK PROFILE MATRIX COMPARISON</h2>
+        <div id="compare-matrix-grid-render-output" style="display: grid; gap: 20px; overflow-x: auto; padding-bottom: 16px;"></div>
+      </div>
+    </section>
+
+    <section id="view-algorithmic-fuse" class="view-segment">
+      <div class="workspace-central-layout">
+        <h2 id="fuse-view-heading-title" class="layout-section-heading">FUSED NETWORK MASTER RANKING LIST</h2>
+        <div class="linear-data-stack" id="fuse-list-render-output"></div>
+      </div>
+    </section>
+
+
+    <div id="drawer-auth-gateway" class="sliding-drawer-node">
+      <button class="drawer-close-trigger">&times;</button>
+      <h3 class="drawer-title-label">VAULT SECURITY GATEWAY</h3>
+      <div class="form-field-group">
+        <label>Account Electronic Mail</label>
+        <input type="email" id="auth-input-email" class="form-input-control" placeholder="name@domain.com">
+      </div>
+      <div class="form-field-group">
+        <label>Secure Cryptographic Password</label>
+        <input type="password" id="auth-input-password" class="form-input-control" placeholder="••••••••••••">
+        <button id="auth-password-visibility-toggle" class="pass-reveal-toggle">👁️</button>
+        <div class="password-rules-caption">
+          Requirement Matrix: 8-20 alphanumeric nodes, containing 1 Uppercase character, 1 Lowercase character, 1 Numerical element, and 1 Special Glyph indicator.
+        </div>
+      </div>
+      <div id="auth-status-feedback-msg" style="font-size:13px; color:var(--neon-blue); margin: 12px 0; min-height: 18px; line-height:1.4;"></div>
+      <div class="drawer-actions-stack">
+        <button id="auth-action-trigger-signin" class="app-ui-button btn-variant-solid-gold">AUTHENTICATE SIGN IN</button>
+        <button id="auth-action-trigger-signup" class="app-ui-button btn-variant-gold">INITIALIZE SYSTEM SIGN UP</button>
+      </div>
     </div>
 
-    <div id="popupVaultWipeConfirmation" class="universal-alert-popup hidden-element">
-        <h3 class="danger-text-color">Are You Absolute Sure?</h3>
-        <p>This structural sequence will immediately drop all custom items, restore default stock structures, and erase zeroable cloud values across sessions.</p>
-        <div class="alert-actions-layout">
-            <button id="btnCancelWipe" class="gold-action-btn simple-border-btn">Cancel</button>
-            <button id="btnConfirmVaultWipeExecution" class="danger-action-btn">Confirm Erase</button>
+    <div id="drawer-user-profile" class="sliding-drawer-node">
+      <button class="drawer-close-trigger">&times;</button>
+      <h3 class="drawer-title-label">VAULT ACCOUNT PROFILE</h3>
+      <div style="text-align: center; margin-bottom: 24px; position:relative;">
+        <img id="profile-drawer-avatar-display" src="" alt="Avatar View" style="width:110px; height:110px; border-radius:50%; border:2px solid var(--gold-primary); object-fit:cover; display:inline-block;">
+        <div style="margin-top:10px;">
+          <input type="file" id="profile-avatar-file-pointer" style="display:none;" accept="image/*">
+          <button id="profile-avatar-upload-virtual-btn" class="app-ui-button btn-variant-gold" style="padding:6px 12px; font-size:11px; display:inline-block; width:auto;">UPLOAD / REPLACE IMAGE</button>
         </div>
+      </div>
+      <div id="profile-fields-container-stack">
+        </div>
+      <div style="margin: 20px 0; display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-color); padding-top:16px;">
+        <span style="font-size:13px; color:var(--text-muted);">NETWORK DISCOVERY RIGHTS:</span>
+        <button id="profile-privacy-toggle-state-btn" class="app-ui-button btn-variant-gold" style="width:auto; padding:6px 14px; font-size:12px;">PROFILE PUBLIC</button>
+      </div>
+      <div class="drawer-actions-stack">
+        <button id="profile-commit-global-save" class="app-ui-button btn-variant-solid-gold">COMMIT CHANGES AND DATA SYNC</button>
+      </div>
     </div>
 
-    <div id="popupCompareFriendPicker" class="universal-alert-popup hidden-element">
-        <h3>Select Friends for Comparison Matrix</h3>
-        <div id="compareFriendsCheckboxContainer" class="checkbox-scroller-box"></div>
-        <div class="alert-actions-layout">
-            <button id="btnCancelComparePicker" class="gold-action-btn simple-border-btn">Cancel</button>
-            <button id="btnExecuteCompareSubmission" class="gold-action-btn">Submit Comparison</button>
-        </div>
+    <div id="drawer-system-settings" class="sliding-drawer-node">
+      <button class="drawer-close-trigger">&times;</button>
+      <h3 class="drawer-title-label">SYSTEM CONFIGURATION CONTROL</h3>
+      <div class="drawer-actions-stack">
+        <button id="settings-toggle-theme-mode" class="app-ui-button btn-variant-gold">LIGHT MODE VARIANT</button>
+        <button id="settings-trigger-account-upgrade" class="app-ui-button btn-variant-solid-gold">UPGRADE CAPACITIES ($0.99/MO)</button>
+        <button id="settings-nav-to-friends" class="app-ui-button btn-variant-gold">VISIT FRIENDS PAGE</button>
+        <button id="settings-trigger-vault-wipe" class="app-ui-button btn-variant-danger">VAULT-WIPE PLATFORM RESTORE</button>
+      </div>
     </div>
 
-    <div id="popupFuseFriendPicker" class="universal-alert-popup hidden-element">
-        <h3>Select Friends to Fuse Average Weights</h3>
-        <div id="fuseFriendsCheckboxContainer" class="checkbox-scroller-box"></div>
-        <div class="alert-actions-layout">
-            <button id="btnCancelFusePicker" class="gold-action-btn simple-border-btn">Cancel</button>
-            <button id="btnExecuteFuseSubmission" class="gold-action-btn">Fuse Master List</button>
-        </div>
-    </div>
+    <div id="app-modal-root-layer"></div>
 
-    <script src="canvas-sparks.js"></script>
-    <script src="stockitems.js"></script>
-    <script src="app.js"></script>
+  </div>
+
+  <script src="stockitems.js"></script>
+  <script src="canvas-sparks.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
