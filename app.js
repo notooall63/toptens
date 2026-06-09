@@ -647,7 +647,8 @@
       field.type = field.type === "password" ? "text" : "password";
     });
 
-    document.getElementById("btnExecuteSignUp").addEventListener("click", async () => {
+    document.getElementById("btnExecuteSignUp").addEventListener("click", async (e) => {
+      if (e) e.preventDefault();
       const email = document.getElementById("authEmailField").value;
       const pass = document.getElementById("authPasswordField").value;
       
@@ -676,7 +677,8 @@
       }
     });
 
-    document.getElementById("btnExecuteSignIn").addEventListener("click", async () => {
+    document.getElementById("btnExecuteSignIn").addEventListener("click", async (e) => {
+      if (e) e.preventDefault();
       const email = document.getElementById("authEmailField").value;
       const pass = document.getElementById("authPasswordField").value;
 
