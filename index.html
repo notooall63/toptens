@@ -98,28 +98,34 @@
 
   <div id="drawerOverlay" class="drawer-shade hidden"></div>
 
-  <div id="drawerAuth" class="sliding-panel-drawer hidden">
+<div id="drawerAuth" class="sliding-panel-drawer hidden">
     <button class="close-drawer-x">✕</button>
     <div class="drawer-inner-content">
       <h3 class="drawer-headline">Vault Authentication</h3>
+<div id="drawerAuth" class="sliding-panel-drawer hidden">
+    <button class="close-drawer-x">✕</button>
+    <form id="authForm" class="drawer-inner-content">
+      <h3 class="drawer-headline">Vault Authentication</h3>
       <div class="form-field-group">
         <label>Email Address</label>
-        <input type="email" id="authEmailField" placeholder="name@domain.com">
+        <input type="email" id="authEmailField" placeholder="name@domain.com" required>
       </div>
       <div class="form-field-group relative-container">
         <label>Password</label>
-        <input type="password" id="authPasswordField" placeholder="••••••••">
-        <button id="btnTogglePasswordVisibility" class="password-reveal-eye">👁</button>
+        <input type="password" id="authPasswordField" placeholder="••••••••" required>
+        <button type="button" id="btnTogglePasswordVisibility" class="password-reveal-eye">👁</button>
         <p class="field-instruction-parameters">
           Requirements: 8-20 characters, 1 uppercase, 1 lowercase, 1 special character, 1 number.
         </p>
       </div>
       <div class="drawer-action-buttons">
-        <button id="btnExecuteSignIn" class="premium-gold-btn">SIGN IN</button>
-        <button id="btnExecuteSignUp" class="premium-gold-btn">SIGN UP</button>
+        <button type="submit" id="btnExecuteSignIn" class="premium-gold-btn">SIGN IN</button>
+        <button type="submit" id="btnExecuteSignUp" class="premium-gold-btn">SIGN UP</button>
       </div>
-    </div>
+    </form>
   </div>
+<div id="drawerProfile" class="sliding-panel-drawer hidden">
+    <button class="close-drawer-x">✕</button>
 
   <div id="drawerProfile" class="sliding-panel-drawer hidden">
     <button class="close-drawer-x">✕</button>
