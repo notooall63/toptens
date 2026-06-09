@@ -1,5 +1,5 @@
 /**
- * Top Tens - Core CSS Engine Sheet
+ * Top Tens - Production CSS Variables Interface System Sheet
  * Directory: D:/top-tens/frontend/style.css
  */
 
@@ -65,14 +65,13 @@ body {
   pointer-events: none;
 }
 
-/* Header UI Elements Configuration Matrix */
 #global-app-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 75px;
-  background: rgba(10, 12, 16, 0.9);
+  background: rgba(10, 12, 16, 0.95);
   border-bottom: 1px solid var(--border-dark);
   display: flex;
   align-items: center;
@@ -80,7 +79,7 @@ body {
   padding: 0 24px;
   z-index: 100;
   backdrop-filter: blur(10px);
-  display: none; /* Dynamic visibility handling based on view */
+  display: none;
 }
 
 .header-left-cluster, .header-right-cluster {
@@ -117,7 +116,7 @@ body {
 
 .header-app-title {
   font-family: var(--font-serif);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 700;
   background: var(--gold-gradient);
   -webkit-background-clip: text;
@@ -129,13 +128,13 @@ body {
   background: transparent;
   border: none;
   color: var(--gold-primary);
-  font-size: 24px;
+  font-size: 26px;
   cursor: pointer;
 }
 
 .profile-avatar-circle-frame {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   border: 2px solid var(--gold-primary);
   background: #222 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23d4af37"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z"/></svg>') no-repeat center center;
@@ -148,19 +147,17 @@ body {
   height: 100px;
 }
 
-/* App Routing Framework Engine Space Layouts */
 main {
   position: relative;
   width: 100%;
   z-index: 10;
-  padding-top: 0;
 }
 
 .router-view {
   display: none;
   width: 100%;
   min-height: 100vh;
-  padding: 100px 24px 40px 24px;
+  padding: 110px 24px 40px 24px;
 }
 
 .router-view.active {
@@ -178,7 +175,6 @@ main {
   display: flex;
 }
 
-/* Hero Section Landing Layout Matrices */
 .landing-content-hero {
   max-width: 850px;
   text-align: center;
@@ -210,10 +206,9 @@ main {
   gap: 32px;
 }
 
-/* Structural Action Button Design Architectures */
 .luxury-action-cta {
-  width: 220px;
-  height: 50px;
+  width: 240px;
+  height: 52px;
   border-radius: 6px;
   border: 1px solid var(--gold-primary);
   background: var(--gold-gradient);
@@ -235,7 +230,6 @@ main {
   box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
 }
 
-/* Grid Framework and Monetization Display Layers */
 .ads-wrapper-layout {
   display: grid;
   grid-template-columns: 180px 1fr 180px;
@@ -245,13 +239,9 @@ main {
   margin: 0 auto;
 }
 
-@media(max-width: 1024px) {
-  .ads-wrapper-layout {
-    grid-template-columns: 1fr;
-  }
-  .sidebar-ad-placement {
-    display: none !important;
-  }
+@media(max-width: 1120px) {
+  .ads-wrapper-layout { grid-template-columns: 1fr; }
+  .sidebar-ad-placement { display: none !important; }
 }
 
 .sidebar-ad-placement {
@@ -289,9 +279,7 @@ main {
   transition: background var(--transition-speed);
 }
 
-.functional-add-btn:hover {
-  background: #059669;
-}
+.functional-add-btn:hover { background: #059669; }
 
 .tier-allocation-notice {
   font-size: 13px;
@@ -299,7 +287,6 @@ main {
   font-weight: 500;
 }
 
-/* Categorical Matrix Rectangle Node Design System */
 .categories-grid-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -307,9 +294,7 @@ main {
 }
 
 @media(max-width: 768px) {
-  .categories-grid-container {
-    grid-template-columns: 1fr;
-  }
+  .categories-grid-container { grid-template-columns: 1fr; }
 }
 
 .category-elongated-rectangle-tab {
@@ -326,9 +311,7 @@ main {
   position: relative;
 }
 
-.category-elongated-rectangle-tab:hover {
-  border-color: var(--gold-primary);
-}
+.category-elongated-rectangle-tab:hover { border-color: var(--gold-primary); }
 
 .category-core-metadata-block {
   display: flex;
@@ -367,6 +350,7 @@ main {
   cursor: pointer;
   font-family: var(--font-sans);
   font-weight: 500;
+  text-align: center;
 }
 
 .mini-utility-btn:hover {
@@ -390,7 +374,6 @@ main {
   font-size: 14px;
 }
 
-/* Linear Data Stack Single Column Lists Views */
 .composition-panel-node {
   background: var(--bg-card-dark);
   border: 1px solid var(--border-dark);
@@ -472,8 +455,8 @@ main {
   font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 700;
-  color: #ff3366;
-  min-width: 50px;
+  color: var(--gold-primary);
+  min-width: 60px;
 }
 
 .item-leading-rank-index span {
@@ -486,11 +469,11 @@ main {
   font-size: 18px;
   font-weight: 600;
   flex: 2;
-  color: var(--neon-blue);
+  color: #ffffff;
 }
 
 .item-anchor-reference-link {
-  color: var(--gold-primary);
+  color: var(--neon-blue);
   text-decoration: underline;
   font-size: 13px;
   flex: 1;
@@ -505,7 +488,6 @@ main {
   background: #111;
 }
 
-/* Trans-Comparison Matrix Multi Column Layout Architecture */
 .view-main-title {
   font-family: var(--font-serif);
   text-align: center;
@@ -532,7 +514,6 @@ main {
   flex: 1;
 }
 
-/* Slide-out Drawers Mechanical Foundation Structures */
 .universal-slide-out-drawer {
   position: fixed;
   top: 0;
@@ -551,9 +532,7 @@ main {
   overflow-y: auto;
 }
 
-.universal-slide-out-drawer.open {
-  right: 0;
-}
+.universal-slide-out-drawer.open { right: 0; }
 
 #drawer-backdrop-shutter-layer {
   position: fixed;
@@ -603,6 +582,7 @@ main {
 .password-input-with-toggle-wrapper {
   position: relative;
   display: flex;
+  width: 100%;
 }
 
 .password-input-with-toggle-wrapper input {
@@ -633,17 +613,10 @@ main {
   gap: 16px;
 }
 
-.drawer-action-button-vertical-stack .luxury-action-cta {
-  width: 100%;
-}
+.drawer-action-button-vertical-stack .luxury-action-cta { width: 100%; }
 
-.text-edit-field-row {
-  position: relative;
-}
-
-.text-edit-field-row input {
-  padding-right: 40px;
-}
+.text-edit-field-row { position: relative; }
+.text-edit-field-row input { padding-right: 40px; }
 
 .inline-field-edit-surrogate-icon {
   position: absolute;
@@ -662,13 +635,6 @@ main {
   padding-top: 16px;
 }
 
-.toggle-control-horizontal-row-wrapper .luxury-action-cta {
-  width: 160px;
-  height: 40px;
-  font-size: 12px;
-}
-
-/* Modals and Popup Dialog Architecture */
 #dialog-overlay-root-shutter-layer {
   position: fixed;
   top: 0;
@@ -683,9 +649,7 @@ main {
   justify-content: center;
 }
 
-#dialog-overlay-root-shutter-layer.hidden-modal-layer {
-  display: none;
-}
+#dialog-overlay-root-shutter-layer.hidden-modal-layer { display: none; }
 
 .modal-alert-window-frame {
   background: #12161f;
@@ -711,7 +675,6 @@ main {
   line-height: 1.6;
 }
 
-/* Special Utility Design Adaptations */
 .margin-top-s { margin-top: 12px; }
 .margin-top-m { margin-top: 24px; }
 .font-serif { font-family: var(--font-serif); }

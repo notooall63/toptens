@@ -1,5 +1,5 @@
 /**
- * Top Tens - Dynamic Background Spark Engine (Fluid Physics Simulation Layer)
+ * Top Tens - Atmospheric Particle Rendering Framework Component
  * Directory: D:/top-tens/frontend/canvas-sparks.js
  */
 
@@ -35,7 +35,7 @@ class FluidGoldWave {
 
     const gradient = ctx.createLinearGradient(0, 0, width, 0);
     gradient.addColorStop(0, "rgba(170, 124, 17, 0.0)");
-    gradient.addColorStop(0.5, "rgba(212, 175, 55, 0.06)");
+    gradient.addColorStop(0.5, "rgba(212, 175, 55, 0.07)");
     gradient.addColorStop(1, "rgba(243, 229, 171, 0.0)");
 
     ctx.strokeStyle = gradient;
@@ -52,11 +52,11 @@ class DiamondSparkle {
   reset() {
     this.x = Math.random() * width;
     this.y = Math.random() * height;
-    this.size = 1 + Math.random() * 2;
+    this.size = 1 + Math.random() * 2.5;
     this.opacity = 0;
-    this.fadeSpeed = 0.005 + Math.random() * 0.015;
+    this.fadeSpeed = 0.004 + Math.random() * 0.012;
     this.growing = true;
-    this.maxOpacity = 0.3 + Math.random() * 0.5;
+    this.maxOpacity = 0.4 + Math.random() * 0.5;
   }
 
   update() {
@@ -75,7 +75,6 @@ class DiamondSparkle {
     ctx.beginPath();
     ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
     
-    // Renders a precise mathematical diamond geometric coordinate profile
     ctx.moveTo(0, -this.size * 2);
     ctx.lineTo(this.size, 0);
     ctx.lineTo(0, this.size * 2);
@@ -87,21 +86,16 @@ class DiamondSparkle {
   }
 }
 
-const wavePool = Array.from({ length: 5 }, () => new FluidGoldWave());
-const diamondPool = Array.from({ length: 45 }, () => new DiamondSparkle());
+const wavePool = Array.from({ length: 6 }, () => new FluidGoldWave());
+const diamondPool = Array.from({ length: 50 }, () => new DiamondSparkle());
 
 function executionAnimationLoop() {
   ctx.clearRect(0, 0, width, height);
-  
-  // Render golden flow
   wavePool.forEach(wave => wave.render());
-  
-  // Render diamond sparkles
   diamondPool.forEach(spark => {
     spark.update();
     spark.render();
   });
-
   requestAnimationFrame(executionAnimationLoop);
 }
 

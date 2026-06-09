@@ -1,5 +1,5 @@
 /**
- * Top Tens - Production Default Datasets Architecture
+ * Top Tens - Default Production Datasets Configuration Matrix
  * Directory: D:/top-tens/frontend/stockitems.js
  */
 
@@ -26,7 +26,7 @@ const TOP_TENS_STOCK_DATASET = {
     { rank: 7, name: "Kobe Bryant", link: "", media: "" },
     { rank: 8, name: "Tiger Woods", link: "", media: "" },
     { rank: 9, name: "Katie Ledecky", link: "", media: "" },
-    { rank: 10, name: "Aryton Senna", link: "", media: "" }
+    { rank: 10, name: "Ayrton Senna", link: "", media: "" }
   ],
   "Tech Devices": [
     { rank: 1, name: "iPhone 15 Pro Max", link: "", media: "" },
@@ -77,16 +77,16 @@ const TOP_TENS_STOCK_DATASET = {
     { rank: 10, name: "Mass Appeal - Gang Starr", link: "", media: "" }
   ],
   "Post 2010 Video Games": [
-    { rank: 1, name: "Grand Theft Auto VI", link: "", media: "" },
-    { rank: 2, name: "Hades II", link: "", media: "" },
-    { rank: 3, name: "Death Stranding 2", link: "", media: "" },
-    { rank: 4, name: "Hollow Knight: Silksong", link: "", media: "" },
-    { rank: 5, name: "The Witcher 4", link: "", media: "" },
-    { rank: 6, name: "Metroid Prime 4", link: "", media: "" },
-    { rank: 7, name: "Fable", link: "", media: "" },
-    { rank: 8, name: "Perfect Dark", link: "", media: "" },
-    { rank: 9, name: "Wolverine", link: "", media: "" },
-    { rank: 10, name: "Star Wars: Eclipse", link: "", media: "" }
+    { rank: 1, name: "The Legend of Zelda: Breath of the Wild", link: "", media: "" },
+    { rank: 2, name: "Elden Ring", link: "", media: "" },
+    { rank: 3, name: "The Witcher 3: Wild Hunt", link: "", media: "" },
+    { rank: 4, name: "Red Dead Redemption 2", link: "", media: "" },
+    { rank: 5, name: "Grand Theft Auto V", link: "", media: "" },
+    { rank: 6, name: "The Last of Us Part II", link: "", media: "" },
+    { rank: 7, name: "God of War (2018)", link: "", media: "" },
+    { rank: 8, name: "Skyrim", link: "", media: "" },
+    { rank: 9, name: "Minecraft", link: "", media: "" },
+    { rank: 10, name: "Cyberpunk 2077 Phantom Liberty", link: "", media: "" }
   ],
   "Novels": [
     { rank: 1, name: "Dune", link: "", media: "" },
@@ -108,19 +108,18 @@ const TOP_TENS_STOCK_DATASET = {
     { rank: 5, name: "DiverXO Madrid", link: "", media: "" },
     { rank: 6, name: "Pujol Mexico City", link: "", media: "" },
     { rank: 7, name: "Gaggan Anand", link: "", media: "" },
-    { rank: 8, name: "Osteria Francescana", link: ."", media: "" },
+    { rank: 8, name: "Osteria Francescana", link: "", media: "" },
     { rank: 9, name: "Geranium Copenhagen", link: "", media: "" },
     { rank: 10, name: "Le Bernardin NYC", link: "", media: "" }
   ]
 };
 
-// Generates explicit Amazon affiliate deep links automatically
 function generateAutomatedAffiliateLink(itemName) {
   const baseParam = "?tag=toptens2026-20";
   return `https://www.amazon.com/s?k=${encodeURIComponent(itemName.trim())}${baseParam}`;
 }
 
-// Map base links natively to the default dictionary datasets
+// Map base links cleanly to default lists
 Object.keys(TOP_TENS_STOCK_DATASET).forEach(categoryKey => {
   TOP_TENS_STOCK_DATASET[categoryKey].forEach(itemNode => {
     itemNode.link = generateAutomatedAffiliateLink(itemNode.name);
