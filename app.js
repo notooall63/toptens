@@ -236,19 +236,29 @@
     const stack = document.getElementById("friendsVerticalStack");
     stack.innerHTML = "";
 
-    appState.friendsList.forEach(fr => {
+    appState.friendsList.forEach((fr, idx) => {
       const row = document.createElement("div");
       row.className = "friend-horizontal-row";
       const dummyAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23c49333' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/></svg>";
       
       row.innerHTML = `
-        <span class="item-display-title">${fr.name}</span>
+        <div class="item-row-left-group">
+          <span class="item-display-title">${fr.name}</span>
+        </div>
         <span class="item-affiliate-deep-link">Mutual Categories: ${fr.mutualCats}</span>
         <span class="item-affiliate-deep-link">Mutual Items: ${fr.mutualItems}</span>
-        <div class="item-media-circle-thumbnail" style="background-image: url('${fr.avatar || dummyAvatar}')"></div>
+        <div class="item-row-left-group">
+          <div class="item-media-circle-thumbnail" style="background-image: url('${fr.avatar || dummyAvatar}')"></div>
+          <span class="edit-friend-trigger common-btn-pointer" data-idx="${idx}">✏️</span>
+          <span class="remove-friend-trigger common-btn-pointer" data-idx="${idx}">🗑️</span>
+        </div>
       `;
       stack.appendChild(row);
     });
+
+    // Wire up friend management action bindings dynamically
+    stack.querySelectorAll(".edit-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerEditFriend(e.target.dataset.idx)));
+    stack.querySelectorAll(".remove-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerRemoveFriend(e.target.dataset.idx)));
   }
 
   /* ================= MATH ALGORITHMIC INJECTORS (COMPARE & FUSE) ================= */
@@ -443,6 +453,33 @@
     }
   }
 
+  function triggerEditFriend(indexStr) {
+    const idx = parseInt(indexStr);
+    const friend = appState.friendsList[idx];
+    if (!friend) return;
+
+    const newName = prompt(`Update friend identifier name:`, friend.name);
+    if (newName && newName.trim() !== "") {
+      friend.name = newName.trim();
+      renderFriendsStack();
+      persistStateToCloudEngine();
+      showToast("Friend directory mapping updated.");
+    }
+  }
+
+  function triggerRemoveFriend(indexStr) {
+    const idx = parseInt(indexStr);
+    const friend = appState.friendsList[idx];
+    if (!friend) return;
+
+    if (confirm(`Sever network link and purge correlation tracking with ${friend.name}?`)) {
+      appState.friendsList.splice(idx, 1);
+      renderFriendsStack();
+      persistStateToCloudEngine();
+      showToast("Friend entity reference dropped cleanly.");
+    }
+  }
+
   /* ================= BACKEND CLOUDFLARE CLOUD NETWORK SYNC CONNECTOR ================= */
   async function persistStateToCloudEngine() {
     if (!appState.userToken) {
@@ -457,7 +494,7 @@
           "Content-Type": "application/json",
           "Authorization": `Bearer ${appState.userToken}`
         },
-        body: JSON.stringify({ state: { categories: appState.categories, profile: appState.profile } })
+        body: JSON.stringify({ state: { categories: appState.categories, profile: appState.profile, friendsList: appState.friendsList } })
       });
     } catch (err) {
       console.error("Synchronizer network handshake interrupted:", err);
@@ -474,6 +511,7 @@
         const cloudState = await res.json();
         if (cloudState.categories) appState.categories = cloudState.categories;
         if (cloudState.profile) appState.profile = cloudState.profile;
+        if (cloudState.friendsList) appState.friendsList = cloudState.friendsList;
         syncInterfaceStateElements();
         return true;
       }
