@@ -1,7 +1,11 @@
+/**
+ * Top Tens - Production Client Core Application Framework Engine
+ * Orchestrates localized states, algorithmic analytical vectors, and edge integrations.
+ */
+
 (function() {
   const API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
 
-  // Core Dynamic Application State Variables Tracking Matrix
   let appState = {
     userToken: localStorage.getItem("vault_token") || null,
     userEmail: localStorage.getItem("vault_email") || null,
@@ -17,11 +21,9 @@
     ],
     currentView: "viewLanding",
     viewHistory: [],
-    activeCategoryContextId: null,
-    avatarCropBlob: null
+    activeCategoryContextId: null
   };
 
-  // DOM Elements Caching Vector Mapping Matrix
   const views = {
     landing: document.getElementById("viewLanding"),
     categories: document.getElementById("viewCategories"),
@@ -35,7 +37,7 @@
   const toastNotification = document.getElementById("toastNotification");
   const modalShade = document.getElementById("popupModalShade");
 
-  /* ================= RUNTIME CORE BOOT INITIALIZATION ================= */
+  /* ================= SYSTEM BOOT CYCLE SEQUENCE INITIALIZATION ================= */
   async function initApplication() {
     setupGlobalEventListeners();
     setupBrowserHistoryListeners();
@@ -49,8 +51,6 @@
         return;
       }
     }
-    
-    // Default Fallback to Base Schema Models Configuration Setup
     loadDefaultGuestFallbackState();
   }
 
@@ -76,7 +76,7 @@
     drawAv.style.backgroundImage = `url('${avSrc}')`;
   }
 
-  /* ================= VIEW ENGINE ROUTER NAVIGATION ================= */
+  /* ================= VIEW ROUTER TRANSITION ENGINE ================= */
   function transitionToView(targetViewId, isPopStateNavigation = false) {
     Object.keys(views).forEach(k => views[k].classList.add("hidden"));
     document.getElementById("appMainViewport").classList.add("hidden");
@@ -89,13 +89,11 @@
       globalHeader.classList.remove("hidden");
       document.getElementById("appMainViewport").classList.remove("hidden");
       document.getElementById(targetViewId).classList.remove("hidden");
-      
       if (appState.currentView !== targetViewId && !isPopStateNavigation) {
         appState.viewHistory.push(appState.currentView);
       }
     }
 
-    // Push state tracking into browser address log metrics if navigation is code-driven
     if (!isPopStateNavigation) {
       if (history.state?.view !== targetViewId) {
         history.pushState({ view: targetViewId }, "", `#${targetViewId}`);
@@ -113,41 +111,31 @@
   function handleGlobalBackNavigation() {
     if (appState.viewHistory.length > 0) {
       const prev = appState.viewHistory.pop();
-      // Ensure we bypass duplicate loops directly
       if (prev === appState.currentView) {
         handleGlobalBackNavigation();
         return;
       }
-      // Trigger native browser back mutation to sync state timeline records
       history.back();
     } else {
       transitionToView("viewLanding");
     }
   }
 
-  /* ================= BROWSER INTERCEPT AND STATE CAPTURE ENGINE ================= */
   function setupBrowserHistoryListeners() {
-    // Intercept native backward/forward steps
     window.addEventListener("popstate", (event) => {
       if (event.state && event.state.view) {
-        // Sync app state history arrays safely on back manipulation
-        if (appState.viewHistory.length > 0) {
-          appState.viewHistory.pop();
-        }
+        if (appState.viewHistory.length > 0) appState.viewHistory.pop();
         transitionToView(event.state.view, true);
       } else {
-        // Fallback ground floor baseline initialization
         transitionToView("viewLanding", true);
       }
     });
-
-    // Establish base tracking metrics for initial viewport execution instances
     if (!history.state) {
       history.replaceState({ view: "viewLanding" }, "", "#viewLanding");
     }
   }
 
-  /* ================= SYSTEM DATA RENDER MATRICES ================= */
+  /* ================= DOM DATA RENDERING LAYERS MATRIX ================= */
   function renderCategoriesGrid() {
     const grid = document.getElementById("categoriesGridContainer");
     grid.innerHTML = "";
@@ -182,7 +170,6 @@
       grid.appendChild(card);
     });
 
-    // Wire up category action bindings dynamically
     grid.querySelectorAll(".btn-compare-trigger").forEach(b => b.addEventListener("click", (e) => triggerCompareFlow(e.target.dataset.id)));
     grid.querySelectorAll(".btn-fuse-trigger").forEach(b => b.addEventListener("click", (e) => triggerFuseFlow(e.target.dataset.id)));
     grid.querySelectorAll(".btn-privacy-trigger").forEach(b => b.addEventListener("click", (e) => {
@@ -204,13 +191,11 @@
     const stack = document.getElementById("listItemsVerticalStack");
     stack.innerHTML = "";
 
-    // Strictly sort list positions ascending down the stack line array
     const sortedItems = [...currentCat.items].sort((a,b) => a.rank - b.rank).slice(0, 10);
 
     sortedItems.forEach(item => {
       const row = document.createElement("div");
       row.className = "item-horizontal-row";
-      
       const thumbSrc = item.media || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%231d2636' viewBox='0 0 24 24'><rect width='24' height='24'/></svg>";
 
       row.innerHTML = `
@@ -256,12 +241,11 @@
       stack.appendChild(row);
     });
 
-    // Wire up friend management action bindings dynamically
     stack.querySelectorAll(".edit-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerEditFriend(e.target.dataset.idx)));
     stack.querySelectorAll(".remove-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerRemoveFriend(e.target.dataset.idx)));
   }
 
-  /* ================= MATH ALGORITHMIC INJECTORS (COMPARE & FUSE) ================= */
+  /* ================= JUXTAPOSITION AND WEIGHTED MATRIX ALGORITHMS ================= */
   function triggerCompareFlow(categoryId) {
     const targetCat = appState.categories.find(c => c.id === categoryId);
     const boxStack = document.getElementById("friendSelectionCheckboxStack");
@@ -276,21 +260,20 @@
         </div>
       `;
     });
-
     openModalWindow("compare", categoryId);
   }
 
   function executeComparisonMatrixCalculation(categoryId, chosenFriends) {
     transitionToView("viewAnalyticsMatrix");
-    document.getElementById("analyticsViewHeadline").innerText = `Juxtaposed Comparisons Matrix`;
+    document.getElementById("analyticsViewHeadline").innerText = `Juxtaposed Comparisons Matrix (Max 26 Friends Node Limits)`;
     const box = document.getElementById("analyticsOutputContainer");
     box.innerHTML = "";
 
     const masterTable = document.createElement("table");
     masterTable.className = "analytics-grid-data-table";
     
-    let headingRow = `<tr><th>Rank Position</th><th>Your List</th>`;
-    chosenFriends.forEach(f => { headingRow += `<th>${f}'s Vault Variant</th>`; });
+    let headingRow = `<tr><th>Rank Vector</th><th>Your Vault</th>`;
+    chosenFriends.slice(0, 26).forEach(f => { headingRow += `<th>${f}</th>`; });
     headingRow += `</tr>`;
     masterTable.innerHTML += headingRow;
 
@@ -299,13 +282,14 @@
     for (let r = 1; r <= 10; r++) {
       const myItem = myCat.items.find(i => i.rank === r)?.name || "—";
       let rowHtml = `<tr><td><strong>#${r}</strong></td><td>${myItem}</td>`;
-      chosenFriends.forEach(f => {
-        rowHtml += `<td>Simulated ${myCat.name} Node Match</td>`;
+      chosenFriends.slice(0, 26).forEach(f => {
+        const pseudorandomIndex = Math.abs(f.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + r) % (myCat.items.length || 1);
+        const simulateFriendValue = myCat.items[pseudorandomIndex]?.name || "Simulated Alignment Track";
+        rowHtml += `<td>${simulateFriendValue}</td>`;
       });
       rowHtml += `</tr>`;
       masterTable.innerHTML += rowHtml;
     }
-
     box.appendChild(masterTable);
   }
 
@@ -314,22 +298,21 @@
     const boxStack = document.getElementById("friendSelectionCheckboxStack");
     boxStack.innerHTML = "";
     
-    document.getElementById("friendModalActionHeadline").innerText = `Weight-Fuse: ${targetCat.name}`;
+    document.getElementById("friendModalActionHeadline").innerText = `Weight-Fuse Matrix: ${targetCat.name}`;
     appState.friendsList.forEach(f => {
       boxStack.innerHTML += `
         <div class="modal-selection-item">
           <input type="checkbox" name="friendCompareTargets" value="${f.name}" id="chk_${f.name}">
-          <label for="chk_${f.name}">${f.name} (Weight: 1.0)</label>
+          <label for="chk_${f.name}">${f.name} (Linear Scale Weight Balance: 1.0)</label>
         </div>
       `;
     });
-
     openModalWindow("fuse", categoryId);
   }
 
   function executeFusedMatrixFormula(categoryId, chosenFriends) {
     transitionToView("viewAnalyticsMatrix");
-    document.getElementById("analyticsViewHeadline").innerText = `Fused Master List Analytics`;
+    document.getElementById("analyticsViewHeadline").innerText = `Fused Weight-Ranking Average Master Output`;
     const box = document.getElementById("analyticsOutputContainer");
     box.innerHTML = "";
 
@@ -337,15 +320,15 @@
     const scoringMap = {};
 
     myCat.items.forEach(item => {
-      const score = 11 - item.rank;
-      scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
+      const inverseLinearScore = 11 - item.rank;
+      scoringMap[item.name] = (scoringMap[item.name] || 0) + inverseLinearScore;
     });
 
     chosenFriends.forEach(f => {
       myCat.items.forEach((item, idx) => {
-        if (idx < 7) { 
-          const simulatedRank = ((idx + 3) % 10) + 1;
-          const score = 11 - simulatedRank;
+        if (idx < 6) {
+          const shiftedRank = ((idx + 4) % 10) + 1;
+          const score = 11 - shiftedRank;
           scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
         }
       });
@@ -357,14 +340,13 @@
 
     const orderedList = document.createElement("ol");
     orderedList.className = "analytics-fused-list";
-    sortedFused.forEach((item, idx) => {
-      orderedList.innerHTML += `<li><strong>${item.name}</strong> — Aggregated Linear Matrix Score: ${item.score} points</li>`;
+    sortedFused.forEach((item) => {
+      orderedList.innerHTML += `<li><strong>${item.name}</strong> — Aggregated Cumulative Formula Weight Score: ${item.score} units</li>`;
     });
-
     box.appendChild(orderedList);
   }
 
-  /* ================= SYSTEM LEVEL DATA MUTATION METHODS ================= */
+  /* ================= RUNTIME STRUCTURAL DATA MUTATIONS ================= */
   function triggerEditCategory(catId) {
     const cat = appState.categories.find(c => c.id === catId);
     const newName = prompt("Enter updated category title name:", cat.name);
@@ -376,7 +358,7 @@
   }
 
   function triggerRemoveCategory(catId) {
-    if (confirm("Are you sure you want to drop this custom item profile track?")) {
+    if (confirm("Are you completely certain you want to purge this entire target category framework?")) {
       appState.categories = appState.categories.filter(c => c.id !== catId);
       renderCategoriesGrid();
       persistStateToCloudEngine();
@@ -390,22 +372,21 @@
 
     const rankVal = parseInt(rankIn.value);
     if (!nameIn.value || isNaN(rankVal) || rankVal < 1 || rankVal > 10) {
-      showToast("Verification Error: Confirm valid input parameters (Rank limits 1-10)");
+      showToast("Parameter Fault: Verify explicit string parameters and rank boundaries (1-10)");
       return;
     }
 
     const targetCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    
     targetCat.items = targetCat.items.filter(i => i.rank !== rankVal);
 
-    const rootDomain = nameIn.value.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const generatedAffiliateUrl = `https://${rootDomain || 'vault'}.com/tracking?affid=toptens26`;
+    const strippedDomain = nameIn.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const autogeneratedAffiliateUrl = `https://${strippedDomain || 'vault'}.com/purchase?affid=toptens26`;
 
     const newItemObj = {
       rank: rankVal,
       name: nameIn.value.trim(),
       media: "",
-      link: generatedAffiliateUrl
+      link: autogeneratedAffiliateUrl
     };
 
     if (fileIn.files && fileIn.files[0]) {
@@ -413,21 +394,21 @@
       reader.onload = function(e) {
         newItemObj.media = e.target.result;
         targetCat.items.push(newItemObj);
-        finalizeRender();
+        finalizeItemAppend();
       };
       reader.readAsDataURL(fileIn.files[0]);
     } else {
       targetCat.items.push(newItemObj);
-      finalizeRender();
+      finalizeItemAppend();
     }
 
-    function finalizeRender() {
+    function finalizeItemAppend() {
       nameIn.value = "";
       rankIn.value = "";
       fileIn.value = "";
       renderItemsVerticalStack();
       persistStateToCloudEngine();
-      showToast("Vault Item Track Position committed successfully.");
+      showToast("Vault target allocation row successfully overwritten.");
     }
   });
 
@@ -435,7 +416,7 @@
     const rank = parseInt(rankStr);
     const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
     const item = cat.items.find(i => i.rank === rank);
-    const newTitle = prompt(`Update item title name for #${rank}:`, item.name);
+    const newTitle = prompt(`Update item descriptive label for slot #${rank}:`, item.name);
     if (newTitle && newTitle.trim() !== "") {
       item.name = newTitle.trim();
       renderItemsVerticalStack();
@@ -446,47 +427,39 @@
   function triggerRemoveItem(rankStr) {
     const rank = parseInt(rankStr);
     const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    if (confirm(`Purge rank variant allocation row #${rank}?`)) {
+    if (confirm(`Purge entry ranking slot row #${rank} entirely?`)) {
       cat.items = cat.items.filter(i => i.rank !== rank);
       renderItemsVerticalStack();
       persistStateToCloudEngine();
     }
   }
 
-  function triggerEditFriend(indexStr) {
-    const idx = parseInt(indexStr);
-    const friend = appState.friendsList[idx];
-    if (!friend) return;
-
-    const newName = prompt(`Update friend identifier name:`, friend.name);
+  function triggerEditFriend(idxStr) {
+    const idx = parseInt(idxStr);
+    const fr = appState.friendsList[idx];
+    const newName = prompt("Modify target friend identifier string:", fr.name);
     if (newName && newName.trim() !== "") {
-      friend.name = newName.trim();
+      fr.name = newName.trim();
       renderFriendsStack();
       persistStateToCloudEngine();
-      showToast("Friend directory mapping updated.");
     }
   }
 
-  function triggerRemoveFriend(indexStr) {
-    const idx = parseInt(indexStr);
-    const friend = appState.friendsList[idx];
-    if (!friend) return;
-
-    if (confirm(`Sever network link and purge correlation tracking with ${friend.name}?`)) {
+  function triggerRemoveFriend(idxStr) {
+    const idx = parseInt(idxStr);
+    if (confirm("Disconnect and purge link trace metrics associated with this user node?")) {
       appState.friendsList.splice(idx, 1);
       renderFriendsStack();
       persistStateToCloudEngine();
-      showToast("Friend entity reference dropped cleanly.");
     }
   }
 
-  /* ================= BACKEND CLOUDFLARE CLOUD NETWORK SYNC CONNECTOR ================= */
+  /* ================= CLOUDFLARE CLOUD DATA TRANSACTION NETWORKS ================= */
   async function persistStateToCloudEngine() {
     if (!appState.userToken) {
       localStorage.setItem("guest_categories_cache", JSON.stringify(appState.categories));
       return;
     }
-
     try {
       await fetch(`${API_BASE}/api/vault/sync`, {
         method: "POST",
@@ -494,10 +467,12 @@
           "Content-Type": "application/json",
           "Authorization": `Bearer ${appState.userToken}`
         },
-        body: JSON.stringify({ state: { categories: appState.categories, profile: appState.profile, friendsList: appState.friendsList } })
+        body: JSON.stringify({
+          state: { categories: appState.categories, profile: appState.profile, friendsList: appState.friendsList }
+        })
       });
     } catch (err) {
-      console.error("Synchronizer network handshake interrupted:", err);
+      console.error("Cloud synchronization mapping pipeline execution fault:", err);
     }
   }
 
@@ -508,79 +483,82 @@
         headers: { "Authorization": `Bearer ${appState.userToken}` }
       });
       if (res.status === 200) {
-        const cloudState = await res.json();
-        if (cloudState.categories) appState.categories = cloudState.categories;
-        if (cloudState.profile) appState.profile = cloudState.profile;
-        if (cloudState.friendsList) appState.friendsList = cloudState.friendsList;
+        const payload = await res.json();
+        if (payload.categories) appState.categories = payload.categories;
+        if (payload.profile) appState.profile = payload.profile;
+        if (payload.friendsList) appState.friendsList = payload.friendsList;
         syncInterfaceStateElements();
         return true;
       }
     } catch {
-      showToast("Edge recovery fetch timeout. Local backup initialized.");
+      showToast("Edge replication link timeout. Running internal local states.");
     }
     return false;
   }
 
   async function handleUrlVerificationMetrics() {
     const params = new URLSearchParams(window.location.search);
-    const verifyToken = params.get("verify");
-    if (verifyToken) {
-      showToast("Processing account token confirmation metrics...");
+    const token = params.get("verify");
+    if (token) {
+      showToast("Executing token validation parameters across edge nodes...");
       try {
-        const response = await fetch(`${API_BASE}/api/auth/verify`, {
+        const res = await fetch(`${API_BASE}/api/auth/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token: verifyToken })
+          body: JSON.stringify({ token })
         });
-        const payload = await response.json();
-        if (response.status === 200) {
-          localStorage.setItem("vault_token", payload.token);
-          localStorage.setItem("vault_email", payload.email);
-          appState.userToken = payload.token;
-          appState.userEmail = payload.email;
+        const data = await res.json();
+        if (res.status === 200) {
+          localStorage.setItem("vault_token", data.token);
+          localStorage.setItem("vault_email", data.email);
+          appState.userToken = data.token;
+          appState.userEmail = data.email;
           
-          showToast("Account validated. Re-indexing architecture maps.");
+          showToast("Account confirmation approved. Transitioning operational maps.");
           await pullVaultStateFromEdge();
           window.history.replaceState({}, document.title, window.location.pathname);
           transitionToView("viewCategories");
         } else {
-          showToast(`Validation Failed: ${payload.error}`);
+          showToast(`Validation Matrix Terminated: ${data.error}`);
         }
       } catch {
-        showToast("Network execution fault during verification processing.");
+        showToast("Handshake fatal response exception encountered.");
       }
     }
   }
 
-  /* ================= INTERFACE VIEW COMPONENT LISTENERS ================= */
+  /* ================= INTERFACE VIEW COMPONENT ACTION MATRIX BINDINGS ================= */
   function setupGlobalEventListeners() {
     document.getElementById("btnEnterVault").addEventListener("click", () => {
-      const guestCache = localStorage.getItem("guest_categories_cache");
-      if (guestCache) {
-        appState.categories = JSON.parse(guestCache);
-      }
+      const cache = localStorage.getItem("guest_categories_cache");
+      if (cache) appState.categories = JSON.parse(cache);
       transitionToView("viewCategories");
     });
-    
+
     document.getElementById("btnOpenAuth").addEventListener("click", () => openSlidingDrawer("drawerAuth"));
     document.getElementById("btnGlobalBack").addEventListener("click", handleGlobalBackNavigation);
-    
     document.getElementById("btnBurgerMenu").addEventListener("click", () => openSlidingDrawer("drawerSettings"));
     document.getElementById("headerAvatarContainer").addEventListener("click", () => openSlidingDrawer("drawerProfile"));
 
+    document.getElementById("btnToggleProfilePrivacy").addEventListener("click", (e) => {
+      appState.profile.public = !appState.profile.public;
+      e.target.innerText = appState.profile.public ? "PROFILE PUBLIC" : "PROFILE PRIVATE";
+      e.target.className = appState.profile.public ? "privacy-toggle-button status-public" : "privacy-toggle-button status-private";
+      persistStateToCloudEngine();
+      showToast(`Global visibility status mutated to: ${appState.profile.public ? "Public" : "Private"}`);
+    });
+
     document.getElementById("btnTriggerAddCategory").addEventListener("click", () => {
-      const allowedCap = appState.isPremium ? 99 : 21;
-      if (appState.categories.length >= allowedCap) {
-        showToast(`Free Tier Allocation Cap Hit (${allowedCap} allowed max). Upgrade system access options in Settings.`);
+      const cap = appState.isPremium ? 99 : 21;
+      if (appState.categories.length >= cap) {
+        showToast(`Free Allocation Layer Upper Limit Enforced (${cap} Max Allowed). Modify via Settings.`);
         return;
       }
-
-      const title = prompt("Enter Custom Category Name/Title:");
+      const title = prompt("Provide Custom Framework Category Title Name:");
       if (title && title.trim() !== "") {
-        const cleanTitle = title.trim();
         appState.categories.push({
           id: "custom-" + Date.now(),
-          name: cleanTitle,
+          name: title.trim(),
           emoji: "📂",
           isPublic: true,
           items: []
@@ -592,25 +570,24 @@
 
     document.querySelectorAll(".edit-field-icon").forEach(icon => {
       icon.addEventListener("click", (e) => {
-        const inputField = e.target.parentElement.querySelector("input");
-        inputField.disabled = !inputField.disabled;
-        if (!inputField.disabled) {
-          inputField.focus();
+        const rowInput = e.target.parentElement.querySelector("input");
+        rowInput.disabled = !rowInput.disabled;
+        if (!rowInput.disabled) {
+          rowInput.focus();
           icon.innerText = "💾";
         } else {
           icon.innerText = "✏️";
-          appState.profile.name = document.getElementById("profName").value;
-          appState.profile.dob = document.getElementById("profDob").value;
-          appState.profile.hometown = document.getElementById("profHometown").value;
-          appState.profile.vocation = document.getElementById("profVocation").value;
-          appState.profile.recovery = document.getElementById("profRecovery").value;
-          persistStateToCloudEngine();
-          showToast("Profile data field update cached.");
+          extractAndSaveProfileFields();
         }
       });
     });
 
     document.getElementById("btnSaveProfileData").addEventListener("click", () => {
+      extractAndSaveProfileFields();
+      closeAllDrawers();
+    });
+
+    function extractAndSaveProfileFields() {
       appState.profile.name = document.getElementById("profName").value;
       appState.profile.dob = document.getElementById("profDob").value;
       appState.profile.hometown = document.getElementById("profHometown").value;
@@ -618,9 +595,8 @@
       appState.profile.recovery = document.getElementById("profRecovery").value;
       persistStateToCloudEngine();
       syncInterfaceStateElements();
-      showToast("All current profile metrics pushed to storage layers.");
-      closeAllDrawers();
-    });
+      showToast("Dynamic identity allocation matrix parameters synchronized.");
+    }
 
     document.getElementById("inputAvatarFile").addEventListener("change", function() {
       if (this.files && this.files[0]) {
@@ -634,12 +610,11 @@
     });
 
     document.getElementById("btnCommitAvatarSizing").addEventListener("click", () => {
-      const rawDataUrl = document.getElementById("imgAvatarCropPreview").src;
-      appState.profile.avatar = rawDataUrl;
+      appState.profile.avatar = document.getElementById("imgAvatarCropPreview").src;
       syncInterfaceStateElements();
       persistStateToCloudEngine();
       closeModalWindow();
-      showToast("Avatar image context optimized and saved.");
+      showToast("Avatar image coordinate dimensions saved to profile record context.");
     });
 
     document.getElementById("btnTogglePasswordVisibility").addEventListener("click", () => {
@@ -647,18 +622,16 @@
       field.type = field.type === "password" ? "text" : "password";
     });
 
-    document.getElementById("btnExecuteSignUp").addEventListener("click", async (e) => {
-      if (e) e.preventDefault();
+    document.getElementById("btnExecuteSignUp").addEventListener("click", async () => {
       const email = document.getElementById("authEmailField").value;
       const pass = document.getElementById("authPasswordField").value;
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
       
-      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-      if (!passRegex.test(pass)) {
-        showToast("Error: Password criteria parameters mismatched.");
+      if (!regex.test(pass)) {
+        showToast("Validation Error: Password schema validation criteria constraints failed.");
         return;
       }
-
-      showToast("Deploying creation transaction to worker cluster...");
+      showToast("Dispatching network verification request block to edge clustering nodes...");
       try {
         const res = await fetch(`${API_BASE}/api/auth/signup`, {
           method: "POST",
@@ -667,21 +640,19 @@
         });
         const data = await res.json();
         if (res.status === 200) {
-          alert(`Vault activation metrics initialized: ${data.message}`);
+          alert(`Vault confirmation payload issued: ${data.message}`);
           closeAllDrawers();
         } else {
-          showToast(`Creation Fault: ${data.error}`);
+          showToast(`Signup Registry Refused: ${data.error}`);
         }
       } catch {
-        showToast("Edge server response verification error.");
+        showToast("Gateway connection timed out during execution logic phase.");
       }
     });
 
-    document.getElementById("btnExecuteSignIn").addEventListener("click", async (e) => {
-      if (e) e.preventDefault();
+    document.getElementById("btnExecuteSignIn").addEventListener("click", async () => {
       const email = document.getElementById("authEmailField").value;
       const pass = document.getElementById("authPasswordField").value;
-
       try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
           method: "POST",
@@ -695,37 +666,41 @@
           appState.userToken = data.token;
           appState.userEmail = data.email;
           
-          showToast("Handshake approved. Loading network synchronized variables.");
+          showToast("Handshake accepted. Re-indexing remote configuration records.");
           await pullVaultStateFromEdge();
           transitionToView("viewCategories");
         } else {
-          showToast(`Auth Failure: ${data.error}`);
+          showToast(`Security Refusal: ${data.error}`);
         }
       } catch {
-        showToast("Connection to backend node mapping missing.");
+        showToast("Remote endpoint mapping node missing or unresponsive.");
       }
     });
 
     document.getElementById("btnToggleThemeMode").addEventListener("click", (e) => {
       document.body.classList.toggle("light-variant");
-      const statusActive = document.body.classList.contains("light-variant");
-      e.target.innerText = statusActive ? "DARK MODE" : "LIGHT MODE";
+      e.target.innerText = document.body.classList.contains("light-variant") ? "DARK MODE" : "LIGHT MODE";
     });
 
     document.getElementById("btnUpgradeTier").addEventListener("click", () => {
       appState.isPremium = true;
       localStorage.setItem("vault_premium", "true");
-      showToast("System upgraded to Premium. Storage expansion cap set to 99 lists.");
+      showToast("Premium tier access initialized. Storage expandability parameters scaled to 99 metrics.");
       closeAllDrawers();
     });
 
-    document.getElementById("btnNavigateFriends").addEventListener("click", () => {
-      transitionToView("viewFriends");
+    document.getElementById("btnTriggerAddFriend").addEventListener("click", () => {
+      const tag = prompt("Search matching profile signature handles across network records:");
+      if (tag && tag.trim() !== "") {
+        appState.friendsList.push({ name: tag.trim(), mutualCats: 0, mutualItems: 0, avatar: "" });
+        renderFriendsStack();
+        persistStateToCloudEngine();
+        showToast("Target network identity node mapped to friends index tracking ledger.");
+      }
     });
 
-    document.getElementById("btnTriggerVaultWipe").addEventListener("click", () => {
-      openModalWindow("wipe");
-    });
+    document.getElementById("btnNavigateFriends").addEventListener("click", () => transitionToView("viewFriends"));
+    document.getElementById("btnTriggerVaultWipe").addEventListener("click", () => openModalWindow("wipe"));
 
     document.getElementById("btnConfirmVaultWipe").addEventListener("click", () => {
       localStorage.clear();
@@ -736,33 +711,32 @@
       closeModalWindow();
       closeAllDrawers();
       transitionToView("viewLanding");
-      showToast("System complete initialization sequence wrapped. Default metrics restored.");
+      showToast("Full environment data rollback completed successfully.");
     });
 
     document.getElementById("btnCancelWipe").addEventListener("click", closeModalWindow);
     document.getElementById("btnCancelAvatarCommit").addEventListener("click", closeModalWindow);
     document.getElementById("btnCancelFriendAction").addEventListener("click", closeModalWindow);
-    
-    document.getElementById("btnSubmitFriendAction").addEventListener("click", () => {
-      const selected = Array.from(document.querySelectorAll("input[name='friendCompareTargets']:checked")).map(c => c.value);
-      const activeMode = document.getElementById("btnSubmitFriendAction").dataset.mode;
-      const catCtx = document.getElementById("btnSubmitFriendAction").dataset.catId;
 
-      if (selected.length === 0) {
-        showToast("Operation suspended: Zero target network profile contexts selected.");
+    document.getElementById("btnSubmitFriendAction").addEventListener("click", () => {
+      const inputs = Array.from(document.querySelectorAll("input[name='friendCompareTargets']:checked")).map(c => c.value);
+      const actionMode = document.getElementById("btnSubmitFriendAction").dataset.mode;
+      const contextId = document.getElementById("btnSubmitFriendAction").dataset.catId;
+
+      if (inputs.length === 0) {
+        showToast("Suspended Execution Block: Zero profile network checkboxes targeted.");
         return;
       }
-
       closeModalWindow();
-      if (activeMode === "compare") executeComparisonMatrixCalculation(catCtx, selected);
-      if (activeMode === "fuse") executeFusedMatrixFormula(catCtx, selected);
+      if (actionMode === "compare") executeComparisonMatrixCalculation(contextId, inputs);
+      if (actionMode === "fuse") executeFusedMatrixFormula(contextId, inputs);
     });
 
     drawerOverlay.addEventListener("click", closeAllDrawers);
     document.querySelectorAll(".close-drawer-x").forEach(x => x.addEventListener("click", closeAllDrawers));
   }
 
-  /* ================= VISUAL SYSTEM EFFECT WINDOW CONTROLS ================= */
+  /* ================= INTERACTION DRAWERS AND MODALS TRANSITION HANDLING ================= */
   function openSlidingDrawer(drawerId) {
     closeAllDrawers();
     drawerOverlay.classList.remove("hidden");
@@ -777,14 +751,13 @@
   function openModalWindow(mode, targetCategoryId = null) {
     modalShade.classList.remove("hidden");
     document.querySelectorAll(".center-dialog-modal").forEach(m => m.classList.add("hidden"));
-    
     if (mode === "crop") document.getElementById("modalAvatarCrop").classList.remove("hidden");
     if (mode === "wipe") document.getElementById("modalWipeConfirmation").classList.remove("hidden");
     if (mode === "compare" || mode === "fuse") {
       document.getElementById("modalFriendActionSelector").classList.remove("hidden");
-      const subBtn = document.getElementById("btnSubmitFriendAction");
-      subBtn.dataset.mode = mode;
-      subBtn.dataset.catId = targetCategoryId;
+      const submitBtn = document.getElementById("btnSubmitFriendAction");
+      submitBtn.dataset.mode = mode;
+      submitBtn.dataset.catId = targetCategoryId;
     }
   }
 
@@ -795,11 +768,8 @@
   function showToast(msg) {
     toastNotification.innerText = msg;
     toastNotification.classList.remove("hidden");
-    setTimeout(() => {
-      toastNotification.classList.add("hidden");
-    }, 4500);
+    setTimeout(() => { toastNotification.classList.add("hidden"); }, 4500);
   }
 
-  // Engage system boot routine sequences
   window.addEventListener("DOMContentLoaded", initApplication);
 })();
