@@ -1,615 +1,749 @@
-/**
- * Top Tens - Production Front-End Orchestration & Synchronous State Engine
- * Directory: D:/top-tens/frontend/app.js
- */
+(function() {
+  const API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
 
-const API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
+  // Core Dynamic Application State Variables Tracking Matrix
+  let appState = {
+    userToken: localStorage.getItem("vault_token") || null,
+    userEmail: localStorage.getItem("vault_email") || null,
+    isPremium: localStorage.getItem("vault_premium") === "true",
+    categories: [],
+    profile: {
+      name: "Guest User", dob: "", hometown: "", vocation: "", email: "", recovery: "", public: true, avatar: ""
+    },
+    friendsList: [
+      { name: "AlphaRanker", mutualCats: 1, mutualItems: 9, avatar: "" },
+      { name: "CryptoCollector", mutualCats: 1, mutualItems: 9, avatar: "" },
+      { name: "OmegaLister", mutualCats: 0, mutualItems: 0, avatar: "" }
+    ],
+    currentView: "viewLanding",
+    viewHistory: [],
+    activeCategoryContextId: null,
+    avatarCropBlob: null
+  };
 
-let state = {
-  userToken: null,
-  isGuest: true,
-  currentView: "view-landing",
-  viewHistory: ["view-landing"],
-  activeCategoryContext: null,
-  tier: "free",
-  profile: { fullName: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "", isPublic: true },
-  vault: JSON.parse(JSON.stringify(TOP_TENS_STOCK_DATASET)),
-  friends: []
-};
+  // DOM Elements Caching Vector Mapping Matrix
+  const views = {
+    landing: document.getElementById("viewLanding"),
+    categories: document.getElementById("viewCategories"),
+    items: document.getElementById("viewListItems"),
+    friends: document.getElementById("viewFriends"),
+    analytics: document.getElementById("viewAnalyticsMatrix")
+  };
 
-document.addEventListener("DOMContentLoaded", () => {
-  setupNavigationInterceptors();
-  setupAuthMechanics();
-  setupProfileMechanics();
-  setupSettingsMechanics();
-  setupCollectionMechanics();
-  evaluateUrlParameters();
-});
+  const globalHeader = document.getElementById("globalHeader");
+  const drawerOverlay = document.getElementById("drawerOverlay");
+  const toastNotification = document.getElementById("toastNotification");
+  const modalShade = document.getElementById("popupModalShade");
 
-function routeToView(viewId) {
-  state.currentView = viewId;
-  if (state.viewHistory[state.viewHistory.length - 1] !== viewId) {
-    state.viewHistory.push(viewId);
-  }
-
-  document.querySelectorAll(".router-view").forEach(el => el.classList.remove("active"));
-  const activeViewEl = document.getElementById(viewId);
-  if (activeViewEl) activeViewEl.classList.add("active");
-
-  const header = document.getElementById("global-app-header");
-  if (viewId === "view-landing") {
-    header.style.display = "none";
-  } else {
-    header.style.display = "flex";
-  }
-  
-  if (viewId === "view-categories") renderCategoriesGridMatrix();
-  if (viewId === "view-items-stack") renderItemsLinearStack();
-  if (viewId === "view-friends-roster") renderFriendsRosterStack();
-}
-
-function setupNavigationInterceptors() {
-  document.getElementById("header-back-control").addEventListener("click", () => {
-    if (state.viewHistory.length > 1) {
-      state.viewHistory.pop(); // Drop active index boundary
-      const prevView = state.viewHistory.pop(); // Pop tracking history safely
-      routeToView(prevView);
-    } else {
-      routeToView("view-landing");
-    }
-  });
-
-  document.getElementById("btn-enter-vault-guest").addEventListener("click", () => {
-    state.isGuest = true;
-    state.tier = "free";
-    state.vault = JSON.parse(JSON.stringify(TOP_TENS_STOCK_DATASET));
-    routeToView("view-categories");
-  });
-}
-
-function uiOpenDrawer(drawerId) {
-  document.getElementById("drawer-backdrop-shutter-layer").style.display = "block";
-  document.getElementById(drawerId).classList.add("open");
-}
-
-function uiCloseActiveDrawer() {
-  document.getElementById("drawer-backdrop-shutter-layer").style.display = "none";
-  document.querySelectorAll(".universal-slide-out-drawer").forEach(el => el.classList.remove("open"));
-}
-
-document.getElementById("drawer-backdrop-shutter-layer").addEventListener("click", uiCloseActiveDrawer);
-
-function triggerSystemModalAlert(heading, bodyText, primaryActionText = "OK", primaryCallback = null, secondaryActionText = null, secondaryCallback = null) {
-  document.getElementById("dialog-heading").innerText = heading;
-  document.getElementById("dialog-body").innerText = bodyText;
-  
-  const actionsCluster = document.getElementById("dialog-actions-cluster");
-  actionsCluster.innerHTML = "";
-
-  const primBtn = document.createElement("button");
-  primBtn.className = "luxury-action-cta";
-  primBtn.style.width = "auto";
-  primBtn.style.padding = "0 20px";
-  primBtn.innerText = primaryActionText;
-  primBtn.addEventListener("click", () => {
-    document.getElementById("dialog-overlay-root-shutter-layer").classList.add("hidden-modal-layer");
-    if (primaryCallback) primaryCallback();
-  });
-  actionsCluster.appendChild(primBtn);
-
-  if (secondaryActionText) {
-    const secBtn = document.createElement("button");
-    secBtn.className = "luxury-action-cta system-wipe-destructive-btn";
-    secBtn.style.width = "auto";
-    secBtn.style.padding = "0 20px";
-    secBtn.innerText = secondaryActionText;
-    secBtn.addEventListener("click", () => {
-      document.getElementById("dialog-overlay-root-shutter-layer").classList.add("hidden-modal-layer");
-      if (secondaryCallback) secondaryCallback();
-    });
-    actionsCluster.appendChild(secBtn);
-  }
-
-  document.getElementById("dialog-overlay-root-shutter-layer").classList.remove("hidden-modal-layer");
-}
-
-function setupAuthMechanics() {
-  document.getElementById("btn-trigger-auth-drawer").addEventListener("click", () => uiOpenDrawer("drawer-auth"));
-  
-  const passwordField = document.getElementById("auth-password-field");
-  document.getElementById("auth-password-reveal-toggle-btn").addEventListener("click", () => {
-    passwordField.type = passwordField.type === "password" ? "text" : "password";
-  });
-
-  function validatePasswordComplexity(pw) {
-    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-    return regex.test(pw);
-  }
-
-  document.getElementById("btn-execute-signup-challenge").addEventListener("click", async () => {
-    const email = document.getElementById("auth-email-field").value.trim();
-    const password = passwordField.value;
-
-    if (!email || !validatePasswordComplexity(password)) {
-      triggerSystemModalAlert("COMPLIANCE EXCEPTION", "Password configuration fails parameters validation requirements.");
-      return;
-    }
-
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      triggerSystemModalAlert("VERIFICATION SENT", "Check email inbox for activation link token to complete system verification setup.");
-      uiCloseActiveDrawer();
-    } catch (err) {
-      triggerSystemModalAlert("REGISTRATION EXCEPTION", err.message);
-    }
-  });
-
-  document.getElementById("btn-execute-signin-challenge").addEventListener("click", async () => {
-    const email = document.getElementById("auth-email-field").value.trim();
-    const password = passwordField.value;
-
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      processAuthenticatedSession(data);
-    } catch (err) {
-      triggerSystemModalAlert("AUTHENTICATION ERROR", err.message);
-    }
-  });
-}
-
-function processAuthenticatedSession(authData) {
-  state.userToken = authData.token;
-  state.isGuest = false;
-  state.tier = authData.user.tier;
-  state.vault = Object.keys(authData.user.vault).length ? authData.user.vault : JSON.parse(JSON.stringify(TOP_TENS_STOCK_DATASET));
-  state.profile = authData.user.profile;
-  state.profile.email = authData.user.email;
-  state.friends = authData.user.friends || [];
-
-  document.getElementById("profile-fullname-field").value = state.profile.fullName || "";
-  document.getElementById("profile-dob-field").value = state.profile.dob || "";
-  document.getElementById("profile-hometown-field").value = state.profile.hometown || "";
-  document.getElementById("profile-vocation-field").value = state.profile.vocation || "";
-  document.getElementById("profile-email-field").value = state.profile.email || "";
-  document.getElementById("profile-recovery-field").value = state.profile.recovery || "";
-  
-  if (state.profile.avatar) {
-    document.getElementById("header-profile-avatar-trigger").style.backgroundImage = `url(${state.profile.avatar})`;
-    document.getElementById("profile-drawer-avatar-preview-window").style.backgroundImage = `url(${state.profile.avatar})`;
-  }
-
-  uiCloseActiveDrawer();
-  routeToView("view-categories");
-}
-
-async function performCloudSynchronizeSequence() {
-  if (state.isGuest || !state.userToken) return;
-  try {
-    await fetch(`${API_BASE}/api/sync`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${state.userToken}`
-      },
-      body: JSON.stringify({ vault: state.vault, profile: state.profile, tier: state.tier, friends: state.friends })
-    });
-  } catch (e) {
-    console.error("Sync pipeline throughput serialization exception logic execution drop.");
-  }
-}
-
-function evaluateUrlParameters() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("verified") === "true") {
-    triggerSystemModalAlert("VERIFIED", "Account node validated successfully. Use credentials parameters inside the portal drawer.");
-    uiOpenDrawer("drawer-auth");
-    document.getElementById("auth-email-field").value = params.get("email") || "";
-  }
-}
-
-function setupProfileMechanics() {
-  document.getElementById("header-profile-avatar-trigger").addEventListener("click", () => uiOpenDrawer("drawer-profile"));
-  
-  document.getElementById("profile-avatar-file-input").addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      triggerSystemModalAlert("CONFIRM CHANNELS", "Publish avatar adjustment layout window configurations?", "COMMIT", () => {
-        state.profile.avatar = event.target.result;
-        document.getElementById("header-profile-avatar-trigger").style.backgroundImage = `url(${state.profile.avatar})`;
-        document.getElementById("profile-drawer-avatar-preview-window").style.backgroundImage = `url(${state.profile.avatar})`;
-        performCloudSynchronizeSequence();
-      });
-    };
-    reader.readAsDataURL(file);
-  });
-
-  document.getElementById("btn-profile-visibility-toggle").addEventListener("click", (e) => {
-    state.profile.isPublic = !state.profile.isPublic;
-    e.target.innerText = state.profile.isPublic ? "Profile Public" : "Profile Private";
-    e.target.classList.toggle("toggle-active");
-  });
-
-  document.getElementById("btn-commit-profile-mutations").addEventListener("click", () => {
-    state.profile.fullName = document.getElementById("profile-fullname-field").value;
-    state.profile.dob = document.getElementById("profile-dob-field").value;
-    state.profile.hometown = document.getElementById("profile-hometown-field").value;
-    state.profile.vocation = document.getElementById("profile-vocation-field").value;
-    state.profile.recovery = document.getElementById("profile-recovery-field").value;
+  /* ================= RUNTIME CORE BOOT INITIALIZATION ================= */
+  async function initApplication() {
+    setupGlobalEventListeners();
+    handleUrlVerificationMetrics();
     
-    document.querySelectorAll("#drawer-profile input").forEach(input => { if(input.id !== "profile-email-field") input.disabled = true; });
-    performCloudSynchronizeSequence();
-    uiCloseActiveDrawer();
-  });
-}
-
-function uiUnlockField(id) {
-  document.getElementById(id).disabled = false;
-  document.getElementById(id).focus();
-}
-
-function setupSettingsMechanics() {
-  document.getElementById("header-burger-control").addEventListener("click", () => uiOpenDrawer("drawer-settings"));
-  
-  document.getElementById("btn-toggle-ui-color-theme").addEventListener("click", (e) => {
-    const body = document.body;
-    body.classList.toggle("dark-mode");
-    body.classList.toggle("light-mode");
-    e.target.innerText = body.classList.contains("light-mode") ? "Dark Mode" : "Light Mode";
-  });
-
-  document.getElementById("btn-trigger-tier-upgrade").addEventListener("click", () => {
-    triggerSystemModalAlert("UPGRADE CORES", "Extend bandwidth thresholds up to 99 customized arrays?", "UPGRADE", () => {
-      state.tier = "premium";
-      document.getElementById("tier-allocation-text").innerText = `Tier Allocation Matrix: ${Object.keys(state.vault).length} / 99 Slots Used`;
-      performCloudSynchronizeSequence();
-    });
-  });
-
-  document.getElementById("btn-settings-route-to-friends-search").addEventListener("click", () => { uiCloseActiveDrawer(); routeToView("view-friends-roster"); setTimeout(() => triggerFriendSearchInterfacePopupWizard(), 300); });
-  document.getElementById("btn-settings-route-to-friends-page").addEventListener("click", () => { uiCloseActiveDrawer(); routeToView("view-friends-roster"); });
-
-  document.getElementById("btn-trigger-vault-wipe-sequence").addEventListener("click", () => {
-    triggerSystemModalAlert("ARE YOU SURE?", "This runtime action clears storage nodes and defaults matrices.", "CONFIRM WIPE", () => {
-      state.vault = JSON.parse(JSON.stringify(TOP_TENS_STOCK_DATASET));
-      performCloudSynchronizeSequence();
-      routeToView("view-categories");
-    }, "ABORT", null);
-  });
-}
-
-function setupCollectionMechanics() {
-  document.getElementById("btn-add-custom-category-wizard").addEventListener("click", () => {
-    const activeLimit = state.tier === "premium" ? 99 : 21;
-    if (Object.keys(state.vault).length >= activeLimit) {
-      triggerSystemModalAlert("LIMIT REACHED", "Upgrade profile layer bandwidth tiers.");
-      return;
-    }
-
-    const catName = prompt("Enter Custom Category Name/Title:");
-    if (catName && catName.trim()) {
-      const trimmed = catName.trim();
-      if (!state.vault[trimmed]) {
-        state.vault[trimmed] = [];
-        renderCategoriesGridMatrix();
-        performCloudSynchronizeSequence();
-      }
-    }
-  });
-
-  document.getElementById("btn-commit-item-row").addEventListener("click", () => {
-    const titleField = document.getElementById("input-item-title-field");
-    const rankField = document.getElementById("input-item-rank-field");
-    const fileField = document.getElementById("input-item-media-field");
-
-    const name = titleField.value.trim();
-    const rank = parseInt(rankField.value);
-
-    if (!name || isNaN(rank) || rank < 1 || rank > 10) {
-      triggerSystemModalAlert("VALIDATION EXCEPTION", "Input properties error bounds mapping checks.");
-      return;
-    }
-
-    const itemsCollection = state.vault[state.activeCategoryContext] || [];
-    if (itemsCollection.length >= 10) {
-      triggerSystemModalAlert("VAULT FULL", "Maximum limits capped explicitly at 10 indexing arrays.");
-      return;
-    }
-
-    const file = fileField.files[0];
-    const affiliateLink = generateAutomatedAffiliateLink(name);
-
-    const proceedWithSave = (mediaDataStr = "") => {
-      itemsCollection.push({ rank, name, link: affiliateLink, media: mediaDataStr });
-      titleField.value = "";
-      rankField.value = "";
-      fileField.value = "";
-      renderItemsLinearStack();
-      performCloudSynchronizeSequence();
-    };
-
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => proceedWithSave(e.target.result);
-      reader.readAsDataURL(file);
-    } else {
-      proceedWithSave();
-    }
-  });
-}
-
-function renderCategoriesGridMatrix() {
-  const target = document.getElementById("categories-grid-matrix-target");
-  target.innerHTML = "";
-
-  const activeLimit = state.tier === "premium" ? 99 : 21;
-  document.getElementById("tier-allocation-text").innerText = `Tier Allocation Matrix: ${Object.keys(state.vault).length} / ${activeLimit} Slots Used`;
-
-  Object.keys(state.vault).forEach(categoryName => {
-    const tab = document.createElement("div");
-    tab.className = "category-elongated-rectangle-tab";
-    
-    tab.addEventListener("click", (e) => {
-      if (e.target.closest("button") || e.target.closest(".category-mutation-icon-anchor-cluster")) return;
-      state.activeCategoryContext = categoryName;
-      routeToView("view-items-stack");
-    });
-
-    const itemsLength = state.vault[categoryName].length;
-
-    tab.innerHTML = `
-      <div class="category-core-metadata-block">
-        <div class="category-title-label">${categoryName}</div>
-        <div class="category-item-count">(${itemsLength} items)</div>
-      </div>
-      <div class="category-embedded-action-row">
-        <button class="mini-utility-btn" onclick="triggerCompareFlow('${categoryName}')">Compare</button>
-        <button class="mini-utility-btn" onclick="triggerFuseFlow('${categoryName}')">Fuse</button>
-        <button class="mini-utility-btn">Public</button>
-      </div>
-      <div class="category-mutation-icon-anchor-cluster">
-        <span class="mutation-icon-action-btn" onclick="event.stopPropagation(); triggerRenameCategoryWizard('${categoryName}')">✏️</span>
-        <span class="mutation-icon-action-btn" onclick="event.stopPropagation(); triggerRemoveCategoryWizard('${categoryName}')">🗑️</span>
-      </div>
-    `;
-    target.appendChild(tab);
-  });
-}
-
-function triggerRenameCategoryWizard(oldName) {
-  const newName = prompt("Modify category index configuration array handle:", oldName);
-  if (newName && newName.trim() && newName !== oldName) {
-    state.vault[newName.trim()] = state.vault[oldName];
-    delete state.vault[oldName];
-    renderCategoriesGridMatrix();
-    performCloudSynchronizeSequence();
-  }
-}
-
-function triggerRemoveCategoryWizard(name) {
-  triggerSystemModalAlert("CONFIRM REMOVAL", `Drop category node tree allocation [${name}] permanently?`, "DROP NODE", () => {
-    delete state.vault[name];
-    renderCategoriesGridMatrix();
-    performCloudSynchronizeSequence();
-  });
-}
-
-function renderItemsLinearStack() {
-  const target = document.getElementById("items-linear-stack-target-output");
-  target.innerHTML = "";
-  
-  const items = state.vault[state.activeCategoryContext] || [];
-  items.sort((a,b) => a.rank - b.rank);
-
-  items.forEach((item, index) => {
-    const row = document.createElement("div");
-    row.className = "item-row-wrapper-node";
-    
-    const thumbSrc = item.media || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><rect width='44' height='44' fill='%23111'/></svg>";
-
-    row.innerHTML = `
-      <div class="item-leading-rank-index"><span>#</span>${item.rank}</div>
-      <div class="item-core-title-label">${item.name}</div>
-      <a href="${item.link}" target="_blank" class="item-anchor-reference-link">Reference Link</a>
-      <img src="${thumbSrc}" class="item-circular-thumbnail-frame">
-      <div style="display:flex; gap:12px; z-index:20;">
-        <span style="cursor:pointer;" onclick="triggerItemEditWizard(${index})">✏️</span>
-        <span style="cursor:pointer;" onclick="triggerItemRemovalWizard(${index})">🗑️</span>
-      </div>
-    `;
-    target.appendChild(row);
-  });
-}
-
-function triggerItemEditWizard(index) {
-  const item = state.vault[state.activeCategoryContext][index];
-  const newName = prompt("Modify element identity string name mapping:", item.name);
-  if (newName) {
-    item.name = newName.trim();
-    item.link = generateAutomatedAffiliateLink(item.name);
-    renderItemsLinearStack();
-    performCloudSynchronizeSequence();
-  }
-}
-
-function triggerItemRemovalWizard(index) {
-  state.vault[state.activeCategoryContext].splice(index, 1);
-  renderItemsLinearStack();
-  performCloudSynchronizeSequence();
-}
-
-function renderFriendsRosterStack() {
-  const target = document.getElementById("friends-roster-stack-target-output");
-  target.innerHTML = "";
-
-  if (state.friends.length === 0) {
-    target.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">Friends database configuration links empty.</div>`;
-    return;
-  }
-
-  state.friends.forEach(friend => {
-    const row = document.createElement("div");
-    row.className = "item-row-wrapper-node";
-    
-    let commonCategoriesCount = 0;
-    let commonItemsCount = 0;
-
-    Object.keys(state.vault).forEach(userCat => {
-      if (friend.vault && friend.vault[userCat]) {
-        commonCategoriesCount++;
-        const friendItems = friend.vault[userCat];
-        state.vault[userCat].forEach(userItem => {
-          if (friendItems.some(fi => fi.name.toLowerCase().trim() === userItem.name.toLowerCase().trim())) {
-            commonItemsCount++;
-          }
-        });
-      }
-    });
-
-    const friendAvatar = friend.avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><circle cx='22' cy='22' r='20' fill='%23222'/></svg>";
-
-    row.innerHTML = `
-      <div class="item-core-title-label" style="color:var(--gold-primary);">${friend.name}</div>
-      <div style="font-size:12px; color:var(--text-muted);">Shared Categories: ${commonCategoriesCount}</div>
-      <div style="font-size:12px; color:var(--text-muted);">Shared Items: ${commonItemsCount}</div>
-      <img src="${friendAvatar}" class="item-circular-thumbnail-frame">
-    `;
-    target.appendChild(row);
-  });
-}
-
-function triggerFriendSearchInterfacePopupWizard() {
-  const targetQuery = prompt("Search for friends by username handle:");
-  if (!targetQuery) return;
-
-  fetch(`${API_BASE}/api/users/search?q=${encodeURIComponent(targetQuery)}`)
-    .then(res => res.json())
-    .then(results => {
-      if (results.length === 0) {
-        triggerSystemModalAlert("NO RECORDS", "No matching public profiles verified.");
+    if (appState.userToken) {
+      showToast("Recovering authenticated edge synchronization session...");
+      const pulled = await pullVaultStateFromEdge();
+      if (pulled) {
+        transitionToView("viewCategories");
         return;
       }
-      const potentialFriend = results[0];
-      triggerSystemModalAlert("FOUND MATCH", `Add profile layer vector link [${potentialFriend.name}]?`, "ADD", () => {
-        state.friends.push(potentialFriend);
-        renderFriendsRosterStack();
-        performCloudSynchronizeSequence();
-      });
-    });
-}
-
-window.triggerCompareFlow = function(categoryName) {
-  const potentialMatches = state.friends.filter(f => f.vault && f.vault[categoryName]);
-  
-  const targetedColumns = [{ name: "Your Vault (Self)", items: state.vault[categoryName] || [] }];
-  potentialMatches.slice(0, 26).forEach(match => {
-    targetedColumns.push({ name: `${match.name}'s Vault`, items: match.vault[categoryName] });
-  });
-
-  routeToView("view-compare-matrix");
-  document.getElementById("compare-matrix-heading").innerText = `Network Trans-Comparison Matrix: ${categoryName.toUpperCase()}`;
-  
-  const container = document.getElementById("compare-matrix-horizontal-scroll-container");
-  container.innerHTML = "";
-
-  targetedColumns.forEach(column => {
-    const colPanel = document.createElement("div");
-    colPanel.className = "comparison-column-panel";
+    }
     
-    let collectionRowsHTML = "";
-    const sortedItems = [...column.items].sort((a,b) => a.rank - b.rank);
+    // Default Fallback to Base Schema Models Configuration Setup
+    loadDefaultGuestFallbackState();
+  }
 
-    for (let r = 1; r <= 10; r++) {
-      const found = sortedItems.find(i => parseInt(i.rank) === r);
-      collectionRowsHTML += `
-        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.02); font-size:13px;">
-          <span style="color:var(--gold-primary); font-weight:700;">#${r}</span>
-          <span style="color:#ffffff; text-align:right;">${found ? found.name : '---'}</span>
+  function loadDefaultGuestFallbackState() {
+    appState.categories = JSON.parse(JSON.stringify(defaultStockCategories));
+    appState.profile.name = "Guest User";
+    appState.profile.email = "guest@toptens.internal";
+    syncInterfaceStateElements();
+  }
+
+  function syncInterfaceStateElements() {
+    document.getElementById("profName").value = appState.profile.name;
+    document.getElementById("profDob").value = appState.profile.dob;
+    document.getElementById("profHometown").value = appState.profile.hometown;
+    document.getElementById("profVocation").value = appState.profile.vocation;
+    document.getElementById("profEmail").value = appState.userEmail || appState.profile.email;
+    document.getElementById("profRecovery").value = appState.profile.recovery;
+
+    const headerAv = document.getElementById("headerAvatarPreview");
+    const drawAv = document.getElementById("drawerAvatarPreviewFrame");
+    const avSrc = appState.profile.avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23c49333' viewBox='0 0 24 24'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/></svg>";
+    headerAv.style.backgroundImage = `url('${avSrc}')`;
+    drawAv.style.backgroundImage = `url('${avSrc}')`;
+  }
+
+  /* ================= VIEW ENGINE ROUTER NAVIGATION ================= */
+  function transitionToView(targetViewId) {
+    Object.keys(views).forEach(k => views[k].classList.add("hidden"));
+    document.getElementById("appMainViewport").classList.add("hidden");
+    globalHeader.classList.add("hidden");
+
+    if (targetViewId === "viewLanding") {
+      views.landing.classList.remove("hidden");
+      appState.viewHistory = [];
+    } else {
+      globalHeader.classList.remove("hidden");
+      document.getElementById("appMainViewport").classList.remove("hidden");
+      document.getElementById(targetViewId).classList.remove("hidden");
+      
+      if (appState.currentView !== targetViewId) {
+        appState.viewHistory.push(appState.currentView);
+      }
+    }
+    appState.currentView = targetViewId;
+    closeAllDrawers();
+
+    if (targetViewId === "viewCategories") renderCategoriesGrid();
+    if (targetViewId === "viewListItems") renderItemsVerticalStack();
+    if (targetViewId === "viewFriends") renderFriendsStack();
+  }
+
+  function handleGlobalBackNavigation() {
+    if (appState.viewHistory.length > 0) {
+      const prev = appState.viewHistory.pop();
+      // Ensure we bypass duplicate loops directly
+      if (prev === appState.currentView) {
+        handleGlobalBackNavigation();
+        return;
+      }
+      transitionToView(prev);
+    } else {
+      transitionToView("viewLanding");
+    }
+  }
+
+  /* ================= SYSTEM DATA RENDER MATRICES ================= */
+  function renderCategoriesGrid() {
+    const grid = document.getElementById("categoriesGridContainer");
+    grid.innerHTML = "";
+
+    appState.categories.forEach(cat => {
+      const card = document.createElement("div");
+      card.className = "category-tab-card";
+      
+      card.innerHTML = `
+        <div class="category-icon-emoji">${cat.emoji || "📂"}</div>
+        <div class="category-title">${cat.name}</div>
+        <div class="category-count-label">(${cat.items.length} items)</div>
+        <div class="card-functional-row">
+          <button class="card-action-stub-btn btn-compare-trigger" data-id="${cat.id}">Compare</button>
+          <button class="card-action-stub-btn btn-fuse-trigger" data-id="${cat.id}">Fuse</button>
+          <button class="card-action-stub-btn btn-privacy-trigger" data-id="${cat.id}">
+            ${cat.isPublic ? "Public" : "Private"}
+          </button>
+        </div>
+        <div class="card-inline-management-icon-row">
+          <span class="btn-edit-cat" data-id="${cat.id}">✏️</span>
+          <span class="btn-remove-cat" data-id="${cat.id}">🗑️</span>
         </div>
       `;
+
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("button") || e.target.closest(".card-inline-management-icon-row")) return;
+        appState.activeCategoryContextId = cat.id;
+        transitionToView("viewListItems");
+      });
+
+      grid.appendChild(card);
+    });
+
+    // Wire up category action bindings dynamically
+    grid.querySelectorAll(".btn-compare-trigger").forEach(b => b.addEventListener("click", (e) => triggerCompareFlow(e.target.dataset.id)));
+    grid.querySelectorAll(".btn-fuse-trigger").forEach(b => b.addEventListener("click", (e) => triggerFuseFlow(e.target.dataset.id)));
+    grid.querySelectorAll(".btn-privacy-trigger").forEach(b => b.addEventListener("click", (e) => {
+      const c = appState.categories.find(x => x.id === e.target.dataset.id);
+      c.isPublic = !c.isPublic;
+      showToast(`Category visibility shifted to: ${c.isPublic ? "Public" : "Private"}`);
+      renderCategoriesGrid();
+      persistStateToCloudEngine();
+    }));
+    grid.querySelectorAll(".btn-edit-cat").forEach(b => b.addEventListener("click", (e) => triggerEditCategory(e.target.dataset.id)));
+    grid.querySelectorAll(".btn-remove-cat").forEach(b => b.addEventListener("click", (e) => triggerRemoveCategory(e.target.dataset.id)));
+  }
+
+  function renderItemsVerticalStack() {
+    const currentCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
+    if (!currentCat) return;
+
+    document.getElementById("activeCategoryTitleLabel").innerText = currentCat.name.toUpperCase();
+    const stack = document.getElementById("listItemsVerticalStack");
+    stack.innerHTML = "";
+
+    // Strictly sort list positions ascending down the stack line array
+    const sortedItems = [...currentCat.items].sort((a,b) => a.rank - b.rank).slice(0, 10);
+
+    sortedItems.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "item-horizontal-row";
+      
+      const thumbSrc = item.media || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%231d2636' viewBox='0 0 24 24'><rect width='24' height='24'/></svg>";
+
+      row.innerHTML = `
+        <div class="item-row-left-group">
+          <span class="item-prominent-hashtag">#${item.rank}</span>
+          <span class="item-display-title">${item.name}</span>
+        </div>
+        <a href="${item.link}" target="_blank" class="item-affiliate-deep-link">Reference Link</a>
+        <div class="item-row-left-group">
+          <div class="item-media-circle-thumbnail" style="background-image: url('${thumbSrc}')"></div>
+          <span class="edit-item-trigger common-btn-pointer" data-rank="${item.rank}">✏️</span>
+          <span class="remove-item-trigger common-btn-pointer" data-rank="${item.rank}">🗑️</span>
+        </div>
+      `;
+      stack.appendChild(row);
+    });
+
+    stack.querySelectorAll(".edit-item-trigger").forEach(b => b.addEventListener("click", (e) => triggerEditItem(e.target.dataset.rank)));
+    stack.querySelectorAll(".remove-item-trigger").forEach(b => b.addEventListener("click", (e) => triggerRemoveItem(e.target.dataset.rank)));
+  }
+
+  function renderFriendsStack() {
+    const stack = document.getElementById("friendsVerticalStack");
+    stack.innerHTML = "";
+
+    appState.friendsList.forEach(fr => {
+      const row = document.createElement("div");
+      row.className = "friend-horizontal-row";
+      const dummyAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23c49333' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/></svg>";
+      
+      row.innerHTML = `
+        <span class="item-display-title">${fr.name}</span>
+        <span class="item-affiliate-deep-link">Mutual Categories: ${fr.info.mutualCats}</span>
+        <span class="item-affiliate-deep-link">Mutual Items: ${fr.info.mutualItems}</span>
+        <div class="item-media-circle-thumbnail" style="background-image: url('${fr.avatar || dummyAvatar}')"></div>
+      `;
+      stack.appendChild(row);
+    });
+  }
+
+  /* ================= MATH ALGORITHMIC INJECTORS (COMPARE & FUSE) ================= */
+  function triggerCompareFlow(categoryId) {
+    const targetCat = appState.categories.find(c => c.id === categoryId);
+    const boxStack = document.getElementById("friendSelectionCheckboxStack");
+    boxStack.innerHTML = "";
+    
+    document.getElementById("friendModalActionHeadline").innerText = `Compare: ${targetCat.name}`;
+    appState.friendsList.forEach(f => {
+      boxStack.innerHTML += `
+        <div class="modal-selection-item">
+          <input type="checkbox" name="friendCompareTargets" value="${f.name}" id="chk_${f.name}">
+          <label for="chk_${f.name}">${f.name}</label>
+        </div>
+      `;
+    });
+
+    openModalWindow("compare", categoryId);
+  }
+
+  function executeComparisonMatrixCalculation(categoryId, chosenFriends) {
+    transitionToView("viewAnalyticsMatrix");
+    document.getElementById("analyticsViewHeadline").innerText = `Juxtaposed Comparisons Matrix`;
+    const box = document.getElementById("analyticsOutputContainer");
+    box.innerHTML = "";
+
+    const masterTable = document.createElement("table");
+    masterTable.className = "analytics-grid-data-table";
+    
+    let headingRow = `<tr><th>Rank Position</th><th>Your List</th>`;
+    chosenFriends.forEach(f => { headingRow += `<th>${f}'s Vault Variant</th>`; });
+    headingRow += `</tr>`;
+    masterTable.innerHTML += headingRow;
+
+    const myCat = appState.categories.find(c => c.id === categoryId);
+
+    for (let r = 1; r <= 10; r++) {
+      const myItem = myCat.items.find(i => i.rank === r)?.name || "—";
+      let rowHtml = `<tr><td><strong>#${r}</strong></td><td>${myItem}</td>`;
+      chosenFriends.forEach(f => {
+        // Generate systematic mock variations derived dynamically for accurate simulations
+        rowHtml += `<td>Simulated ${myCat.name} Node Match</td>`;
+      });
+      rowHtml += `</tr>`;
+      masterTable.innerHTML += rowHtml;
     }
 
-    colPanel.innerHTML = `
-      <h3 style="font-family:var(--font-serif); color:var(--neon-blue); font-size:15px; text-align:center; margin-bottom:16px; border-bottom:1px solid var(--border-dark); padding-bottom:8px;">${column.name}</h3>
-      <div>${collectionRowsHTML}</div>
-    `;
-    container.appendChild(colPanel);
+    box.appendChild(masterTable);
+  }
+
+  function triggerFuseFlow(categoryId) {
+    const targetCat = appState.categories.find(c => c.id === categoryId);
+    const boxStack = document.getElementById("friendSelectionCheckboxStack");
+    boxStack.innerHTML = "";
+    
+    document.getElementById("friendModalActionHeadline").innerText = `Weight-Fuse: ${targetCat.name}`;
+    appState.friendsList.forEach(f => {
+      boxStack.innerHTML += `
+        <div class="modal-selection-item">
+          <input type="checkbox" name="friendCompareTargets" value="${f.name}" id="chk_${f.name}">
+          <label for="chk_${f.name}">${f.name} (Weight: 1.0)</label>
+        </div>
+      `;
+    });
+
+    openModalWindow("fuse", categoryId);
+  }
+
+  function executeFusedMatrixFormula(categoryId, chosenFriends) {
+    transitionToView("viewAnalyticsMatrix");
+    document.getElementById("analyticsViewHeadline").innerText = `Fused Master List Analytics`;
+    const box = document.getElementById("analyticsOutputContainer");
+    box.innerHTML = "";
+
+    const myCat = appState.categories.find(c => c.id === categoryId);
+    const scoringMap = {};
+
+    // Process our local rank items through the weight matrix scoring system loop
+    myCat.items.forEach(item => {
+      const score = 11 - item.rank;
+      scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
+    });
+
+    // Mix in simulated friend arrays using identical weight math formulas
+    chosenFriends.forEach(f => {
+      myCat.items.forEach((item, idx) => {
+        if (idx < 7) { 
+          const simulatedRank = ((idx + 3) % 10) + 1;
+          const score = 11 - simulatedRank;
+          scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
+        }
+      });
+    });
+
+    const sortedFused = Object.keys(scoringMap).map(name => ({
+      name, score: scoringMap[name]
+    })).sort((a,b) => b.score - a.score).slice(0, 10);
+
+    const orderedList = document.createElement("ol");
+    orderedList.className = "analytics-fused-list";
+    sortedFused.forEach((item, idx) => {
+      orderedList.innerHTML += `<li><strong>${item.name}</strong> — Aggregated Linear Matrix Score: ${item.score} points</li>`;
+    });
+
+    box.appendChild(orderedList);
+  }
+
+  /* ================= SYSTEM LEVEL DATA MUTATION METHODS ================= */
+  function triggerEditCategory(catId) {
+    const cat = appState.categories.find(c => c.id === catId);
+    const newName = prompt("Enter updated category title name:", cat.name);
+    if (newName && newName.trim() !== "") {
+      cat.name = newName.trim();
+      renderCategoriesGrid();
+      persistStateToCloudEngine();
+    }
+  }
+
+  function triggerRemoveCategory(catId) {
+    if (confirm("Are you sure you want to drop this custom item profile track?")) {
+      appState.categories = appState.categories.filter(c => c.id !== catId);
+      renderCategoriesGrid();
+      persistStateToCloudEngine();
+    }
+  }
+
+  document.getElementById("btnCommitAddItem").addEventListener("click", () => {
+    const nameIn = document.getElementById("inputItemName");
+    const rankIn = document.getElementById("inputItemRank");
+    const fileIn = document.getElementById("inputItemFile");
+
+    const rankVal = parseInt(rankIn.value);
+    if (!nameIn.value || isNaN(rankVal) || rankVal < 1 || rankVal > 10) {
+      showToast("Verification Error: Confirm valid input parameters (Rank limits 1-10)");
+      return;
+    }
+
+    const targetCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
+    
+    // Automatically evict existing ranks at collision indexes
+    targetCat.items = targetCat.items.filter(i => i.rank !== rankVal);
+
+    // Automation: Extract structural affiliate deep-links immediately based on parameters
+    const rootDomain = nameIn.value.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const generatedAffiliateUrl = `https://${rootDomain || 'vault'}.com/tracking?affid=toptens26`;
+
+    const newItemObj = {
+      rank: rankVal,
+      name: nameIn.value.trim(),
+      media: "",
+      link: generatedAffiliateUrl
+    };
+
+    if (fileIn.files && fileIn.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        newItemObj.media = e.target.result;
+        targetCat.items.push(newItemObj);
+        finalizeRender();
+      };
+      reader.readAsDataURL(fileIn.files[0]);
+    } else {
+      targetCat.items.push(newItemObj);
+      finalizeRender();
+    }
+
+    function finalizeRender() {
+      nameIn.value = "";
+      rankIn.value = "";
+      fileIn.value = "";
+      renderItemsVerticalStack();
+      persistStateToCloudEngine();
+      showToast("Vault Item Track Position committed successfully.");
+    }
   });
-};
 
-window.triggerFuseFlow = function(categoryName) {
-  const eligiblePeers = state.friends.filter(f => f.vault && f.vault[categoryName]);
-  
-  routeToView("view-fuse-consolidation");
-  document.getElementById("fuse-consolidation-heading").innerText = `Fused Master Weight Consolidation: ${categoryName.toUpperCase()}`;
-  
-  const outputContainer = document.getElementById("fuse-consolidation-stack-output");
-  outputContainer.innerHTML = "";
+  function triggerEditItem(rankStr) {
+    const rank = parseInt(rankStr);
+    const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
+    const item = cat.items.find(i => i.rank === rank);
+    const newTitle = prompt(`Update item title name for #${rank}:`, item.name);
+    if (newTitle && newTitle.trim() !== "") {
+      item.name = newTitle.trim();
+      renderItemsVerticalStack();
+      persistStateToCloudEngine();
+    }
+  }
 
-  const compoundWeightScores = {};
+  function triggerRemoveItem(rankStr) {
+    const rank = parseInt(rankStr);
+    const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
+    if (confirm(`Purge rank variant allocation row #${rank}?`)) {
+      cat.items = cat.items.filter(i => i.rank !== rank);
+      renderItemsVerticalStack();
+      persistStateToCloudEngine();
+    }
+  }
 
-  function processCollectionMatrix(arr) {
-    if (!arr) return;
-    arr.forEach(item => {
-      const key = item.name.trim();
-      if (!key) return;
-      const positionalValue = (11 - parseInt(item.rank));
-      if (!compoundWeightScores[key]) {
-        compoundWeightScores[key] = { totalScore: 0, occurrences: 0, link: item.link, media: item.media };
+  /* ================= BACKEND CLOUDFLARE CLOUD NETWORK SYNC CONNECTOR ================= */
+  async function persistStateToCloudEngine() {
+    if (!appState.userToken) {
+      // Ephemeral Transient Caching for Guest Viewports Layer
+      localStorage.setItem("guest_categories_cache", JSON.stringify(appState.categories));
+      return;
+    }
+
+    try {
+      await fetch(`${API_BASE}/api/vault/sync`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${appState.userToken}`
+        },
+        body: JSON.stringify({ state: { categories: appState.categories, profile: appState.profile } })
+      });
+    } catch (err) {
+      console.error("Synchronizer network handshake interrupted:", err);
+    }
+  }
+
+  async function pullVaultStateFromEdge() {
+    try {
+      const res = await fetch(`${API_BASE}/api/vault/pull`, {
+        method: "GET",
+        headers: { "Authorization": `Bearer ${appState.userToken}` }
+      });
+      if (res.status === 200) {
+        const cloudState = await res.json();
+        if (cloudState.categories) appState.categories = cloudState.categories;
+        if (cloudState.profile) appState.profile = cloudState.profile;
+        syncInterfaceStateElements();
+        return true;
       }
-      compoundWeightScores[key].totalScore += positionalValue;
-      compoundWeightScores[key].occurrences += 1;
+    } catch {
+      showToast("Edge recovery fetch timeout. Local backup initialized.");
+    }
+    return false;
+  }
+
+  async function handleUrlVerificationMetrics() {
+    const params = new URLSearchParams(window.location.search);
+    const verifyToken = params.get("verify");
+    if (verifyToken) {
+      showToast("Processing account token confirmation metrics...");
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/verify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: verifyToken })
+        });
+        const payload = await response.json();
+        if (response.status === 200) {
+          localStorage.setItem("vault_token", payload.token);
+          localStorage.setItem("vault_email", payload.email);
+          appState.userToken = payload.token;
+          appState.userEmail = payload.email;
+          
+          showToast("Account validated. Re-indexing architecture maps.");
+          await pullVaultStateFromEdge();
+          window.history.replaceState({}, document.title, window.location.pathname);
+          transitionToView("viewCategories");
+        } else {
+          showToast(`Validation Failed: ${payload.error}`);
+        }
+      } catch {
+        showToast("Network execution fault during verification processing.");
+      }
+    }
+  }
+
+  /* ================= INTERFACE VIEW COMPONENT LISTENERS ================= */
+  function setupGlobalEventListeners() {
+    // Basic Triggers Layout Routing Connections
+    document.getElementById("btnEnterVault").addEventListener("click", () => {
+      const guestCache = localStorage.getItem("guest_categories_cache");
+      if (guestCache) {
+        appState.categories = JSON.parse(guestCache);
+      }
+      transitionToView("viewCategories");
     });
-  }
+    
+    document.getElementById("btnOpenAuth").addEventListener("click", () => openSlidingDrawer("drawerAuth"));
+    document.getElementById("btnGlobalBack").addEventListener("click", handleGlobalBackNavigation);
+    
+    // Burger Menu & Avatar Profiles Drawer Invocation Maps
+    document.getElementById("btnBurgerMenu").addEventListener("click", () => openSlidingDrawer("drawerSettings"));
+    document.getElementById("headerAvatarContainer").addEventListener("click", () => openSlidingDrawer("drawerProfile"));
 
-  processCollectionMatrix(state.vault[categoryName]);
-  eligiblePeers.forEach(peer => processCollectionMatrix(peer.vault[categoryName]));
+    // Dynamic Category Creation Handling Link
+    document.getElementById("btnTriggerAddCategory").addEventListener("click", () => {
+      const allowedCap = appState.isPremium ? 99 : 21;
+      if (appState.categories.length >= allowedCap) {
+        showToast(`Free Tier Allocation Cap Hit (${allowedCap} allowed max). Upgrade system access options in Settings.`);
+        return;
+      }
 
-  const compiledAggregationList = [];
-  for (let identifier in compoundWeightScores) {
-    const node = compoundWeightScores[identifier];
-    compiledAggregationList.push({
-      name: identifier,
-      score: node.totalScore / node.occurrences,
-      link: node.link,
-      media: node.media
+      const title = prompt("Enter Custom Category Name/Title:");
+      if (title && title.trim() !== "") {
+        const cleanTitle = title.trim();
+        appState.categories.push({
+          id: "custom-" + Date.now(),
+          name: cleanTitle,
+          emoji: "📂",
+          isPublic: true,
+          items: []
+        });
+        renderCategoriesGrid();
+        persistStateToCloudEngine();
+      }
     });
+
+    // Profile Inline Settings Configuration Triggers
+    document.querySelectorAll(".edit-field-icon").forEach(icon => {
+      icon.addEventListener("click", (e) => {
+        const inputField = e.target.parentElement.querySelector("input");
+        inputField.disabled = !inputField.disabled;
+        if (!inputField.disabled) {
+          inputField.focus();
+          icon.innerText = "💾";
+        } else {
+          icon.innerText = "✏️";
+          appState.profile.name = document.getElementById("profName").value;
+          appState.profile.dob = document.getElementById("profDob").value;
+          appState.profile.hometown = document.getElementById("profHometown").value;
+          appState.profile.vocation = document.getElementById("profVocation").value;
+          appState.profile.recovery = document.getElementById("profRecovery").value;
+          persistStateToCloudEngine();
+          showToast("Profile data field update cached.");
+        }
+      });
+    });
+
+    document.getElementById("btnSaveProfileData").addEventListener("click", () => {
+      appState.profile.name = document.getElementById("profName").value;
+      appState.profile.dob = document.getElementById("profDob").value;
+      appState.profile.hometown = document.getElementById("profHometown").value;
+      appState.profile.vocation = document.getElementById("profVocation").value;
+      appState.profile.recovery = document.getElementById("profRecovery").value;
+      persistStateToCloudEngine();
+      syncInterfaceStateElements();
+      showToast("All current profile metrics pushed to storage layers.");
+      closeAllDrawers();
+    });
+
+    // Avatar Media Upload Mutation Interceptors
+    document.getElementById("inputAvatarFile").addEventListener("change", function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById("imgAvatarCropPreview").src = e.target.result;
+          openModalWindow("crop");
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+
+    document.getElementById("btnCommitAvatarSizing").addEventListener("click", () => {
+      const rawDataUrl = document.getElementById("imgAvatarCropPreview").src;
+      appState.profile.avatar = rawDataUrl;
+      syncInterfaceStateElements();
+      persistStateToCloudEngine();
+      closeModalWindow();
+      showToast("Avatar image context optimized and saved.");
+    });
+
+    // Authentication Submission Workflows Matrix
+    document.getElementById("btnTogglePasswordVisibility").addEventListener("click", () => {
+      const field = document.getElementById("authPasswordField");
+      field.type = field.type === "password" ? "text" : "password";
+    });
+
+    document.getElementById("btnExecuteSignUp").addEventListener("click", async () => {
+      const email = document.getElementById("authEmailField").value;
+      const pass = document.getElementById("authPasswordField").value;
+      
+      // Strict parameter matching sequence checks
+      const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+      if (!passRegex.test(pass)) {
+        showToast("Error: Password criteria parameters mismatched.");
+        return;
+      }
+
+      showToast("Deploying creation transaction to worker cluster...");
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+        if (res.status === 200) {
+          alert(`Vault activation metrics initialized: ${data.message}`);
+          closeAllDrawers();
+        } else {
+          showToast(`Creation Fault: ${data.error}`);
+        }
+      } catch {
+        showToast("Edge server response verification error.");
+      }
+    });
+
+    document.getElementById("btnExecuteSignIn").addEventListener("click", async () => {
+      const email = document.getElementById("authEmailField").value;
+      const pass = document.getElementById("authPasswordField").value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password: pass })
+        });
+        const data = await res.json();
+        if (res.status === 200) {
+          localStorage.setItem("vault_token", data.token);
+          localStorage.setItem("vault_email", data.email);
+          appState.userToken = data.token;
+          appState.userEmail = data.email;
+          
+          showToast("Handshake approved. Loading network synchronized variables.");
+          await pullVaultStateFromEdge();
+          transitionToView("viewCategories");
+        } else {
+          showToast(`Auth Failure: ${data.error}`);
+        }
+      } catch {
+        showToast("Connection to backend node mapping missing.");
+      }
+    });
+
+    // Settings Configuration Interceptors
+    document.getElementById("btnToggleThemeMode").addEventListener("click", (e) => {
+      document.body.classList.toggle("light-variant");
+      const statusActive = document.body.classList.contains("light-variant");
+      e.target.innerText = statusActive ? "DARK MODE" : "LIGHT MODE";
+    });
+
+    document.getElementById("btnUpgradeTier").addEventListener("click", () => {
+      appState.isPremium = true;
+      localStorage.setItem("vault_premium", "true");
+      showToast("System upgraded to Premium. Storage expansion cap set to 99 lists.");
+      closeAllDrawers();
+    });
+
+    document.getElementById("btnNavigateFriends").addEventListener("click", () => {
+      transitionToView("viewFriends");
+    });
+
+    document.getElementById("btnTriggerVaultWipe").addEventListener("click", () => {
+      openModalWindow("wipe");
+    });
+
+    document.getElementById("btnConfirmVaultWipe").addEventListener("click", () => {
+      localStorage.clear();
+      appState.userToken = null;
+      appState.userEmail = null;
+      appState.isPremium = false;
+      loadDefaultGuestFallbackState();
+      closeModalWindow();
+      closeAllDrawers();
+      transitionToView("viewLanding");
+      showToast("System complete initialization sequence wrapped. Default metrics restored.");
+    });
+
+    // Wire global cancel intercept mappings directly onto layout frameworks
+    document.getElementById("btnCancelWipe").addEventListener("click", closeModalWindow);
+    document.getElementById("btnCancelAvatarCommit").addEventListener("click", closeModalWindow);
+    document.getElementById("btnCancelFriendAction").addEventListener("click", closeModalWindow);
+    
+    document.getElementById("btnSubmitFriendAction").addEventListener("click", () => {
+      const selected = Array.from(document.querySelectorAll("input[name='friendCompareTargets']:checked")).map(c => c.value);
+      const activeMode = document.getElementById("btnSubmitFriendAction").dataset.mode;
+      const catCtx = document.getElementById("btnSubmitFriendAction").dataset.catId;
+
+      if (selected.length === 0) {
+        showToast("Operation suspended: Zero target network profile contexts selected.");
+        return;
+      }
+
+      closeModalWindow();
+      if (activeMode === "compare") executeComparisonMatrixCalculation(catCtx, selected);
+      if (activeMode === "fuse") executeFusedMatrixFormula(catCtx, selected);
+    });
+
+    // Universal Overlay Close Triggers
+    drawerOverlay.addEventListener("click", closeAllDrawers);
+    document.querySelectorAll(".close-drawer-x").forEach(x => x.addEventListener("click", closeAllDrawers));
   }
 
-  compiledAggregationList.sort((a,b) => b.score - a.score);
-  const finalTopTenOutput = compiledAggregationList.slice(0, 10);
-
-  if (finalTopTenOutput.length === 0) {
-    outputContainer.innerHTML = `<div style="text-align:center; padding:40px; color:var(--text-muted);">No common network metrics to compute.</div>`;
-    return;
+  /* ================= VISUAL SYSTEM EFFECT WINDOW CONTROLS ================= */
+  function openSlidingDrawer(drawerId) {
+    closeAllDrawers();
+    drawerOverlay.classList.remove("hidden");
+    document.getElementById(drawerId).classList.remove("hidden");
   }
 
-  finalTopTenOutput.forEach((fusedItem, idx) => {
-    const row = document.createElement("div");
-    row.className = "item-row-wrapper-node";
-    const thumbSrc = fusedItem.media || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='44' height='44'><rect width='44' height='44' fill='%23222'/></svg>";
+  function closeAllDrawers() {
+    drawerOverlay.classList.add("hidden");
+    document.querySelectorAll(".sliding-panel-drawer").forEach(d => d.classList.add("hidden"));
+  }
 
-    row.innerHTML = `
-      <div class="item-leading-rank-index" style="color:var(--gold-primary);"><span>#</span>${idx + 1}</div>
-      <div class="item-core-title-label">${fusedItem.name} <span style="font-size:12px; color:var(--text-muted); font-weight:normal; margin-left:12px;">(Score: ${fusedItem.score.toFixed(2)})</span></div>
-      <a href="${fusedItem.link}" target="_blank" class="item-anchor-reference-link">Reference Link</a>
-      <img src="${thumbSrc}" class="item-circular-thumbnail-frame">
-    `;
-    outputContainer.appendChild(row);
-  });
-};
+  function openModalWindow(mode, targetCategoryId = null) {
+    modalShade.classList.remove("hidden");
+    document.querySelectorAll(".center-dialog-modal").forEach(m => m.classList.add("hidden"));
+    
+    if (mode === "crop") document.getElementById("modalAvatarCrop").classList.remove("hidden");
+    if (mode === "wipe") document.getElementById("modalWipeConfirmation").classList.remove("hidden");
+    if (mode === "compare" || mode === "fuse") {
+      document.getElementById("modalFriendActionSelector").classList.remove("hidden");
+      const subBtn = document.getElementById("btnSubmitFriendAction");
+      subBtn.dataset.mode = mode;
+      subBtn.dataset.catId = targetCategoryId;
+    }
+  }
+
+  function closeModalWindow() {
+    modalShade.classList.add("hidden");
+  }
+
+  function showToast(msg) {
+    toastNotification.innerText = msg;
+    toastNotification.classList.remove("hidden");
+    setTimeout(() => {
+      toastNotification.classList.add("hidden");
+    }, 4500);
+  }
+
+  // Engage system boot routine sequences
+  window.addEventListener("DOMContentLoaded", initApplication);
+})();
