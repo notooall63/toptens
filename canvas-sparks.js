@@ -1,85 +1,102 @@
+/**
+ * Matrix Particle Propulsion Canvas Engine
+ * Renders diamond-like sparkling anomalies traversing the golden accent background layout layers
+ */
 (function() {
-  const canvas = document.getElementById("sparkCanvas");
-  const ctx = canvas.getContext("2d");
-
-  let width = canvas.width = window.innerWidth;
-  let height = canvas.height = window.innerHeight;
-
-  window.addEventListener("resize", () => {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
-  });
-
-  class SparkleParticle {
-    constructor() {
-      this.reset();
-    }
-    reset() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * height;
-      this.size = Math.random() * 2 + 0.5;
-      this.alpha = Math.random() * 0.4;
-      this.sparkleVelocity = Math.random() * 0.02 + 0.005;
-      this.glowPhase = Math.random() * Math.PI;
-    }
-    update() {
-      this.glowPhase += this.sparkleVelocity;
-      this.alpha = (Math.sin(this.glowPhase) + 1) * 0.4;
-      if (this.glowPhase > Math.PI * 2) {
-        this.reset();
-      }
-    }
-    draw() {
-      ctx.save();
-      ctx.globalAlpha = this.alpha;
-      ctx.fillStyle = "#ffffff";
-      // Render starburst cross hairs for diamonds
-      ctx.fillRect(this.x, this.y, this.size, this.size);
-      if (this.alpha > 0.6) {
-        ctx.fillStyle = "#f3d078";
-        ctx.fillRect(this.x - 2, this.y + 1, this.size + 4, 1);
-        ctx.fillRect(this.x + 1, this.y - 2, 1, this.size + 4);
-      }
-      ctx.restore();
-    }
-  }
-
-  const particlePool = Array.from({ length: 85 }, () => new SparkleParticle());
-
-  // Gold Flow Vector Configuration Background Variables
-  let ambientTime = 0;
-
-  function renderLoop() {
-    ctx.clearRect(0, 0, width, height);
-
-    // Render underlying flowing ambient liquid gold gradient
-    ambientTime += 0.002;
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    const flowOffset = (Math.sin(ambientTime) + 1) * 10;
+    const canvas = document.getElementById('spark-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     
-    // Check if the light variant theme modifier is deployed to adjust gradient calculations
-    const lightActive = document.body.classList.contains("light-variant");
-    if (lightActive) {
-      gradient.addColorStop(0, "rgba(241,243,245,1)");
-      gradient.addColorStop(0.5, "rgba(233,236,239,1)");
-      gradient.addColorStop(1, "rgba(222,226,230,1)");
-    } else {
-      gradient.addColorStop(0, "rgba(10,13,20,1)");
-      gradient.addColorStop(0.5, `rgba(${14 + flowOffset},${18 + flowOffset},30,1)`);
-      gradient.addColorStop(1, "rgba(6,8,12,1)");
+    let particles = [];
+    const maxParticles = 65;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
     }
-    
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
 
-    // Apply diamond sparkling particles overlay
-    particlePool.forEach(spark => {
-      spark.update();
-      spark.draw();
-    });
+    class Particle {
+        constructor() {
+            this.reset();
+        }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2.5 + 0.5;
+            this.baseAlpha = Math.random() * 0.4 + 0.1;
+            this.alpha = this.baseAlpha;
+            this.speedY = -(Math.random() * 0.4 + 0.1);
+            this.speedX = (Math.random() * 0.3 - 0.15);
+            this.pulseSpeed = Math.random() * 0.02 + 0.005;
+            this.pulsePhase = Math.random() * Math.PI;
+        }
+        update() {
+            this.y += this.speedY;
+            this.x += this.speedX;
+            this.pulsePhase += this.pulseSpeed;
+            // Mathematical pulse fluctuation simulation
+            this.alpha = this.baseAlpha + Math.sin(this.pulsePhase) * 0.2;
+            
+            if (this.y < 0 || this.x < 0 || this.x > canvas.width) {
+                this.reset();
+                this.y = canvas.height;
+            }
+        }
+        draw() {
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, this.alpha);
+            ctx.fillStyle = '#ffffff';
+            // Render specialized vector diamond pinpoint anomaly geometry
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y - this.size);
+            ctx.lineTo(this.x + this.size, this.y);
+            ctx.lineTo(this.x, this.y + this.size);
+            ctx.lineTo(this.x - this.size, this.y);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Add golden bloom aura trace
+            ctx.fillStyle = '#d4af37';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size * 1.8, 0, Math.PI * 2);
+            ctx.globalAlpha = Math.max(0, this.alpha * 0.3);
+            ctx.fill();
+            ctx.restore();
+        }
+    }
 
-    requestAnimationFrame(renderLoop);
-  }
+    for (let i = 0; i < maxParticles; i++) {
+        particles.push(new Particle());
+    }
 
-  renderLoop();
+    function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Render secondary underlying smooth background gold glow gradients
+        ctx.save();
+        let gradient = ctx.createRadialGradient(
+            canvas.width / 2, canvas.height * 0.8, 10,
+            canvas.width / 2, canvas.height * 0.8, Math.max(canvas.width, canvas.height)
+        );
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        if (isDarkMode) {
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.03)');
+            gradient.addColorStop(1, 'rgba(10, 14, 20, 0)');
+        } else {
+            gradient.addColorStop(0, 'rgba(212, 175, 55, 0.02)');
+            gradient.addColorStop(1, 'rgba(248, 250, 252, 0)');
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
 })();

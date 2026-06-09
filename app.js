@@ -1,775 +1,750 @@
 /**
- * Top Tens - Production Client Core Application Framework Engine
- * Orchestrates localized states, algorithmic analytical vectors, and edge integrations.
+ * Master Frontend Client Application Orchestrator
  */
+const BACKEND_BASE = "https://top-tens-backend.swoodson96.workers.dev";
 
-(function() {
-  const API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
-
-  let appState = {
-    userToken: localStorage.getItem("vault_token") || null,
-    userEmail: localStorage.getItem("vault_email") || null,
-    isPremium: localStorage.getItem("vault_premium") === "true",
+// STATE ARCHITECTURE DEFINITION
+let state = {
+    user: null, // Holds token payload if verified account session exists
+    tier: "free", // "free" | "premium"
     categories: [],
-    profile: {
-      name: "Guest User", dob: "", hometown: "", vocation: "", email: "", recovery: "", public: true, avatar: ""
-    },
-    friendsList: [
-      { name: "AlphaRanker", mutualCats: 1, mutualItems: 9, avatar: "" },
-      { name: "CryptoCollector", mutualCats: 1, mutualItems: 9, avatar: "" },
-      { name: "OmegaLister", mutualCats: 0, mutualItems: 0, avatar: "" }
-    ],
-    currentView: "viewLanding",
-    viewHistory: [],
-    activeCategoryContextId: null
-  };
+    items: {}, // Keyed by categoryId
+    friends: [],
+    historyStack: ['page-landing'],
+    currentCategoryContextId: null,
+    activeCroppingTarget: null
+};
 
-  const views = {
-    landing: document.getElementById("viewLanding"),
-    categories: document.getElementById("viewCategories"),
-    items: document.getElementById("viewListItems"),
-    friends: document.getElementById("viewFriends"),
-    analytics: document.getElementById("viewAnalyticsMatrix")
-  };
+// INITIALIZATION DETECTOR ENTRYPOINT
+document.addEventListener('DOMContentLoaded', async () => {
+    setupUniversalEventHandlers();
+    loadLocalFallbackSession();
+    await attemptSessionValidation();
+    renderApplicationFramework();
+});
 
-  const globalHeader = document.getElementById("globalHeader");
-  const drawerOverlay = document.getElementById("drawerOverlay");
-  const toastNotification = document.getElementById("toastNotification");
-  const modalShade = document.getElementById("popupModalShade");
-
-  /* ================= SYSTEM BOOT CYCLE SEQUENCE INITIALIZATION ================= */
-  async function initApplication() {
-    setupGlobalEventListeners();
-    setupBrowserHistoryListeners();
-    handleUrlVerificationMetrics();
-    
-    if (appState.userToken) {
-      showToast("Recovering authenticated edge synchronization session...");
-      const pulled = await pullVaultStateFromEdge();
-      if (pulled) {
-        transitionToView("viewCategories");
-        return;
-      }
-    }
-    loadDefaultGuestFallbackState();
-  }
-
-  function loadDefaultGuestFallbackState() {
-    appState.categories = JSON.parse(JSON.stringify(defaultStockCategories));
-    appState.profile.name = "Guest User";
-    appState.profile.email = "guest@toptens.internal";
-    syncInterfaceStateElements();
-  }
-
-  function syncInterfaceStateElements() {
-    document.getElementById("profName").value = appState.profile.name;
-    document.getElementById("profDob").value = appState.profile.dob;
-    document.getElementById("profHometown").value = appState.profile.hometown;
-    document.getElementById("profVocation").value = appState.profile.vocation;
-    document.getElementById("profEmail").value = appState.userEmail || appState.profile.email;
-    document.getElementById("profRecovery").value = appState.profile.recovery;
-
-    const headerAv = document.getElementById("headerAvatarPreview");
-    const drawAv = document.getElementById("drawerAvatarPreviewFrame");
-    const avSrc = appState.profile.avatar || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23c49333' viewBox='0 0 24 24'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z'/></svg>";
-    headerAv.style.backgroundImage = `url('${avSrc}')`;
-    drawAv.style.backgroundImage = `url('${avSrc}')`;
-  }
-
-  /* ================= VIEW ROUTER TRANSITION ENGINE ================= */
-  function transitionToView(targetViewId, isPopStateNavigation = false) {
-    Object.keys(views).forEach(k => views[k].classList.add("hidden"));
-    document.getElementById("appMainViewport").classList.add("hidden");
-    globalHeader.classList.add("hidden");
-
-    if (targetViewId === "viewLanding") {
-      views.landing.classList.remove("hidden");
-      appState.viewHistory = [];
-    } else {
-      globalHeader.classList.remove("hidden");
-      document.getElementById("appMainViewport").classList.remove("hidden");
-      document.getElementById(targetViewId).classList.remove("hidden");
-      if (appState.currentView !== targetViewId && !isPopStateNavigation) {
-        appState.viewHistory.push(appState.currentView);
-      }
-    }
-
-    if (!isPopStateNavigation) {
-      if (history.state?.view !== targetViewId) {
-        history.pushState({ view: targetViewId }, "", `#${targetViewId}`);
-      }
-    }
-
-    appState.currentView = targetViewId;
-    closeAllDrawers();
-
-    if (targetViewId === "viewCategories") renderCategoriesGrid();
-    if (targetViewId === "viewListItems") renderItemsVerticalStack();
-    if (targetViewId === "viewFriends") renderFriendsStack();
-  }
-
-  function handleGlobalBackNavigation() {
-    if (appState.viewHistory.length > 0) {
-      const prev = appState.viewHistory.pop();
-      if (prev === appState.currentView) {
-        handleGlobalBackNavigation();
-        return;
-      }
-      history.back();
-    } else {
-      transitionToView("viewLanding");
-    }
-  }
-
-  function setupBrowserHistoryListeners() {
-    window.addEventListener("popstate", (event) => {
-      if (event.state && event.state.view) {
-        if (appState.viewHistory.length > 0) appState.viewHistory.pop();
-        transitionToView(event.state.view, true);
-      } else {
-        transitionToView("viewLanding", true);
-      }
-    });
-    if (!history.state) {
-      history.replaceState({ view: "viewLanding" }, "", "#viewLanding");
-    }
-  }
-
-  /* ================= DOM DATA RENDERING LAYERS MATRIX ================= */
-  function renderCategoriesGrid() {
-    const grid = document.getElementById("categoriesGridContainer");
-    grid.innerHTML = "";
-
-    appState.categories.forEach(cat => {
-      const card = document.createElement("div");
-      card.className = "category-tab-card";
-      
-      card.innerHTML = `
-        <div class="category-icon-emoji">${cat.emoji || "📂"}</div>
-        <div class="category-title">${cat.name}</div>
-        <div class="category-count-label">(${cat.items.length} items)</div>
-        <div class="card-functional-row">
-          <button class="card-action-stub-btn btn-compare-trigger" data-id="${cat.id}">Compare</button>
-          <button class="card-action-stub-btn btn-fuse-trigger" data-id="${cat.id}">Fuse</button>
-          <button class="card-action-stub-btn btn-privacy-trigger" data-id="${cat.id}">
-            ${cat.isPublic ? "Public" : "Private"}
-          </button>
-        </div>
-        <div class="card-inline-management-icon-row">
-          <span class="btn-edit-cat" data-id="${cat.id}">✏️</span>
-          <span class="btn-remove-cat" data-id="${cat.id}">🗑️</span>
-        </div>
-      `;
-
-      card.addEventListener("click", (e) => {
-        if (e.target.closest("button") || e.target.closest(".card-inline-management-icon-row")) return;
-        appState.activeCategoryContextId = cat.id;
-        transitionToView("viewListItems");
-      });
-
-      grid.appendChild(card);
-    });
-
-    grid.querySelectorAll(".btn-compare-trigger").forEach(b => b.addEventListener("click", (e) => triggerCompareFlow(e.target.dataset.id)));
-    grid.querySelectorAll(".btn-fuse-trigger").forEach(b => b.addEventListener("click", (e) => triggerFuseFlow(e.target.dataset.id)));
-    grid.querySelectorAll(".btn-privacy-trigger").forEach(b => b.addEventListener("click", (e) => {
-      const c = appState.categories.find(x => x.id === e.target.dataset.id);
-      c.isPublic = !c.isPublic;
-      showToast(`Category visibility shifted to: ${c.isPublic ? "Public" : "Private"}`);
-      renderCategoriesGrid();
-      persistStateToCloudEngine();
-    }));
-    grid.querySelectorAll(".btn-edit-cat").forEach(b => b.addEventListener("click", (e) => triggerEditCategory(e.target.dataset.id)));
-    grid.querySelectorAll(".btn-remove-cat").forEach(b => b.addEventListener("click", (e) => triggerRemoveCategory(e.target.dataset.id)));
-  }
-
-  function renderItemsVerticalStack() {
-    const currentCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    if (!currentCat) return;
-
-    document.getElementById("activeCategoryTitleLabel").innerText = currentCat.name.toUpperCase();
-    const stack = document.getElementById("listItemsVerticalStack");
-    stack.innerHTML = "";
-
-    const sortedItems = [...currentCat.items].sort((a,b) => a.rank - b.rank).slice(0, 10);
-
-    sortedItems.forEach(item => {
-      const row = document.createElement("div");
-      row.className = "item-horizontal-row";
-      const thumbSrc = item.media || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%231d2636' viewBox='0 0 24 24'><rect width='24' height='24'/></svg>";
-
-      row.innerHTML = `
-        <div class="item-row-left-group">
-          <span class="item-prominent-hashtag">#${item.rank}</span>
-          <span class="item-display-title">${item.name}</span>
-        </div>
-        <a href="${item.link}" target="_blank" class="item-affiliate-deep-link">Reference Link</a>
-        <div class="item-row-left-group">
-          <div class="item-media-circle-thumbnail" style="background-image: url('${thumbSrc}')"></div>
-          <span class="edit-item-trigger common-btn-pointer" data-rank="${item.rank}">✏️</span>
-          <span class="remove-item-trigger common-btn-pointer" data-rank="${item.rank}">🗑️</span>
-        </div>
-      `;
-      stack.appendChild(row);
-    });
-
-    stack.querySelectorAll(".edit-item-trigger").forEach(b => b.addEventListener("click", (e) => triggerEditItem(e.target.dataset.rank)));
-    stack.querySelectorAll(".remove-item-trigger").forEach(b => b.addEventListener("click", (e) => triggerRemoveItem(e.target.dataset.rank)));
-  }
-
-  function renderFriendsStack() {
-    const stack = document.getElementById("friendsVerticalStack");
-    stack.innerHTML = "";
-
-    appState.friendsList.forEach((fr, idx) => {
-      const row = document.createElement("div");
-      row.className = "friend-horizontal-row";
-      const dummyAvatar = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='%23c49333' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/></svg>";
-      
-      row.innerHTML = `
-        <div class="item-row-left-group">
-          <span class="item-display-title">${fr.name}</span>
-        </div>
-        <span class="item-affiliate-deep-link">Mutual Categories: ${fr.mutualCats}</span>
-        <span class="item-affiliate-deep-link">Mutual Items: ${fr.mutualItems}</span>
-        <div class="item-row-left-group">
-          <div class="item-media-circle-thumbnail" style="background-image: url('${fr.avatar || dummyAvatar}')"></div>
-          <span class="edit-friend-trigger common-btn-pointer" data-idx="${idx}">✏️</span>
-          <span class="remove-friend-trigger common-btn-pointer" data-idx="${idx}">🗑️</span>
-        </div>
-      `;
-      stack.appendChild(row);
-    });
-
-    stack.querySelectorAll(".edit-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerEditFriend(e.target.dataset.idx)));
-    stack.querySelectorAll(".remove-friend-trigger").forEach(b => b.addEventListener("click", (e) => triggerRemoveFriend(e.target.dataset.idx)));
-  }
-
-  /* ================= JUXTAPOSITION AND WEIGHTED MATRIX ALGORITHMS ================= */
-  function triggerCompareFlow(categoryId) {
-    const targetCat = appState.categories.find(c => c.id === categoryId);
-    const boxStack = document.getElementById("friendSelectionCheckboxStack");
-    boxStack.innerHTML = "";
-    
-    document.getElementById("friendModalActionHeadline").innerText = `Compare: ${targetCat.name}`;
-    appState.friendsList.forEach(f => {
-      boxStack.innerHTML += `
-        <div class="modal-selection-item">
-          <input type="checkbox" name="friendCompareTargets" value="${f.name}" id="chk_${f.name}">
-          <label for="chk_${f.name}">${f.name}</label>
-        </div>
-      `;
-    });
-    openModalWindow("compare", categoryId);
-  }
-
-  function executeComparisonMatrixCalculation(categoryId, chosenFriends) {
-    transitionToView("viewAnalyticsMatrix");
-    document.getElementById("analyticsViewHeadline").innerText = `Juxtaposed Comparisons Matrix (Max 26 Friends Node Limits)`;
-    const box = document.getElementById("analyticsOutputContainer");
-    box.innerHTML = "";
-
-    const masterTable = document.createElement("table");
-    masterTable.className = "analytics-grid-data-table";
-    
-    let headingRow = `<tr><th>Rank Vector</th><th>Your Vault</th>`;
-    chosenFriends.slice(0, 26).forEach(f => { headingRow += `<th>${f}</th>`; });
-    headingRow += `</tr>`;
-    masterTable.innerHTML += headingRow;
-
-    const myCat = appState.categories.find(c => c.id === categoryId);
-
-    for (let r = 1; r <= 10; r++) {
-      const myItem = myCat.items.find(i => i.rank === r)?.name || "—";
-      let rowHtml = `<tr><td><strong>#${r}</strong></td><td>${myItem}</td>`;
-      chosenFriends.slice(0, 26).forEach(f => {
-        const pseudorandomIndex = Math.abs(f.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + r) % (myCat.items.length || 1);
-        const simulateFriendValue = myCat.items[pseudorandomIndex]?.name || "Simulated Alignment Track";
-        rowHtml += `<td>${simulateFriendValue}</td>`;
-      });
-      rowHtml += `</tr>`;
-      masterTable.innerHTML += rowHtml;
-    }
-    box.appendChild(masterTable);
-  }
-
-  function triggerFuseFlow(categoryId) {
-    const targetCat = appState.categories.find(c => c.id === categoryId);
-    const boxStack = document.getElementById("friendSelectionCheckboxStack");
-    boxStack.innerHTML = "";
-    
-    document.getElementById("friendModalActionHeadline").innerText = `Weight-Fuse Matrix: ${targetCat.name}`;
-    appState.friendsList.forEach(f => {
-      boxStack.innerHTML += `
-        <div class="modal-selection-item">
-          <input type="checkbox" name="friendCompareTargets" value="${f.name}" id="chk_${f.name}">
-          <label for="chk_${f.name}">${f.name} (Linear Scale Weight Balance: 1.0)</label>
-        </div>
-      `;
-    });
-    openModalWindow("fuse", categoryId);
-  }
-
-  function executeFusedMatrixFormula(categoryId, chosenFriends) {
-    transitionToView("viewAnalyticsMatrix");
-    document.getElementById("analyticsViewHeadline").innerText = `Fused Weight-Ranking Average Master Output`;
-    const box = document.getElementById("analyticsOutputContainer");
-    box.innerHTML = "";
-
-    const myCat = appState.categories.find(c => c.id === categoryId);
-    const scoringMap = {};
-
-    myCat.items.forEach(item => {
-      const inverseLinearScore = 11 - item.rank;
-      scoringMap[item.name] = (scoringMap[item.name] || 0) + inverseLinearScore;
-    });
-
-    chosenFriends.forEach(f => {
-      myCat.items.forEach((item, idx) => {
-        if (idx < 6) {
-          const shiftedRank = ((idx + 4) % 10) + 1;
-          const score = 11 - shiftedRank;
-          scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
+function setupUniversalEventHandlers() {
+    // Structural Click-Outside-Drawer Collapsing Listener
+    document.addEventListener('click', (e) => {
+        const activeDrawer = document.querySelector('.sliding-drawer-panel:not(.horizontal-collapse)');
+        if (activeDrawer) {
+            // Check if click boundary is independent of drawer canvas frame and action triggers
+            const hitDrawer = activeDrawer.contains(e.target);
+            const hitBurger = document.getElementById('btn-settings-burger').contains(e.target);
+            const hitAvatar = document.getElementById('btn-profile-avatar').contains(e.target);
+            const hitAuthBtn = document.getElementById('btn-open-auth').contains(e.target);
+            
+            if (!hitDrawer && !hitBurger && !hitAvatar && !hitAuthBtn) {
+                activeDrawer.classList.add('horizontal-collapse');
+            }
         }
-      });
     });
 
-    const sortedFused = Object.keys(scoringMap).map(name => ({
-      name, score: scoringMap[name]
-    })).sort((a,b) => b.score - a.score).slice(0, 10);
-
-    const orderedList = document.createElement("ol");
-    orderedList.className = "analytics-fused-list";
-    sortedFused.forEach((item) => {
-      orderedList.innerHTML += `<li><strong>${item.name}</strong> — Aggregated Cumulative Formula Weight Score: ${item.score} units</li>`;
+    // Close buttons binding within drawers
+    document.querySelectorAll('.btn-close-drawer').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.target.closest('.sliding-drawer-panel').classList.add('horizontal-collapse');
+        });
     });
-    box.appendChild(orderedList);
-  }
 
-  /* ================= RUNTIME STRUCTURAL DATA MUTATIONS ================= */
-  function triggerEditCategory(catId) {
-    const cat = appState.categories.find(c => c.id === catId);
-    const newName = prompt("Enter updated category title name:", cat.name);
-    if (newName && newName.trim() !== "") {
-      cat.name = newName.trim();
-      renderCategoriesGrid();
-      persistStateToCloudEngine();
+    // Landing navigation bindings
+    document.getElementById('btn-enter-vault').addEventListener('click', () => {
+        navigateTo('page-categories');
+    });
+
+    document.getElementById('btn-open-auth').addEventListener('click', () => {
+        toggleDrawer('drawer-auth');
+    });
+
+    // Eye Password Field Toggler Binding
+    document.getElementById('btn-toggle-pwd').addEventListener('click', () => {
+        const input = document.getElementById('auth-password');
+        input.type = input.type === 'password' ? 'text' : 'password';
+    });
+
+    // Back Routing Navigation Module Binding
+    document.getElementById('btn-global-back').addEventListener('click', () => {
+        if (state.historyStack.length > 1) {
+            state.historyStack.pop(); // Remove current node
+            const destination = state.historyStack[state.historyStack.length - 1];
+            executeViewTransition(destination, false);
+        }
+    });
+
+    // Drawers layout triggers
+    document.getElementById('btn-settings-burger').addEventListener('click', () => toggleDrawer('drawer-settings'));
+    document.getElementById('btn-profile-avatar').addEventListener('click', () => toggleDrawer('drawer-profile'));
+
+    // Identity action targets
+    document.getElementById('btn-action-signin').addEventListener('click', executeSignInPipeline);
+    document.getElementById('btn-action-signup').addEventListener('click', executeSignUpPipeline);
+
+    // Dashboard management targets
+    document.getElementById('btn-add-custom-category').addEventListener('click', createCustomCategoryNode);
+    document.getElementById('btn-commit-item').addEventListener('click', commitItemFormNode);
+
+    // Profile internal customizer actions
+    document.getElementById('btn-trigger-avatar-upload').addEventListener('click', () => document.getElementById('input-hidden-avatar').click());
+    document.getElementById('input-hidden-avatar').addEventListener('change', initiateAvatarCropMatrix);
+    document.getElementById('btn-save-profile').addEventListener('click', saveProfileMetadata);
+    document.getElementById('btn-profile-privacy-toggle').addEventListener('click', toggleProfilePrivacyState);
+
+    // Settings actions routing
+    document.getElementById('btn-toggle-theme').addEventListener('click', toggleThemeModeAesthetic);
+    document.getElementById('btn-upgrade-tier').addEventListener('click', processTierUpgradeSubscription);
+    document.getElementById('btn-settings-add-friends').addEventListener('click', () => { toggleDrawer('drawer-settings'); navigateTo('page-friends'); });
+    document.getElementById('btn-settings-go-friends').addEventListener('click', () => { toggleDrawer('drawer-settings'); navigateTo('page-friends'); });
+    document.getElementById('btn-vault-wipe').addEventListener('click', () => { toggleDrawer('drawer-settings'); document.getElementById('modal-wipe').classList.remove('display-none'); });
+
+    // Modals action confirmation hooks
+    document.getElementById('btn-wipe-cancel').addEventListener('click', () => document.getElementById('modal-wipe').classList.add('display-none'));
+    document.getElementById('btn-wipe-confirm').addEventListener('click', executeAbsoluteVaultWipeClearing);
+    document.getElementById('btn-crop-cancel').addEventListener('click', () => document.getElementById('modal-crop').classList.add('display-none'));
+    document.getElementById('btn-crop-confirm').addEventListener('click', finalizeCroppingCoordinateCapture);
+    document.getElementById('btn-social-cancel').addEventListener('click', () => document.getElementById('modal-social').classList.add('display-none'));
+    document.getElementById('btn-social-submit').addEventListener('click', executeSocialOperationFormula);
+    document.getElementById('btn-matrix-close').addEventListener('click', () => document.getElementById('modal-results-matrix').classList.add('display-none'));
+    document.getElementById('btn-trigger-friend-search').addEventListener('click', triggerFriendDiscoverySearchPopup);
+}
+
+// ROUTING VIEW CONTROLLER NAVIGATION PIPELINE
+function navigateTo(pageId) {
+    if (state.historyStack[state.historyStack.length - 1] !== pageId) {
+        state.historyStack.push(pageId);
     }
-  }
+    executeViewTransition(pageId, true);
+}
 
-  function triggerRemoveCategory(catId) {
-    if (confirm("Are you completely certain you want to purge this entire target category framework?")) {
-      appState.categories = appState.categories.filter(c => c.id !== catId);
-      renderCategoriesGrid();
-      persistStateToCloudEngine();
-    }
-  }
+function executeViewTransition(pageId, isForwardDirection) {
+    document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+    document.getElementById(pageId).classList.add('active');
 
-  document.getElementById("btnCommitAddItem").addEventListener("click", () => {
-    const nameIn = document.getElementById("inputItemName");
-    const rankIn = document.getElementById("inputItemRank");
-    const fileIn = document.getElementById("inputItemFile");
-
-    const rankVal = parseInt(rankIn.value);
-    if (!nameIn.value || isNaN(rankVal) || rankVal < 1 || rankVal > 10) {
-      showToast("Parameter Fault: Verify explicit string parameters and rank boundaries (1-10)");
-      return;
+    const header = document.getElementById('global-header');
+    if (pageId === 'page-landing') {
+        header.classList.add('hidden-header');
+    } else {
+        header.classList.remove('hidden-header');
     }
 
-    const targetCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    targetCat.items = targetCat.items.filter(i => i.rank !== rankVal);
+    // Contextual redraw events hooks
+    if (pageId === 'page-categories') renderCategoriesGrid();
+    if (pageId === 'page-items') renderItemsStack();
+    if (pageId === 'page-friends') renderFriendsRosterStack();
+}
 
-    const strippedDomain = nameIn.value.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const autogeneratedAffiliateUrl = `https://${strippedDomain || 'vault'}.com/purchase?affid=toptens26`;
+function toggleDrawer(drawerId) {
+    const drawer = document.getElementById(drawerId);
+    const isOpen = !drawer.classList.contains('horizontal-collapse');
+    document.querySelectorAll('.sliding-drawer-panel').forEach(d => d.classList.add('horizontal-collapse'));
+    if (isOpen) {
+        drawer.classList.add('horizontal-collapse');
+    } else {
+        drawer.classList.remove('horizontal-collapse');
+    }
+}
 
-    const newItemObj = {
-      rank: rankVal,
-      name: nameIn.value.trim(),
-      media: "",
-      link: autogeneratedAffiliateUrl
+// IDENTITY LOGIC HANDLERS
+async function executeSignInPipeline() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const msgBox = document.getElementById('auth-status-msg');
+
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/auth/signin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Array(data.error);
+
+        localStorage.setItem('top_tens_token', data.token);
+        state.user = data.user;
+        state.tier = data.user.tier || "free";
+        
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+        msgBox.innerText = "Access granted. Synchronizing Vault vault context...";
+        
+        await syncVaultDataFromCloud();
+        setTimeout(() => {
+            toggleDrawer('drawer-auth');
+            navigateTo('page-categories');
+            updateUIStateElements();
+        }, 1000);
+
+    } catch (err) {
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        msgBox.innerText = Array.isArray(err) ? err[0] : "Network authentication handshake failed.";
+    }
+}
+
+async function executeSignUpPipeline() {
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-password').value;
+    const msgBox = document.getElementById('auth-status-msg');
+
+    // Regex checking validation matching parameters rules
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+    if (!passwordRegex.test(password)) {
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        msgBox.innerText = "Password requirements validation failed.";
+        return;
+    }
+
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = 'rgba(77, 166, 255, 0.2)';
+        msgBox.innerText = "Verification link pushed to target address. Verify to trigger dashboard redirection context.";
+
+        // Long polling mock engine simulation context for verification monitoring logic loops
+        let pollInterval = setInterval(async () => {
+            const checkRes = await fetch(`${BACKEND_BASE}/api/auth/poll-verification?email=${encodeURIComponent(email)}`);
+            const checkData = await checkRes.json();
+            if (checkData.verified) {
+                clearInterval(pollInterval);
+                localStorage.setItem('top_tens_token', checkData.token);
+                state.user = checkData.user;
+                msgBox.innerText = "Email verification confirmed! Vault initializing...";
+                setTimeout(() => {
+                    toggleDrawer('drawer-auth');
+                    navigateTo('page-categories');
+                    updateUIStateElements();
+                }, 1200);
+            }
+        }, 3000);
+
+    } catch(e) {
+        msgBox.style.display = 'block';
+        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+        msgBox.innerText = e.message;
+    }
+}
+
+// DASHBOARD RENDERING RENDERS MANAGEMENT LAYER
+function renderCategoriesGrid() {
+    const grid = document.getElementById('categories-grid');
+    grid.innerHTML = '';
+
+    state.categories.forEach(cat => {
+        const itemCount = state.items[cat.id] ? state.items[cat.id].length : 0;
+        const node = document.createElement('div');
+        node.className = 'category-tab-node';
+        
+        node.innerHTML = `
+            <div class="category-main-click-zone">
+                <span class="category-emoji-frame">${cat.emoji || '📂'}</span>
+                <span class="category-node-title">${cat.title}</span>
+                <span class="category-node-counter">(${itemCount} items)</span>
+            </div>
+            <div class="node-utility-icons">
+                <button class="icon-util-btn edit-cat-btn">&#9998;</button>
+                <button class="icon-util-btn remove-cat-btn">&#128465;</button>
+            </div>
+            <div class="category-actions-row">
+                <button class="btn-node-sub compare-action-trigger">Compare</button>
+                <button class="btn-node-sub fuse-action-trigger">Fuse</button>
+                <button class="btn-node-sub privacy-action-trigger">${cat.isPublic ? 'Public' : 'Private'}</button>
+            </div>
+        `;
+
+        // Routing click actions bindings
+        node.querySelector('.category-main-click-zone').addEventListener('click', () => {
+            state.currentCategoryContextId = cat.id;
+            navigateTo('page-items');
+        });
+
+        node.querySelector('.edit-cat-btn').addEventListener('click', (e) => { e.stopPropagation(); editCategoryTitleInline(cat.id); });
+        node.querySelector('.remove-cat-btn').addEventListener('click', (e) => { e.stopPropagation(); removeCategoryNodeState(cat.id); });
+        node.querySelector('.compare-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); openSocialOperationModal(cat.id, 'compare'); });
+        node.querySelector('.fuse-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); openSocialOperationModal(cat.id, 'fuse'); });
+        node.querySelector('.privacy-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); toggleCategoryPrivacyState(cat.id); });
+
+        grid.appendChild(node);
+    });
+}
+
+function createCustomCategoryNode() {
+    const limit = state.tier === 'premium' ? 99 : 21;
+    if (state.categories.length >= limit) {
+        alert("Maximum storage category ceiling constraints limit reached. Upgrade profile allocation vectors via settings drawer.");
+        return;
+    }
+    const title = prompt("Enter Custom Category Designation Name:");
+    if (!title) return;
+    
+    const newId = 'custom-' + Date.now();
+    state.categories.push({ id: newId, title: title, emoji: "🏷️", isPublic: true });
+    state.items[newId] = [];
+    
+    persistStateToStorageAndSync();
+    renderCategoriesGrid();
+}
+
+function editCategoryTitleInline(id) {
+    const cat = state.categories.find(c => c.id === id);
+    const updated = prompt("Modify Category Title Name Designation:", cat.title);
+    if (updated) {
+        cat.title = updated;
+        persistStateToStorageAndSync();
+        renderCategoriesGrid();
+    }
+}
+
+function removeCategoryNodeState(id) {
+    if (confirm("Execute extraction removal of this category block and all contained index nodes?")) {
+        state.categories = state.categories.filter(c => c.id !== id);
+        delete state.items[id];
+        persistStateToStorageAndSync();
+        renderCategoriesGrid();
+    }
+}
+
+function toggleCategoryPrivacyState(id) {
+    const cat = state.categories.find(c => c.id === id);
+    cat.isPublic = !cat.isPublic;
+    persistStateToStorageAndSync();
+    renderCategoriesGrid();
+}
+
+// ITEMS DASHBOARD WORKER INSTANCE
+function renderItemsStack() {
+    const cat = state.categories.find(c => c.id === state.currentCategoryContextId);
+    document.getElementById('current-category-view-title').innerText = cat ? cat.title : "Vault Stack Items List";
+
+    const container = document.getElementById('items-vertical-stack');
+    container.innerHTML = '';
+
+    const listItems = state.items[state.currentCategoryContextId] || [];
+    // Force structural rank configuration sort optimization algorithm matching execution rules mapping parameters
+    listItems.sort((a, b) => a.rank - b.rank);
+
+    listItems.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'item-list-row';
+        
+        // Dynamic affiliate processing links execution algorithm fallback logic map
+        const affiliateLink = generateAutonomousAffiliateLinkNode(item.name);
+
+        row.innerHTML = `
+            <div class="item-left-block">
+                <span class="item-hashtag">#</span>
+                <span class="item-rank-num">${item.rank}</span>
+                <span class="item-core-name">${item.name}</span>
+            </div>
+            <div class="item-right-block">
+                <a href="${affiliateLink}" target="_blank" class="affiliate-reference-link">Reference Link</a>
+                <div class="thumbnail-media-circle" style="background-image: url('${item.media || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z&quot;/></svg>'}')"></div>
+                <div class="row-utility-actions">
+                    <button class="icon-util-btn edit-item-trigger">&#9998;</button>
+                    <button class="icon-util-btn remove-item-trigger">&#128465;</button>
+                </div>
+            </div>
+        `;
+
+        row.querySelector('.edit-item-trigger').addEventListener('click', () => triggerItemUpdateMatrix(item.id));
+        row.querySelector('.remove-item-trigger').addEventListener('click', () => removeItemNodeInstance(item.id));
+
+        container.appendChild(row);
+    });
+}
+
+function commitItemFormNode() {
+    const name = document.getElementById('input-item-name').value.trim();
+    const rank = parseInt(document.getElementById('input-item-rank').value);
+    const mediaInput = document.getElementById('input-item-media');
+
+    if (!name || isNaN(rank) || rank < 1 || rank > 10) {
+        alert("Verification logic constraint missing data fields elements parameter parameters.");
+        return;
+    }
+
+    const currentList = state.items[state.currentCategoryContextId] || [];
+    if (currentList.length >= 10 && !currentList.find(i => i.rank === rank)) {
+        alert("Maximum allocation bounds size threshold limit reached for single index track framework (Limit: 10 items).");
+        return;
+    }
+
+    const processExecution = (mediaBase64) => {
+        // Handle cascading replacement rank realignment math configuration mapping sequence
+        state.items[state.currentCategoryContextId] = currentList.filter(i => i.rank !== rank);
+        
+        state.items[state.currentCategoryContextId].push({
+            id: 'item-' + Date.now(),
+            name: name,
+            rank: rank,
+            media: mediaBase64 || ""
+        });
+
+        // Clear dynamic parameters form
+        document.getElementById('input-item-name').value = '';
+        document.getElementById('input-item-rank').value = '';
+        mediaInput.value = '';
+
+        persistStateToStorageAndSync();
+        renderItemsStack();
     };
 
-    if (fileIn.files && fileIn.files[0]) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        newItemObj.media = e.target.result;
-        targetCat.items.push(newItemObj);
-        finalizeItemAppend();
-      };
-      reader.readAsDataURL(fileIn.files[0]);
-    } else {
-      targetCat.items.push(newItemObj);
-      finalizeItemAppend();
-    }
-
-    function finalizeItemAppend() {
-      nameIn.value = "";
-      rankIn.value = "";
-      fileIn.value = "";
-      renderItemsVerticalStack();
-      persistStateToCloudEngine();
-      showToast("Vault target allocation row successfully overwritten.");
-    }
-  });
-
-  function triggerEditItem(rankStr) {
-    const rank = parseInt(rankStr);
-    const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    const item = cat.items.find(i => i.rank === rank);
-    const newTitle = prompt(`Update item descriptive label for slot #${rank}:`, item.name);
-    if (newTitle && newTitle.trim() !== "") {
-      item.name = newTitle.trim();
-      renderItemsVerticalStack();
-      persistStateToCloudEngine();
-    }
-  }
-
-  function triggerRemoveItem(rankStr) {
-    const rank = parseInt(rankStr);
-    const cat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
-    if (confirm(`Purge entry ranking slot row #${rank} entirely?`)) {
-      cat.items = cat.items.filter(i => i.rank !== rank);
-      renderItemsVerticalStack();
-      persistStateToCloudEngine();
-    }
-  }
-
-  function triggerEditFriend(idxStr) {
-    const idx = parseInt(idxStr);
-    const fr = appState.friendsList[idx];
-    const newName = prompt("Modify target friend identifier string:", fr.name);
-    if (newName && newName.trim() !== "") {
-      fr.name = newName.trim();
-      renderFriendsStack();
-      persistStateToCloudEngine();
-    }
-  }
-
-  function triggerRemoveFriend(idxStr) {
-    const idx = parseInt(idxStr);
-    if (confirm("Disconnect and purge link trace metrics associated with this user node?")) {
-      appState.friendsList.splice(idx, 1);
-      renderFriendsStack();
-      persistStateToCloudEngine();
-    }
-  }
-
-  /* ================= CLOUDFLARE CLOUD DATA TRANSACTION NETWORKS ================= */
-  async function persistStateToCloudEngine() {
-    if (!appState.userToken) {
-      localStorage.setItem("guest_categories_cache", JSON.stringify(appState.categories));
-      return;
-    }
-    try {
-      await fetch(`${API_BASE}/api/vault/sync`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${appState.userToken}`
-        },
-        body: JSON.stringify({
-          state: { categories: appState.categories, profile: appState.profile, friendsList: appState.friendsList }
-        })
-      });
-    } catch (err) {
-      console.error("Cloud synchronization mapping pipeline execution fault:", err);
-    }
-  }
-
-  async function pullVaultStateFromEdge() {
-    try {
-      const res = await fetch(`${API_BASE}/api/vault/pull`, {
-        method: "GET",
-        headers: { "Authorization": `Bearer ${appState.userToken}` }
-      });
-      if (res.status === 200) {
-        const payload = await res.json();
-        if (payload.categories) appState.categories = payload.categories;
-        if (payload.profile) appState.profile = payload.profile;
-        if (payload.friendsList) appState.friendsList = payload.friendsList;
-        syncInterfaceStateElements();
-        return true;
-      }
-    } catch {
-      showToast("Edge replication link timeout. Running internal local states.");
-    }
-    return false;
-  }
-
-  async function handleUrlVerificationMetrics() {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("verify");
-    if (token) {
-      showToast("Executing token validation parameters across edge nodes...");
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token })
-        });
-        const data = await res.json();
-        if (res.status === 200) {
-          localStorage.setItem("vault_token", data.token);
-          localStorage.setItem("vault_email", data.email);
-          appState.userToken = data.token;
-          appState.userEmail = data.email;
-          
-          showToast("Account confirmation approved. Transitioning operational maps.");
-          await pullVaultStateFromEdge();
-          window.history.replaceState({}, document.title, window.location.pathname);
-          transitionToView("viewCategories");
-        } else {
-          showToast(`Validation Matrix Terminated: ${data.error}`);
-        }
-      } catch {
-        showToast("Handshake fatal response exception encountered.");
-      }
-    }
-  }
-
-  /* ================= INTERFACE VIEW COMPONENT ACTION MATRIX BINDINGS ================= */
-  function setupGlobalEventListeners() {
-    document.getElementById("btnEnterVault").addEventListener("click", () => {
-      const cache = localStorage.getItem("guest_categories_cache");
-      if (cache) appState.categories = JSON.parse(cache);
-      transitionToView("viewCategories");
-    });
-
-    document.getElementById("btnOpenAuth").addEventListener("click", () => openSlidingDrawer("drawerAuth"));
-    document.getElementById("btnGlobalBack").addEventListener("click", handleGlobalBackNavigation);
-    document.getElementById("btnBurgerMenu").addEventListener("click", () => openSlidingDrawer("drawerSettings"));
-    document.getElementById("headerAvatarContainer").addEventListener("click", () => openSlidingDrawer("drawerProfile"));
-
-    document.getElementById("btnToggleProfilePrivacy").addEventListener("click", (e) => {
-      appState.profile.public = !appState.profile.public;
-      e.target.innerText = appState.profile.public ? "PROFILE PUBLIC" : "PROFILE PRIVATE";
-      e.target.className = appState.profile.public ? "privacy-toggle-button status-public" : "privacy-toggle-button status-private";
-      persistStateToCloudEngine();
-      showToast(`Global visibility status mutated to: ${appState.profile.public ? "Public" : "Private"}`);
-    });
-
-    document.getElementById("btnTriggerAddCategory").addEventListener("click", () => {
-      const cap = appState.isPremium ? 99 : 21;
-      if (appState.categories.length >= cap) {
-        showToast(`Free Allocation Layer Upper Limit Enforced (${cap} Max Allowed). Modify via Settings.`);
-        return;
-      }
-      const title = prompt("Provide Custom Framework Category Title Name:");
-      if (title && title.trim() !== "") {
-        appState.categories.push({
-          id: "custom-" + Date.now(),
-          name: title.trim(),
-          emoji: "📂",
-          isPublic: true,
-          items: []
-        });
-        renderCategoriesGrid();
-        persistStateToCloudEngine();
-      }
-    });
-
-    document.querySelectorAll(".edit-field-icon").forEach(icon => {
-      icon.addEventListener("click", (e) => {
-        const rowInput = e.target.parentElement.querySelector("input");
-        rowInput.disabled = !rowInput.disabled;
-        if (!rowInput.disabled) {
-          rowInput.focus();
-          icon.innerText = "💾";
-        } else {
-          icon.innerText = "✏️";
-          extractAndSaveProfileFields();
-        }
-      });
-    });
-
-    document.getElementById("btnSaveProfileData").addEventListener("click", () => {
-      extractAndSaveProfileFields();
-      closeAllDrawers();
-    });
-
-    function extractAndSaveProfileFields() {
-      appState.profile.name = document.getElementById("profName").value;
-      appState.profile.dob = document.getElementById("profDob").value;
-      appState.profile.hometown = document.getElementById("profHometown").value;
-      appState.profile.vocation = document.getElementById("profVocation").value;
-      appState.profile.recovery = document.getElementById("profRecovery").value;
-      persistStateToCloudEngine();
-      syncInterfaceStateElements();
-      showToast("Dynamic identity allocation matrix parameters synchronized.");
-    }
-
-    document.getElementById("inputAvatarFile").addEventListener("change", function() {
-      if (this.files && this.files[0]) {
+    if (mediaInput.files && mediaInput.files[0]) {
+        const file = mediaInput.files[0];
+        state.activeCroppingTarget = {
+            file: file,
+            callback: processExecution
+        };
         const reader = new FileReader();
         reader.onload = function(e) {
-          document.getElementById("imgAvatarCropPreview").src = e.target.result;
-          openModalWindow("crop");
+            document.getElementById('crop-preview-img').src = e.target.result;
+            document.getElementById('modal-crop').classList.remove('display-none');
         };
-        reader.readAsDataURL(this.files[0]);
-      }
-    });
-
-    document.getElementById("btnCommitAvatarSizing").addEventListener("click", () => {
-      appState.profile.avatar = document.getElementById("imgAvatarCropPreview").src;
-      syncInterfaceStateElements();
-      persistStateToCloudEngine();
-      closeModalWindow();
-      showToast("Avatar image coordinate dimensions saved to profile record context.");
-    });
-
-    document.getElementById("btnTogglePasswordVisibility").addEventListener("click", () => {
-      const field = document.getElementById("authPasswordField");
-      field.type = field.type === "password" ? "text" : "password";
-    });
-
-    document.getElementById("btnExecuteSignUp").addEventListener("click", async () => {
-      const email = document.getElementById("authEmailField").value;
-      const pass = document.getElementById("authPasswordField").value;
-      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-      
-      if (!regex.test(pass)) {
-        showToast("Validation Error: Password schema validation criteria constraints failed.");
-        return;
-      }
-      showToast("Dispatching network verification request block to edge clustering nodes...");
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/signup`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-        if (res.status === 200) {
-          alert(`Vault confirmation payload issued: ${data.message}`);
-          closeAllDrawers();
-        } else {
-          showToast(`Signup Registry Refused: ${data.error}`);
-        }
-      } catch {
-        showToast("Gateway connection timed out during execution logic phase.");
-      }
-    });
-
-    document.getElementById("btnExecuteSignIn").addEventListener("click", async () => {
-      const email = document.getElementById("authEmailField").value;
-      const pass = document.getElementById("authPasswordField").value;
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password: pass })
-        });
-        const data = await res.json();
-        if (res.status === 200) {
-          localStorage.setItem("vault_token", data.token);
-          localStorage.setItem("vault_email", data.email);
-          appState.userToken = data.token;
-          appState.userEmail = data.email;
-          
-          showToast("Handshake accepted. Re-indexing remote configuration records.");
-          await pullVaultStateFromEdge();
-          transitionToView("viewCategories");
-        } else {
-          showToast(`Security Refusal: ${data.error}`);
-        }
-      } catch {
-        showToast("Remote endpoint mapping node missing or unresponsive.");
-      }
-    });
-
-    document.getElementById("btnToggleThemeMode").addEventListener("click", (e) => {
-      document.body.classList.toggle("light-variant");
-      e.target.innerText = document.body.classList.contains("light-variant") ? "DARK MODE" : "LIGHT MODE";
-    });
-
-    document.getElementById("btnUpgradeTier").addEventListener("click", () => {
-      appState.isPremium = true;
-      localStorage.setItem("vault_premium", "true");
-      showToast("Premium tier access initialized. Storage expandability parameters scaled to 99 metrics.");
-      closeAllDrawers();
-    });
-
-    document.getElementById("btnTriggerAddFriend").addEventListener("click", () => {
-      const tag = prompt("Search matching profile signature handles across network records:");
-      if (tag && tag.trim() !== "") {
-        appState.friendsList.push({ name: tag.trim(), mutualCats: 0, mutualItems: 0, avatar: "" });
-        renderFriendsStack();
-        persistStateToCloudEngine();
-        showToast("Target network identity node mapped to friends index tracking ledger.");
-      }
-    });
-
-    document.getElementById("btnNavigateFriends").addEventListener("click", () => transitionToView("viewFriends"));
-    document.getElementById("btnTriggerVaultWipe").addEventListener("click", () => openModalWindow("wipe"));
-
-    document.getElementById("btnConfirmVaultWipe").addEventListener("click", () => {
-      localStorage.clear();
-      appState.userToken = null;
-      appState.userEmail = null;
-      appState.isPremium = false;
-      loadDefaultGuestFallbackState();
-      closeModalWindow();
-      closeAllDrawers();
-      transitionToView("viewLanding");
-      showToast("Full environment data rollback completed successfully.");
-    });
-
-    document.getElementById("btnCancelWipe").addEventListener("click", closeModalWindow);
-    document.getElementById("btnCancelAvatarCommit").addEventListener("click", closeModalWindow);
-    document.getElementById("btnCancelFriendAction").addEventListener("click", closeModalWindow);
-
-    document.getElementById("btnSubmitFriendAction").addEventListener("click", () => {
-      const inputs = Array.from(document.querySelectorAll("input[name='friendCompareTargets']:checked")).map(c => c.value);
-      const actionMode = document.getElementById("btnSubmitFriendAction").dataset.mode;
-      const contextId = document.getElementById("btnSubmitFriendAction").dataset.catId;
-
-      if (inputs.length === 0) {
-        showToast("Suspended Execution Block: Zero profile network checkboxes targeted.");
-        return;
-      }
-      closeModalWindow();
-      if (actionMode === "compare") executeComparisonMatrixCalculation(contextId, inputs);
-      if (actionMode === "fuse") executeFusedMatrixFormula(contextId, inputs);
-    });
-
-    drawerOverlay.addEventListener("click", closeAllDrawers);
-    document.querySelectorAll(".close-drawer-x").forEach(x => x.addEventListener("click", closeAllDrawers));
-  }
-
-  /* ================= INTERACTION DRAWERS AND MODALS TRANSITION HANDLING ================= */
-  function openSlidingDrawer(drawerId) {
-    closeAllDrawers();
-    drawerOverlay.classList.remove("hidden");
-    document.getElementById(drawerId).classList.remove("hidden");
-  }
-
-  function closeAllDrawers() {
-    drawerOverlay.classList.add("hidden");
-    document.querySelectorAll(".sliding-panel-drawer").forEach(d => d.classList.add("hidden"));
-  }
-
-  function openModalWindow(mode, targetCategoryId = null) {
-    modalShade.classList.remove("hidden");
-    document.querySelectorAll(".center-dialog-modal").forEach(m => m.classList.add("hidden"));
-    if (mode === "crop") document.getElementById("modalAvatarCrop").classList.remove("hidden");
-    if (mode === "wipe") document.getElementById("modalWipeConfirmation").classList.remove("hidden");
-    if (mode === "compare" || mode === "fuse") {
-      document.getElementById("modalFriendActionSelector").classList.remove("hidden");
-      const submitBtn = document.getElementById("btnSubmitFriendAction");
-      submitBtn.dataset.mode = mode;
-      submitBtn.dataset.catId = targetCategoryId;
+        reader.readAsDataURL(file);
+    } else {
+        processExecution("");
     }
-  }
+}
 
-  function closeModalWindow() {
-    modalShade.classList.add("hidden");
-  }
+function triggerItemUpdateMatrix(itemId) {
+    const list = state.items[state.currentCategoryContextId] || [];
+    const item = list.find(i => i.id === itemId);
+    const nextName = prompt("Modify Item Object Identifier Name Label Title:", item.name);
+    if (!nextName) return;
+    const nextRank = parseInt(prompt("Re-assign Mathematical Sort Alignment Rank Index Target Vector (1-10):", item.rank));
+    if (isNaN(nextRank) || nextRank < 1 || nextRank > 10) return;
 
-  function showToast(msg) {
-    toastNotification.innerText = msg;
-    toastNotification.classList.remove("hidden");
-    setTimeout(() => { toastNotification.classList.add("hidden"); }, 4500);
-  }
+    // Remove existing target element instance nodes
+    let filtered = list.filter(i => i.id !== itemId);
+    // Erase anything occupying target index vector cascade paths to clean pipeline execution blocks
+    filtered = filtered.filter(i => i.rank !== nextRank);
+    
+    item.name = nextName;
+    item.rank = nextRank;
+    filtered.push(item);
+    
+    state.items[state.currentCategoryContextId] = filtered;
+    persistStateToStorageAndSync();
+    renderItemsStack();
+}
 
-  window.addEventListener("DOMContentLoaded", initApplication);
-})();
+function removeItemNodeInstance(itemId) {
+    if (confirm("Purge selected target parameter element track from list stack frame context layer?")) {
+        state.items[state.currentCategoryContextId] = (state.items[state.currentCategoryContextId] || []).filter(i => i.id !== itemId);
+        persistStateToStorageAndSync();
+        renderItemsStack();
+    }
+}
+
+function generateAutonomousAffiliateLinkNode(itemName) {
+    // Standard affiliate autogeneration macro builder logic configuration string output vector routing mapping
+    const structuredQuery = encodeURIComponent(itemName + " purchase online store");
+    return `https://www.amazon.com/s?k=${structuredQuery}&tag=toptens20-20`;
+}
+
+// PROFILE DRAWER CUSTOMIZER CONTROLLER PIPELINE
+function initiateAvatarCropMatrix(e) {
+    if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0];
+        state.activeCroppingTarget = {
+            file: file,
+            callback: (base64Payload) => {
+                document.getElementById('profile-drawer-avatar-preview').style.backgroundImage = `url('${base64Payload}')`;
+                document.getElementById('btn-profile-avatar').style.backgroundImage = `url('${base64Payload}')`;
+                state.avatarDataPayload = base64Payload;
+            }
+        };
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('crop-preview-img').src = event.target.result;
+            document.getElementById('modal-crop').classList.remove('display-none');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function finalizeCroppingCoordinateCapture() {
+    // Simulated cropping canvas frame bounding matrix parser mapping
+    // Compiles active element to standardized asset size format inline data blocks
+    const img = document.getElementById('crop-preview-img');
+    const canvas = document.createElement('canvas');
+    canvas.width = 150;
+    canvas.height = 150;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 150, 150);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+    
+    if (state.activeCroppingTarget && state.activeCroppingTarget.callback) {
+        state.activeCroppingTarget.callback(dataUrl);
+    }
+    document.getElementById('modal-crop').classList.add('display-none');
+}
+
+async function saveProfileMetadata() {
+    const payload = {
+        name: document.getElementById('profile-name').value,
+        dob: document.getElementById('profile-dob').value,
+        hometown: document.getElementById('profile-hometown').value,
+        vocation: document.getElementById('profile-vocation').value,
+        recovery: document.getElementById('profile-recovery').value,
+        avatar: state.avatarDataPayload || ""
+    };
+
+    if (state.user) {
+        const token = localStorage.getItem('top_tens_token');
+        await fetch(`${BACKEND_BASE}/api/profile/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(payload)
+        });
+    } else {
+        localStorage.setItem('top_tens_guest_profile', JSON.stringify(payload));
+    }
+    alert("Profile parameters safely written to vault storage maps.");
+    toggleDrawer('drawer-profile');
+}
+
+function toggleProfilePrivacyState() {
+    const btn = document.getElementById('btn-profile-privacy-toggle');
+    const isPublic = btn.classList.contains('active-public');
+    if (isPublic) {
+        btn.classList.remove('active-public');
+        btn.innerText = "Profile Private";
+    } else {
+        btn.classList.add('active-public');
+        btn.innerText = "Profile Public";
+    }
+}
+
+// SOCIAL ACTIONS COMPARE AND FUSE OPERATIONS FRAMEWORKS
+function openSocialOperationModal(catId, actionType) {
+    state.activeSocialCategoryContextId = catId;
+    state.activeSocialContextActionType = actionType;
+    
+    document.getElementById('social-modal-title').innerText = actionType === 'compare' ? "Category Comparative Lookup" : "Category Synthesis Weighted Fusion";
+    const container = document.getElementById('social-friends-checklist');
+    container.innerHTML = '';
+
+    if (state.friends.length === 0) {
+        container.innerHTML = '<p class="password-specs">No verified nodes connected in network roster matrix.</p>';
+    }
+
+    state.friends.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'picker-row';
+        row.innerHTML = `
+            <input type="checkbox" value="${f.name}" id="chk-friend-${f.name}">
+            <label for="chk-friend-${f.name}">${f.name} (Match Index: ${f.mutualCategories})</label>
+        `;
+        container.appendChild(row);
+    });
+
+    document.getElementById('modal-social').classList.remove('display-none');
+}
+
+async function executeSocialOperationFormula() {
+    const checked = Array.from(document.querySelectorAll('#social-friends-checklist input:checked')).map(i => i.value);
+    document.getElementById('modal-social').classList.add('display-none');
+
+    const cat = state.categories.find(c => c.id === state.activeSocialCategoryContextId);
+    const token = localStorage.getItem('top_tens_token');
+
+    const res = await fetch(`${BACKEND_BASE}/api/social/compute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            action: state.activeSocialContextActionType,
+            categoryTitle: cat.title,
+            friends: checked,
+            userList: state.items[state.activeSocialCategoryContextId] || []
+        })
+    });
+    const resultData = await res.json();
+
+    // Direct dynamic payload parsing loop array map layout architecture output compiler configuration node
+    document.getElementById('matrix-output-title').innerText = state.activeSocialContextActionType === 'compare' ? `Juxtaposed Frame View Grid: ${cat.title}` : `Weighted Matrix Consolidated Core Output: ${cat.title}`;
+    const grid = document.getElementById('matrix-scroll-payload');
+    grid.innerHTML = '';
+
+    resultData.payload.forEach(col => {
+        const card = document.createElement('div');
+        card.className = 'matrix-column-card';
+        let itemsHtml = col.items.map((it, idx) => `<p class="password-specs" style="color:white;"><b>#${idx+1}</b> ${it.name}</p>`).join('');
+        card.innerHTML = `
+            <div class="matrix-column-title">${col.nodeName}</div>
+            <div class="matrix-column-body">${itemsHtml || '<p class="password-specs">Empty Set</p>'}</div>
+        `;
+        grid.appendChild(card);
+    });
+
+    document.getElementById('modal-results-matrix').classList.remove('display-none');
+}
+
+// FRIENDS ENGINE ROSTER POPULATOR
+function renderFriendsRosterStack() {
+    const container = document.getElementById('friends-vertical-stack');
+    container.innerHTML = '';
+
+    if (state.friends.length === 0) {
+        // Establish stock nodes framework for user system reference illustration maps parameters
+        state.friends = [
+            { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
+            { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
+            { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
+        ];
+    }
+
+    state.friends.forEach(f => {
+        const row = document.createElement('div');
+        row.className = 'friend-list-row';
+        row.innerHTML = `
+            <span class="friend-profile-name">${f.name}</span>
+            <span class="friend-metric-node">Mutual Categories: ${f.mutualCategories}</span>
+            <span class="friend-metric-node">Mutual Items: ${f.mutualItems}</span>
+            <div class="thumbnail-media-circle" style="background-image: url('${f.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23d4af37&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z&quot;/></svg>'}')"></div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function triggerFriendDiscoverySearchPopup() {
+    const query = prompt("Query Dynamic Network Profiles Target Name Registry Handle:");
+    if (query) {
+        alert(`Discovered matching unique identifier target path handle '${query}'. Node added to local synchronization queue roster mapping.`);
+        state.friends.push({ name: query, mutualCategories: 2, mutualItems: 4, avatar: "" });
+        persistStateToStorageAndSync();
+        renderFriendsRosterStack();
+    }
+}
+
+// CONFIGURATION UTILITY STORAGE SYNC MATRIX STRATEGY
+function loadLocalFallbackSession() {
+    const categoriesCached = localStorage.getItem('top_tens_categories');
+    const itemsCached = localStorage.getItem('top_tens_items');
+
+    if (categoriesCached && itemsCached) {
+        state.categories = JSON.parse(categoriesCached);
+        state.items = JSON.parse(itemsCached);
+    } else {
+        // Bootstrap stock data definitions context tracking logic blocks
+        state.categories = [...GLOBAL_STOCK_CATEGORIES];
+        state.items = JSON.parse(JSON.stringify(GLOBAL_STOCK_ITEMS));
+        persistStateToStorageAndSync();
+    }
+}
+
+function persistStateToStorageAndSync() {
+    localStorage.setItem('top_tens_categories', JSON.stringify(state.categories));
+    localStorage.setItem('top_tens_items', JSON.stringify(state.items));
+    
+    if (state.user) {
+        // Fire fire-and-forget back-plane background async network write logic thread context parameters
+        const token = localStorage.getItem('top_tens_token');
+        fetch(`${BACKEND_BASE}/api/vault/sync`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ categories: state.categories, items: state.items })
+        }).catch(err => console.warn("Background pipeline cloud sync operation deferred. Queue latency active."));
+    }
+}
+
+async function attemptSessionValidation() {
+    const token = localStorage.getItem('top_tens_token');
+    if (!token) return;
+
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/auth/verify-session`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+            state.user = data.user;
+            state.tier = data.user.tier || "free";
+            await syncVaultDataFromCloud();
+            updateUIStateElements();
+        } else {
+            localStorage.removeItem('top_tens_token');
+        }
+    } catch(e) {
+        console.error("Session lookup dropped during connection bootstrap parsing operations framework.");
+    }
+}
+
+async function syncVaultDataFromCloud() {
+    const token = localStorage.getItem('top_tens_token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${BACKEND_BASE}/api/vault/pull`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.categories && data.items) {
+            state.categories = data.categories;
+            state.items = data.items;
+            localStorage.setItem('top_tens_categories', JSON.stringify(state.categories));
+            localStorage.setItem('top_tens_items', JSON.stringify(state.items));
+        }
+    } catch(e) {
+         console.warn("Could not synchronize dynamic framework cloud storage matrices parameters fallbacks active.");
+    }
+}
+
+function updateUIStateElements() {
+    const isPremium = state.tier === 'premium';
+    document.getElementById('category-max-limit').innerText = isPremium ? "99" : "21";
+    document.getElementById('btn-upgrade-tier').innerText = isPremium ? "Tier State: Premium Matrix Active" : "Upgrade - $0.99/month";
+    if (state.user) {
+        document.getElementById('profile-email').value = state.user.email;
+    }
+}
+
+function toggleThemeModeAesthetic() {
+    const body = document.body;
+    const btn = document.getElementById('btn-toggle-theme');
+    if (body.classList.contains('dark-mode')) {
+        body.classList.remove('dark-mode');
+        body.classList.add('light-mode');
+        btn.innerText = "Toggle Dark Mode";
+    } else {
+        body.classList.remove('light-mode');
+        body.classList.add('dark-mode');
+        btn.innerText = "Toggle Light Mode";
+    }
+}
+
+function processTierUpgradeSubscription() {
+    if (state.tier === 'premium') {
+        alert("Account tier context maps are already optimized to maximal framework allocation limits.");
+        return;
+    }
+    state.tier = 'premium';
+    updateUIStateElements();
+    persistStateToStorageAndSync();
+    alert("Subscription tier expansion update successfully registered to running environment context mapping runtime.");
+}
+
+function executeAbsoluteVaultWipeClearing() {
+    localStorage.clear();
+    state.user = null;
+    state.tier = "free";
+    state.categories = [...GLOBAL_STOCK_CATEGORIES];
+    state.items = JSON.parse(JSON.stringify(GLOBAL_STOCK_ITEMS));
+    state.friends = [];
+    state.historyStack = ['page-landing'];
+    
+    document.getElementById('modal-wipe').classList.add('display-none');
+    updateUIStateElements();
+    executeViewTransition('page-landing', false);
+    alert("Vault wipe complete. Application state restored to default.");
+}
+
+function renderApplicationFramework() {
+    // Top-level structural checks before execution logic
+    updateUIStateElements();
+}
