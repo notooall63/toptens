@@ -38,6 +38,7 @@
   /* ================= RUNTIME CORE BOOT INITIALIZATION ================= */
   async function initApplication() {
     setupGlobalEventListeners();
+    setupBrowserHistoryListeners();
     handleUrlVerificationMetrics();
     
     if (appState.userToken) {
@@ -76,7 +77,7 @@
   }
 
   /* ================= VIEW ENGINE ROUTER NAVIGATION ================= */
-  function transitionToView(targetViewId) {
+  function transitionToView(targetViewId, isPopStateNavigation = false) {
     Object.keys(views).forEach(k => views[k].classList.add("hidden"));
     document.getElementById("appMainViewport").classList.add("hidden");
     globalHeader.classList.add("hidden");
@@ -89,10 +90,18 @@
       document.getElementById("appMainViewport").classList.remove("hidden");
       document.getElementById(targetViewId).classList.remove("hidden");
       
-      if (appState.currentView !== targetViewId) {
+      if (appState.currentView !== targetViewId && !isPopStateNavigation) {
         appState.viewHistory.push(appState.currentView);
       }
     }
+
+    // Push state tracking into browser address log metrics if navigation is code-driven
+    if (!isPopStateNavigation) {
+      if (history.state?.view !== targetViewId) {
+        history.pushState({ view: targetViewId }, "", `#${targetViewId}`);
+      }
+    }
+
     appState.currentView = targetViewId;
     closeAllDrawers();
 
@@ -109,9 +118,32 @@
         handleGlobalBackNavigation();
         return;
       }
-      transitionToView(prev);
+      // Trigger native browser back mutation to sync state timeline records
+      history.back();
     } else {
       transitionToView("viewLanding");
+    }
+  }
+
+  /* ================= BROWSER INTERCEPT AND STATE CAPTURE ENGINE ================= */
+  function setupBrowserHistoryListeners() {
+    // Intercept native backward/forward steps
+    window.addEventListener("popstate", (event) => {
+      if (event.state && event.state.view) {
+        // Sync app state history arrays safely on back manipulation
+        if (appState.viewHistory.length > 0) {
+          appState.viewHistory.pop();
+        }
+        transitionToView(event.state.view, true);
+      } else {
+        // Fallback ground floor baseline initialization
+        transitionToView("viewLanding", true);
+      }
+    });
+
+    // Establish base tracking metrics for initial viewport execution instances
+    if (!history.state) {
+      history.replaceState({ view: "viewLanding" }, "", "#viewLanding");
     }
   }
 
@@ -211,8 +243,8 @@
       
       row.innerHTML = `
         <span class="item-display-title">${fr.name}</span>
-        <span class="item-affiliate-deep-link">Mutual Categories: ${fr.info.mutualCats}</span>
-        <span class="item-affiliate-deep-link">Mutual Items: ${fr.info.mutualItems}</span>
+        <span class="item-affiliate-deep-link">Mutual Categories: ${fr.mutualCats}</span>
+        <span class="item-affiliate-deep-link">Mutual Items: ${fr.mutualItems}</span>
         <div class="item-media-circle-thumbnail" style="background-image: url('${fr.avatar || dummyAvatar}')"></div>
       `;
       stack.appendChild(row);
@@ -258,7 +290,6 @@
       const myItem = myCat.items.find(i => i.rank === r)?.name || "—";
       let rowHtml = `<tr><td><strong>#${r}</strong></td><td>${myItem}</td>`;
       chosenFriends.forEach(f => {
-        // Generate systematic mock variations derived dynamically for accurate simulations
         rowHtml += `<td>Simulated ${myCat.name} Node Match</td>`;
       });
       rowHtml += `</tr>`;
@@ -295,13 +326,11 @@
     const myCat = appState.categories.find(c => c.id === categoryId);
     const scoringMap = {};
 
-    // Process our local rank items through the weight matrix scoring system loop
     myCat.items.forEach(item => {
       const score = 11 - item.rank;
       scoringMap[item.name] = (scoringMap[item.name] || 0) + score;
     });
 
-    // Mix in simulated friend arrays using identical weight math formulas
     chosenFriends.forEach(f => {
       myCat.items.forEach((item, idx) => {
         if (idx < 7) { 
@@ -357,10 +386,8 @@
 
     const targetCat = appState.categories.find(c => c.id === appState.activeCategoryContextId);
     
-    // Automatically evict existing ranks at collision indexes
     targetCat.items = targetCat.items.filter(i => i.rank !== rankVal);
 
-    // Automation: Extract structural affiliate deep-links immediately based on parameters
     const rootDomain = nameIn.value.toLowerCase().replace(/[^a-z0-9]/g, "");
     const generatedAffiliateUrl = `https://${rootDomain || 'vault'}.com/tracking?affid=toptens26`;
 
@@ -419,7 +446,6 @@
   /* ================= BACKEND CLOUDFLARE CLOUD NETWORK SYNC CONNECTOR ================= */
   async function persistStateToCloudEngine() {
     if (!appState.userToken) {
-      // Ephemeral Transient Caching for Guest Viewports Layer
       localStorage.setItem("guest_categories_cache", JSON.stringify(appState.categories));
       return;
     }
@@ -490,7 +516,6 @@
 
   /* ================= INTERFACE VIEW COMPONENT LISTENERS ================= */
   function setupGlobalEventListeners() {
-    // Basic Triggers Layout Routing Connections
     document.getElementById("btnEnterVault").addEventListener("click", () => {
       const guestCache = localStorage.getItem("guest_categories_cache");
       if (guestCache) {
@@ -502,11 +527,9 @@
     document.getElementById("btnOpenAuth").addEventListener("click", () => openSlidingDrawer("drawerAuth"));
     document.getElementById("btnGlobalBack").addEventListener("click", handleGlobalBackNavigation);
     
-    // Burger Menu & Avatar Profiles Drawer Invocation Maps
     document.getElementById("btnBurgerMenu").addEventListener("click", () => openSlidingDrawer("drawerSettings"));
     document.getElementById("headerAvatarContainer").addEventListener("click", () => openSlidingDrawer("drawerProfile"));
 
-    // Dynamic Category Creation Handling Link
     document.getElementById("btnTriggerAddCategory").addEventListener("click", () => {
       const allowedCap = appState.isPremium ? 99 : 21;
       if (appState.categories.length >= allowedCap) {
@@ -529,7 +552,6 @@
       }
     });
 
-    // Profile Inline Settings Configuration Triggers
     document.querySelectorAll(".edit-field-icon").forEach(icon => {
       icon.addEventListener("click", (e) => {
         const inputField = e.target.parentElement.querySelector("input");
@@ -562,7 +584,6 @@
       closeAllDrawers();
     });
 
-    // Avatar Media Upload Mutation Interceptors
     document.getElementById("inputAvatarFile").addEventListener("change", function() {
       if (this.files && this.files[0]) {
         const reader = new FileReader();
@@ -583,7 +604,6 @@
       showToast("Avatar image context optimized and saved.");
     });
 
-    // Authentication Submission Workflows Matrix
     document.getElementById("btnTogglePasswordVisibility").addEventListener("click", () => {
       const field = document.getElementById("authPasswordField");
       field.type = field.type === "password" ? "text" : "password";
@@ -593,7 +613,6 @@
       const email = document.getElementById("authEmailField").value;
       const pass = document.getElementById("authPasswordField").value;
       
-      // Strict parameter matching sequence checks
       const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
       if (!passRegex.test(pass)) {
         showToast("Error: Password criteria parameters mismatched.");
@@ -647,7 +666,6 @@
       }
     });
 
-    // Settings Configuration Interceptors
     document.getElementById("btnToggleThemeMode").addEventListener("click", (e) => {
       document.body.classList.toggle("light-variant");
       const statusActive = document.body.classList.contains("light-variant");
@@ -681,7 +699,6 @@
       showToast("System complete initialization sequence wrapped. Default metrics restored.");
     });
 
-    // Wire global cancel intercept mappings directly onto layout frameworks
     document.getElementById("btnCancelWipe").addEventListener("click", closeModalWindow);
     document.getElementById("btnCancelAvatarCommit").addEventListener("click", closeModalWindow);
     document.getElementById("btnCancelFriendAction").addEventListener("click", closeModalWindow);
@@ -701,7 +718,6 @@
       if (activeMode === "fuse") executeFusedMatrixFormula(catCtx, selected);
     });
 
-    // Universal Overlay Close Triggers
     drawerOverlay.addEventListener("click", closeAllDrawers);
     document.querySelectorAll(".close-drawer-x").forEach(x => x.addEventListener("click", closeAllDrawers));
   }
