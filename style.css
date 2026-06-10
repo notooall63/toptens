@@ -617,27 +617,6 @@ textarea::placeholder {
     text-decoration: underline;
 }
 
-/* --- INTERACTIVE REFERENCE LINK EDIT MATRIX --- */
-.btn-edit-link {
-    padding: 4px 8px;
-    font-size: 0.85rem;
-    color: var(--text-dim);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.btn-edit-link:hover {
-    color: var(--neon-blue) !important;
-    transform: scale(1.1);
-}
-
-/* Accent override configuration context if an item contains a custom user link */
-.item-list-row.has-custom-link .btn-edit-link {
-    color: var(--gold-primary);
-}
-
 .thumbnail-media-circle {
     width: 40px;
     height: 40px;

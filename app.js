@@ -333,8 +333,10 @@ function renderItemsStack() {
         const row = document.createElement('div');
         row.className = 'item-list-row';
         
-        // Dynamic affiliate processing links execution algorithm fallback logic map
-        const affiliateLink = generateAutonomousAffiliateLinkNode(item.name);
+        // Target customUrl asset field if present; fallback to autonomous processing link engine
+        const affiliateLink = (item.customUrl && item.customUrl.trim() !== '') 
+            ? item.customUrl.trim() 
+            : generateAutonomousAffiliateLinkNode(item.name);
 
         row.innerHTML = `
             <div class="item-left-block">
@@ -357,6 +359,53 @@ function renderItemsStack() {
 
         container.appendChild(row);
     });
+}
+
+async function triggerItemUpdateMatrix(itemId) {
+    // Locate target row entity inside global memory state framework
+    const categoryItems = state.items[state.currentCategoryContextId] || [];
+    const item = categoryItems.find(i => i.id === itemId);
+    if (!item) return;
+
+    // Step 1: Prompt user for Name metadata revision
+    const newName = prompt("Edit Item Name:", item.name);
+    if (newName === null) return; // Action aborted by user
+
+    // Step 2: Prompt user for custom link replacement (blank retains stock/fallback link asset)
+    const currentCustomUrl = item.customUrl || '';
+    const newUrl = prompt("Edit/Replace Reference Link (Leave completely blank to use the default automatic system link):", currentCustomUrl);
+    if (newUrl === null) return; // Action aborted by user
+
+    // Package explicit payload values for network transit map
+    const updatedPayload = {
+        name: newName.trim() || item.name,
+        rank: item.rank,
+        media: item.media || '',
+        customUrl: newUrl.trim()
+    };
+
+    try {
+        // Issue synchronized PUT update action straight to your Cloudflare backend Worker
+        const response = await fetch(`https://top-tens-backend.swoodson96.workers.dev/api/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedPayload)
+        });
+
+        if (response.ok) {
+            // Commit structural adjustments to local runtime state directly without heavy asset refresh calls
+            item.name = updatedPayload.name;
+            item.customUrl = updatedPayload.customUrl;
+            
+            // Re-render UI layer instantly using the upgraded data matrix properties
+            renderItemsStack();
+        } else {
+            alert("Server rejected asset update path data stream synchronization.");
+        }
+    } catch (err) {
+        console.error("Critical link pipeline update fault execution error:", err);
+        alert("Failed to reach live application backend interface system.");
+    }
 }
 
 function commitItemFormNode() {
