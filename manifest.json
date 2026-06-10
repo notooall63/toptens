@@ -1,17 +1,21 @@
 // File: D:/top-tens/frontend/manifest.json
 {
   "short_name": "Top Tens",
-  "name": "Top Tens Vault Application",
+  "name": "Top Tens: The Ultimate Dynamic Favorite-Things Vault",
   "icons": [
+    {
+      "src": "AppIconTopTens.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "512x512"
     }
   ],
   "start_url": "/",
-  "background_color": "#111111",
+  "background_color": "#0a0e14",
   "theme_color": "#d4af37",
   "display": "standalone",
   "orientation": "portrait"

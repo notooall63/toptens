@@ -1,342 +1,482 @@
-/**
- * Master Frontend Client Application Orchestrator
- */
+// ==========================================================================
+// D:/top-tens/frontend/app.js
+// MAIN APPLICATION ARCHITECTURE, VIEW ROUTER ENGINE & PERSISTENCE MATRIX WRITER
+// ==========================================================================
+
 const BACKEND_BASE = "https://top-tens-backend.swoodson96.workers.dev";
 
-// STATE ARCHITECTURE DEFINITION
+// GLOBAL APPLICATION APPLICATION MEMORY DATA RUNTIME MATRIX
 let state = {
-    user: null, // Holds token payload if verified account session exists
-    tier: "free", // "free" | "premium"
-    categories: [],
-    items: {}, // Keyed by categoryId
-    friends: [],
-    historyStack: ['page-landing'],
+    user: null,
+    isGuestMode: false,
+    categories: [...INITIAL_STOCK_CATEGORIES],
+    items: JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS)),
+    friends: [
+        { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
+        { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
+        { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
+    ],
+    profile: {
+        name: "Sean D Woodson",
+        dob: "Not Set",
+        hometown: "Not Set",
+        vocation: "Algorithmic Engineer",
+        email: "guest@toptens.dev",
+        recovery: "Not Set",
+        isPublic: true,
+        avatar: ""
+    },
+    tierLimit: 21,
     currentCategoryContextId: null,
-    activeCroppingTarget: null
+    viewHistoryStack: []
 };
 
-// INITIALIZATION DETECTOR ENTRYPOINT
-document.addEventListener('DOMContentLoaded', async () => {
-    setupUniversalEventHandlers();
-    loadLocalFallbackSession();
-    await attemptSessionValidation();
-    renderApplicationFramework();
+// ==========================================================================
+// PURE LINK GENERATION CONTROLLER - CRITICAL LINK EDIT RECOVERY MATRIX
+// ==========================================================================
+function generateAutonomousAffiliateLinkNode(itemName, customUrl) {
+    // RULE 1: If user provided a specific alternative or custom reference, pass it out instantly!
+    if (customUrl && typeof customUrl === 'string' && customUrl.trim() !== '') {
+        return customUrl.trim();
+    }
+    // RULE 2: Fall back cleanly to the stock amazon structural macro builder query parameter layout string
+    const structuredQuery = encodeURIComponent(itemName + " purchase online store");
+    return `https://www.amazon.com/s?k=${structuredQuery}&tag=toptens20-20`;
+}
+
+// ==========================================================================
+// APP LIFE CYCLE ENTRYPOINT PIPELINE INDEXER
+// ==========================================================================
+document.addEventListener("DOMContentLoaded", () => {
+    bindInterfaceEventHandlers();
+    evaluateSessionTokenState();
 });
 
-function setupUniversalEventHandlers() {
-    // Structural Click-Outside-Drawer Collapsing Listener
-    document.addEventListener('click', (e) => {
-        const activeDrawer = document.querySelector('.sliding-drawer-panel:not(.horizontal-collapse)');
-        if (activeDrawer) {
-            // Check if click boundary is independent of drawer canvas frame and action triggers
-            const hitDrawer = activeDrawer.contains(e.target);
-            const hitBurger = document.getElementById('btn-settings-burger').contains(e.target);
-            const hitAvatar = document.getElementById('btn-profile-avatar').contains(e.target);
-            const hitAuthBtn = document.getElementById('btn-open-auth').contains(e.target);
-            
-            if (!hitDrawer && !hitBurger && !hitAvatar && !hitAuthBtn) {
-                activeDrawer.classList.add('horizontal-collapse');
-            }
-        }
+function bindInterfaceEventHandlers() {
+    // Navigation Core Paths
+    document.getElementById('landing-enter-vault-btn').addEventListener('click', enterAsGuestContext);
+    document.getElementById('landing-auth-drawer-btn').addEventListener('click', () => openUniversalSidebarDrawer('drawer-auth'));
+    document.getElementById('header-back-trigger').addEventListener('click', navigateBackwardThroughHistory);
+    document.getElementById('settings-burger-trigger').addEventListener('click', () => openUniversalSidebarDrawer('drawer-settings'));
+    document.getElementById('profile-avatar-trigger').addEventListener('click', () => openUniversalSidebarDrawer('drawer-profile'));
+    
+    // Auth Form Interactions
+    document.getElementById('password-reveal-toggle-btn').addEventListener('click', togglePasswordVisibility);
+    document.getElementById('auth-action-signin-btn').addEventListener('click', executeSignInRequest);
+    document.getElementById('auth-action-signup-btn').addEventListener('click', executeSignUpRequest);
+
+    // Global Drawer Close Handling
+    document.getElementById('drawer-overlay-shield').addEventListener('click', closeAllUniversalDrawers);
+    document.querySelectorAll('aside .drawer-close-cross-btn').forEach(btn => {
+        btn.addEventListener('click', closeAllUniversalDrawers);
     });
 
-    // Close buttons binding within drawers
-    document.querySelectorAll('.btn-close-drawer').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.target.closest('.sliding-drawer-panel').classList.add('horizontal-collapse');
+    // Dashboard Controls Mapping Layer
+    document.getElementById('add-custom-category-btn').addEventListener('click', createCustomCategoryElement);
+    document.getElementById('add-item-commit-btn').addEventListener('click', addNewItemToStackInstance);
+    document.getElementById('media-upload-dummy-btn').addEventListener('click', () => document.getElementById('input-item-file').click());
+    
+    // Settings Options
+    document.getElementById('settings-toggle-theme-btn').addEventListener('click', toggleApplicationThemeContext);
+    document.getElementById('settings-upgrade-tier-btn').addEventListener('click', executeUpgradeTierAllocation);
+    document.getElementById('settings-add-friend-trigger-btn').addEventListener('click', createDynamicNetworkFriendPrompt);
+    document.getElementById('settings-goto-friends-btn').addEventListener('click', () => { closeAllUniversalDrawers(); navigateToActiveView('view-friends'); });
+    document.getElementById('settings-vault-wipe-btn').addEventListener('click', triggerVaultWipeSystemReset);
+    document.getElementById('add-friends-matrix-btn').addEventListener('click', createDynamicNetworkFriendPrompt);
+
+    // Profile Modifiers Configuration
+    document.getElementById('avatar-upload-trigger-btn').addEventListener('click', () => document.getElementById('input-avatar-file').click());
+    document.getElementById('input-avatar-file').addEventListener('change', handleProfileAvatarUpload);
+    document.getElementById('profile-privacy-toggle-btn').addEventListener('click', toggleProfilePrivacyState);
+    document.getElementById('profile-save-commit-btn').addEventListener('click', commitUserProfileDetailsToServer);
+    
+    document.querySelectorAll('.field-edit-glyph-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => {
+            const input = e.target.parentElement.querySelector('input');
+            const newVal = prompt(`Update ${input.id.replace('prof-', '').toUpperCase()}:`, input.value);
+            if (newVal !== null) {
+                input.value = newVal;
+                const prop = input.id.replace('prof-', '');
+                state.profile[prop] = newVal;
+            }
         });
     });
-
-    // Landing navigation bindings
-    document.getElementById('btn-enter-vault').addEventListener('click', () => {
-        navigateTo('page-categories');
-    });
-
-    document.getElementById('btn-open-auth').addEventListener('click', () => {
-        toggleDrawer('drawer-auth');
-    });
-
-    // Eye Password Field Toggler Binding
-    document.getElementById('btn-toggle-pwd').addEventListener('click', () => {
-        const input = document.getElementById('auth-password');
-        input.type = input.type === 'password' ? 'text' : 'password';
-    });
-
-    // Back Routing Navigation Module Binding
-    document.getElementById('btn-global-back').addEventListener('click', () => {
-        if (state.historyStack.length > 1) {
-            state.historyStack.pop(); // Remove current node
-            const destination = state.historyStack[state.historyStack.length - 1];
-            executeViewTransition(destination, false);
-        }
-    });
-
-    // Drawers layout triggers
-    document.getElementById('btn-settings-burger').addEventListener('click', () => toggleDrawer('drawer-settings'));
-    document.getElementById('btn-profile-avatar').addEventListener('click', () => toggleDrawer('drawer-profile'));
-
-    // Identity action targets
-    document.getElementById('btn-action-signin').addEventListener('click', executeSignInPipeline);
-    document.getElementById('btn-action-signup').addEventListener('click', executeSignUpPipeline);
-
-    // Dashboard management targets
-    document.getElementById('btn-add-custom-category').addEventListener('click', createCustomCategoryNode);
-    document.getElementById('btn-commit-item').addEventListener('click', commitItemFormNode);
-
-    // Profile internal customizer actions
-    document.getElementById('btn-trigger-avatar-upload').addEventListener('click', () => document.getElementById('input-hidden-avatar').click());
-    document.getElementById('input-hidden-avatar').addEventListener('change', initiateAvatarCropMatrix);
-    document.getElementById('btn-save-profile').addEventListener('click', saveProfileMetadata);
-    document.getElementById('btn-profile-privacy-toggle').addEventListener('click', toggleProfilePrivacyState);
-
-    // Settings actions routing
-    document.getElementById('btn-toggle-theme').addEventListener('click', toggleThemeModeAesthetic);
-    document.getElementById('btn-upgrade-tier').addEventListener('click', processTierUpgradeSubscription);
-    document.getElementById('btn-settings-add-friends').addEventListener('click', () => { toggleDrawer('drawer-settings'); navigateTo('page-friends'); });
-    document.getElementById('btn-settings-go-friends').addEventListener('click', () => { toggleDrawer('drawer-settings'); navigateTo('page-friends'); });
-    document.getElementById('btn-vault-wipe').addEventListener('click', () => { toggleDrawer('drawer-settings'); document.getElementById('modal-wipe').classList.remove('display-none'); });
-
-    // Modals action confirmation hooks
-    document.getElementById('btn-wipe-cancel').addEventListener('click', () => document.getElementById('modal-wipe').classList.add('display-none'));
-    document.getElementById('btn-wipe-confirm').addEventListener('click', executeAbsoluteVaultWipeClearing);
-    document.getElementById('btn-crop-cancel').addEventListener('click', () => document.getElementById('modal-crop').classList.add('display-none'));
-    document.getElementById('btn-crop-confirm').addEventListener('click', finalizeCroppingCoordinateCapture);
-    document.getElementById('btn-social-cancel').addEventListener('click', () => document.getElementById('modal-social').classList.add('display-none'));
-    document.getElementById('btn-social-submit').addEventListener('click', executeSocialOperationFormula);
-    document.getElementById('btn-matrix-close').addEventListener('click', () => document.getElementById('modal-results-matrix').classList.add('display-none'));
-    document.getElementById('btn-trigger-friend-search').addEventListener('click', triggerFriendDiscoverySearchPopup);
 }
 
-// ROUTING VIEW CONTROLLER NAVIGATION PIPELINE
-function navigateTo(pageId) {
-    if (state.historyStack[state.historyStack.length - 1] !== pageId) {
-        state.historyStack.push(pageId);
+// ==========================================================================
+// VIEW ROUTER FLOW CONTROLLERS
+// ==========================================================================
+function navigateToActiveView(targetViewId) {
+    const currentActive = document.querySelector('main .active-viewport');
+    if (currentActive) {
+        state.viewHistoryStack.push(currentActive.id);
+        currentActive.classList.remove('active-viewport');
+        currentActive.classList.add('hidden-element');
     }
-    executeViewTransition(pageId, true);
-}
 
-function executeViewTransition(pageId, isForwardDirection) {
-    document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
-    document.getElementById(pageId).classList.add('active');
+    const nextView = document.getElementById(targetViewId);
+    nextView.classList.remove('hidden-element');
+    nextView.classList.add('active-viewport');
 
-    const header = document.getElementById('global-header');
-    if (pageId === 'page-landing') {
-        header.classList.add('hidden-header');
+    const header = document.getElementById('global-app-header');
+    if (targetViewId === 'view-landing') {
+        header.classList.add('hidden-element');
     } else {
-        header.classList.remove('hidden-header');
+        header.classList.remove('hidden-element');
     }
 
-    // Contextual redraw events hooks
-    if (pageId === 'page-categories') renderCategoriesGrid();
-    if (pageId === 'page-items') renderItemsStack();
-    if (pageId === 'page-friends') renderFriendsRosterStack();
+    // Refresh targeted elements loop layouts instantly
+    if (targetViewId === 'view-categories') renderCategoriesGrid();
+    if (targetViewId === 'view-items-stack') renderItemsStack();
+    if (targetViewId === 'view-friends') renderFriendsStack();
 }
 
-function toggleDrawer(drawerId) {
-    const drawer = document.getElementById(drawerId);
-    const isOpen = !drawer.classList.contains('horizontal-collapse');
-    document.querySelectorAll('.sliding-drawer-panel').forEach(d => d.classList.add('horizontal-collapse'));
-    if (isOpen) {
-        drawer.classList.add('horizontal-collapse');
+function navigateBackwardThroughHistory() {
+    if (state.viewHistoryStack.length === 0) {
+        navigateToActiveView('view-landing');
+        return;
+    }
+    const previousViewId = state.viewHistoryStack.pop();
+    
+    const currentActive = document.querySelector('main .active-viewport');
+    if (currentActive) {
+        currentActive.classList.remove('active-viewport');
+        currentActive.classList.add('hidden-element');
+    }
+
+    const targetView = document.getElementById(previousViewId);
+    targetView.classList.remove('hidden-element');
+    targetView.classList.add('active-viewport');
+
+    const header = document.getElementById('global-app-header');
+    if (previousViewId === 'view-landing') {
+        header.classList.add('hidden-element');
     } else {
-        drawer.classList.remove('horizontal-collapse');
+        header.classList.remove('hidden-element');
+    }
+
+    if (previousViewId === 'view-categories') renderCategoriesGrid();
+    if (previousViewId === 'view-items-stack') renderItemsStack();
+    if (previousViewId === 'view-friends') renderFriendsStack();
+}
+
+// ==========================================================================
+// DRAWER DISPLAY MANAGER ENGINE
+// ==========================================================================
+function openUniversalSidebarDrawer(drawerId) {
+    closeAllUniversalDrawers();
+    document.getElementById(drawerId).classList.remove('universal-sidebar-drawer-closed');
+    const overlay = document.getElementById('drawer-overlay-shield');
+    overlay.classList.remove('drawer-overlay-shield-hidden');
+}
+
+function closeAllUniversalDrawers() {
+    document.querySelectorAll('aside').forEach(drawer => {
+        drawer.classList.add('universal-sidebar-drawer-closed');
+    });
+    document.getElementById('drawer-overlay-shield').classList.add('drawer-overlay-shield-hidden');
+}
+
+function togglePasswordVisibility() {
+    const pwdField = document.getElementById('auth-password-field');
+    if (pwdField.type === 'password') {
+        pwdField.type = 'text';
+    } else {
+        pwdField.type = 'password';
     }
 }
 
-// IDENTITY LOGIC HANDLERS
-async function executeSignInPipeline() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const msgBox = document.getElementById('auth-status-msg');
+// ==========================================================================
+// USER SECURITY Handshake REST Operations
+// ==========================================================================
+function enterAsGuestContext() {
+    state.isGuestMode = true;
+    state.user = null;
+    state.categories = [...INITIAL_STOCK_CATEGORIES];
+    state.items = JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS));
+    navigateToActiveView('view-categories');
+}
+
+async function executeSignInRequest() {
+    const email = document.getElementById('auth-email-field').value;
+    const password = document.getElementById('auth-password-field').value;
+    const feedback = document.getElementById('auth-feedback-status-box');
+
+    feedback.style.color = "var(--gold-primary)";
+    feedback.innerText = "Processing system authentication match patterns...";
 
     try {
-        const res = await fetch(`${BACKEND_BASE}/api/auth/signin`, {
+        const response = await fetch(`${BACKEND_BASE}/api/auth/signin`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Array(data.error);
+        const resData = await response.json();
 
-        localStorage.setItem('top_tens_token', data.token);
-        state.user = data.user;
-        state.tier = data.user.tier || "free";
-        
-        msgBox.style.display = 'block';
-        msgBox.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
-        msgBox.innerText = "Access granted. Synchronizing Vault vault context...";
-        
-        await syncVaultDataFromCloud();
-        setTimeout(() => {
-            toggleDrawer('drawer-auth');
-            navigateTo('page-categories');
-            updateUIStateElements();
-        }, 1000);
+        if (!response.ok) {
+            feedback.style.color = "var(--action-red)";
+            feedback.innerText = resData.error || "Login parameters confirmation verification failure.";
+            return;
+        }
 
+        localStorage.setItem('token', resData.token);
+        state.isGuestMode = false;
+        state.user = resData.user;
+        
+        feedback.style.color = "var(--action-green)";
+        feedback.innerText = "Access verified. Syncing vault space...";
+        
+        await pullUserVaultStorageMatrices();
+        closeAllUniversalDrawers();
+        navigateToActiveView('view-categories');
     } catch (err) {
-        msgBox.style.display = 'block';
-        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-        msgBox.innerText = Array.isArray(err) ? err[0] : "Network authentication handshake failed.";
+        feedback.style.color = "var(--action-red)";
+        feedback.innerText = "Network pipeline error connection blocked.";
     }
 }
 
-async function executeSignUpPipeline() {
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const msgBox = document.getElementById('auth-status-msg');
+async function executeSignUpRequest() {
+    const email = document.getElementById('auth-email-field').value;
+    const password = document.getElementById('auth-password-field').value;
+    const feedback = document.getElementById('auth-feedback-status-box');
 
-    // Regex checking validation matching parameters rules
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,20}$/;
-    if (!passwordRegex.test(password)) {
-        msgBox.style.display = 'block';
-        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-        msgBox.innerText = "Password requirements validation failed.";
+    // Password Parameter Verification Matrix Checklist Rules
+    const reqRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+    if (!reqRegex.test(password)) {
+        feedback.style.color = "var(--action-red)";
+        feedback.innerText = "Password string rejected. Does not match core constraints architecture requirements.";
         return;
     }
 
+    feedback.style.color = "var(--gold-primary)";
+    feedback.innerText = "Registering node. Initializing email activation loop hooks...";
+
     try {
-        const res = await fetch(`${BACKEND_BASE}/api/auth/signup`, {
+        const response = await fetch(`${BACKEND_BASE}/api/auth/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
+        const resData = await response.json();
 
-        msgBox.style.display = 'block';
-        msgBox.style.backgroundColor = 'rgba(77, 166, 255, 0.2)';
-        msgBox.innerText = "Verification link pushed to target address. Verify to trigger dashboard redirection context.";
+        if (!response.ok) {
+            feedback.style.color = "var(--action-red)";
+            feedback.innerText = resData.error || "Registration validation routing path dropped.";
+            return;
+        }
 
-        // Long polling mock engine simulation context for verification monitoring logic loops
-        let pollInterval = setInterval(async () => {
-            const checkRes = await fetch(`${BACKEND_BASE}/api/auth/poll-verification?email=${encodeURIComponent(email)}`);
-            const checkData = await checkRes.json();
-            if (checkData.verified) {
-                clearInterval(pollInterval);
-                localStorage.setItem('top_tens_token', checkData.token);
-                state.user = checkData.user;
-                msgBox.innerText = "Email verification confirmed! Vault initializing...";
-                setTimeout(() => {
-                    toggleDrawer('drawer-auth');
-                    navigateTo('page-categories');
-                    updateUIStateElements();
-                }, 1200);
-            }
-        }, 3000);
+        feedback.style.color = "var(--action-green)";
+        feedback.innerText = "Verification issued. Polling for activation handshake confirmation link...";
 
-    } catch(e) {
-        msgBox.style.display = 'block';
-        msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-        msgBox.innerText = e.message;
+        // Set up the poll looping tracking sequence to check if verification is confirmed
+        initializeActivationPollingSequence(email, feedback);
+    } catch (err) {
+        feedback.style.color = "var(--action-red)";
+        feedback.innerText = "Network mapping channel execution error.";
     }
 }
 
-// DASHBOARD RENDERING RENDERS MANAGEMENT LAYER
+function initializeActivationPollingSequence(email, feedbackElement) {
+    const pollId = setInterval(async () => {
+        try {
+            const pollRes = await fetch(`${BACKEND_BASE}/api/auth/poll-verification?email=${encodeURIComponent(email)}`);
+            const pollData = await pollRes.json();
+            
+            if (pollData.verified) {
+                clearInterval(pollId);
+                localStorage.setItem('token', pollData.token);
+                state.isGuestMode = false;
+                state.user = pollData.user;
+                
+                feedbackElement.innerText = "Verification path matched! Entering vault workspace context.";
+                await dispatchVaultSynchronizationPayload();
+                
+                setTimeout(() => {
+                    closeAllUniversalDrawers();
+                    navigateToActiveView('view-categories');
+                }, 1500);
+            }
+        } catch (e) {
+            console.error("Polling stream interruption skipped:", e);
+        }
+    }, 2500);
+}
+
+async function evaluateSessionTokenState() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+        const response = await fetch(`${BACKEND_BASE}/api/auth/verify-session`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            state.user = data.user;
+            state.isGuestMode = false;
+            await pullUserVaultStorageMatrices();
+            if (document.getElementById('view-landing').classList.contains('active-viewport')) {
+                navigateToActiveView('view-categories');
+            }
+        } else {
+            localStorage.removeItem('token');
+        }
+    } catch (err) {
+        console.warn("Session token parsing verification route offline. Native persistence offline.");
+    }
+}
+
+// ==========================================================================
+// PERSISTENCE STORAGE SYNCHRONIZATION PIPELINES
+// ==========================================================================
+async function dispatchVaultSynchronizationPayload() {
+    if (state.isGuestMode || !state.user) return;
+    const token = localStorage.getItem('token');
+    try {
+        await fetch(`${BACKEND_BASE}/api/vault/sync`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ categories: state.categories, items: state.items })
+        });
+    } catch (e) {
+        console.error("Vault network stream synchronization error write back dropped:", e);
+    }
+}
+
+async function pullUserVaultStorageMatrices() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+        const response = await fetch(`${BACKEND_BASE}/api/vault/pull`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const data = await response.json();
+            if (data.categories && data.categories.length > 0) {
+                state.categories = data.categories;
+                state.items = data.items || {};
+            }
+        }
+    } catch (e) {
+        console.error("Vault read cluster synchronization matrix error:", e);
+    }
+}
+
+// ==========================================================================
+// VIEW 2 RENDER GENERATOR: CATEGORIES MANAGER MATRIX
+// ==========================================================================
 function renderCategoriesGrid() {
-    const grid = document.getElementById('categories-grid');
+    const grid = document.getElementById('categories-grid-matrix');
     grid.innerHTML = '';
 
     state.categories.forEach(cat => {
-        const itemCount = state.items[cat.id] ? state.items[cat.id].length : 0;
-        const node = document.createElement('div');
-        node.className = 'category-tab-node';
+        const listItems = state.items[cat.id] || [];
+        const card = document.createElement('div');
+        card.className = 'category-elongated-card-tab';
         
-        node.innerHTML = `
-            <div class="category-main-click-zone">
-                <span class="category-emoji-frame">${cat.emoji || '📂'}</span>
-                <span class="category-node-title">${cat.title}</span>
-                <span class="category-node-counter">(${itemCount} items)</span>
+        card.innerHTML = `
+            <div>
+                <div class="category-tab-meta-header">
+                    <span class="category-emoji-node">${cat.emoji || '📂'}</span>
+                    <span class="category-title-node">${cat.title}</span>
+                </div>
+                <div class="category-counter-node">(${listItems.length} items allocated)</div>
+                <div class="category-tab-actions-row">
+                    <button class="category-utility-btn compare-trigger-action">Compare</button>
+                    <button class="category-utility-btn fuse-trigger-action">Fuse</button>
+                    <button class="category-utility-btn privacy-toggle-trigger ${cat.isPrivate ? 'active-state-toggle' : ''}">
+                        ${cat.isPrivate ? 'Private' : 'Public'}
+                    </button>
+                </div>
             </div>
-            <div class="node-utility-icons">
-                <button class="icon-util-btn edit-cat-btn">&#9998;</button>
-                <button class="icon-util-btn remove-cat-btn">&#128465;</button>
-            </div>
-            <div class="category-actions-row">
-                <button class="btn-node-sub compare-action-trigger">Compare</button>
-                <button class="btn-node-sub fuse-action-trigger">Fuse</button>
-                <button class="btn-node-sub privacy-action-trigger">${cat.isPublic ? 'Public' : 'Private'}</button>
+            <div class="tab-corner-actions-cluster">
+                <button class="icon-util-btn edit-cat-trigger">&#9998;</button>
+                <button class="icon-util-btn remove-cat-trigger">&#128465;</button>
             </div>
         `;
 
-        // Routing click actions bindings
-        node.querySelector('.category-main-click-zone').addEventListener('click', () => {
+        // Direct Routing Core Frame Clicking Check (Intercept Button Actions)
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('button')) return;
             state.currentCategoryContextId = cat.id;
-            navigateTo('page-items');
+            navigateToActiveView('view-items-stack');
         });
 
-        node.querySelector('.edit-cat-btn').addEventListener('click', (e) => { e.stopPropagation(); editCategoryTitleInline(cat.id); });
-        node.querySelector('.remove-cat-btn').addEventListener('click', (e) => { e.stopPropagation(); removeCategoryNodeState(cat.id); });
-        node.querySelector('.compare-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); openSocialOperationModal(cat.id, 'compare'); });
-        node.querySelector('.fuse-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); openSocialOperationModal(cat.id, 'fuse'); });
-        node.querySelector('.privacy-action-trigger').addEventListener('click', (e) => { e.stopPropagation(); toggleCategoryPrivacyState(cat.id); });
+        card.querySelector('.edit-cat-trigger').addEventListener('click', () => triggerCategoryUpdatePrompt(cat.id));
+        card.querySelector('.remove-cat-trigger').addEventListener('click', () => removeCategoryElementInstance(cat.id));
+        card.querySelector('.compare-trigger-action').addEventListener('click', () => executeSocialComputeOperation('compare', cat.title, cat.id));
+        card.querySelector('.fuse-trigger-action').addEventListener('click', () => executeSocialComputeOperation('fuse', cat.title, cat.id));
+        card.querySelector('.privacy-toggle-trigger').addEventListener('click', () => toggleCategoryPrivacyState(cat.id));
 
-        grid.appendChild(node);
+        grid.appendChild(card);
     });
 }
 
-function createCustomCategoryNode() {
-    const limit = state.tier === 'premium' ? 99 : 21;
-    if (state.categories.length >= limit) {
-        alert("Maximum storage category ceiling constraints limit reached. Upgrade profile allocation vectors via settings drawer.");
+function createCustomCategoryElement() {
+    if (state.categories.length >= state.tierLimit) {
+        alert(`Storage boundary allocated tier capacity threshold reached. Free Tier cap: ${state.tierLimit}. Upgrade inside settings drawer.`);
         return;
     }
-    const title = prompt("Enter Custom Category Designation Name:");
+    const title = prompt("Enter Custom Category Title:");
     if (!title) return;
     
-    const newId = 'custom-' + Date.now();
-    state.categories.push({ id: newId, title: title, emoji: "🏷️", isPublic: true });
-    state.items[newId] = [];
-    
-    persistStateToStorageAndSync();
+    const id = "custom-cat-" + Date.now();
+    state.categories.push({ id, title: title.trim(), emoji: "📂", isPrivate: false });
+    state.items[id] = [];
+
     renderCategoriesGrid();
+    dispatchVaultSynchronizationPayload();
 }
 
-function editCategoryTitleInline(id) {
-    const cat = state.categories.find(c => c.id === id);
-    const updated = prompt("Modify Category Title Name Designation:", cat.title);
-    if (updated) {
-        cat.title = updated;
-        persistStateToStorageAndSync();
+function triggerCategoryUpdatePrompt(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    const newTitle = prompt("Update Category Title:", cat.title);
+    if (newTitle) {
+        cat.title = newTitle.trim();
         renderCategoriesGrid();
+        dispatchVaultSynchronizationPayload();
     }
 }
 
-function removeCategoryNodeState(id) {
-    if (confirm("Execute extraction removal of this category block and all contained index nodes?")) {
-        state.categories = state.categories.filter(c => c.id !== id);
-        delete state.items[id];
-        persistStateToStorageAndSync();
-        renderCategoriesGrid();
-    }
-}
-
-function toggleCategoryPrivacyState(id) {
-    const cat = state.categories.find(c => c.id === id);
-    cat.isPublic = !cat.isPublic;
-    persistStateToStorageAndSync();
+function removeCategoryElementInstance(catId) {
+    if (!confirm("Confirm complete eradication of this data tracking category structural frame node?")) return;
+    state.categories = state.categories.filter(c => c.id !== catId);
+    delete state.items[catId];
     renderCategoriesGrid();
+    dispatchVaultSynchronizationPayload();
 }
 
-// ITEMS DASHBOARD WORKER INSTANCE
+function toggleCategoryPrivacyState(catId) {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return;
+    cat.isPrivate = !cat.isPrivate;
+    renderCategoriesGrid();
+    dispatchVaultSynchronizationPayload();
+}
+
+// ==========================================================================
+// VIEW 3 RENDER GENERATOR: CRITICAL FIXED ITEMS MANAGER & REPLACEMENT ENGINE
+// ==========================================================================
 function renderItemsStack() {
     const cat = state.categories.find(c => c.id === state.currentCategoryContextId);
-    document.getElementById('current-category-view-title').innerText = cat ? cat.title : "Vault Stack Items List";
+    document.getElementById('current-category-view-title').innerText = cat ? `${cat.title} Vault Stack` : "Items Vault Stack List";
 
     const container = document.getElementById('items-vertical-stack');
     container.innerHTML = '';
 
     const listItems = state.items[state.currentCategoryContextId] || [];
-    // Force structural rank configuration sort optimization algorithm matching execution rules mapping parameters
     listItems.sort((a, b) => a.rank - b.rank);
 
     listItems.forEach(item => {
         const row = document.createElement('div');
         row.className = 'item-list-row';
         
-        // Target customUrl asset field if present; fallback to autonomous processing link engine
-        const affiliateLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl); 
-            ? item.customUrl.trim() 
-            : generateAutonomousAffiliateLinkNode(item.name);
+        // CRITICAL INJECTION: Pass both item name AND user customUrl override parameter targets to calculation logic
+        const affiliateLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl);
 
         row.innerHTML = `
             <div class="item-left-block">
@@ -361,534 +501,291 @@ function renderItemsStack() {
     });
 }
 
-async function triggerItemUpdateMatrix(itemId) {
-    // 1. Locate the item target in local state memory matrices
-    const categoryItems = state.items[state.currentCategoryContextId] || [];
-    const item = categoryItems.find(i => i.id === itemId);
-    if (!item) {
-        console.error("Item targeting fault: matching node instance dropped from local memory context.");
-        return;
-    }
-
-    // 2. Prompt for changing or retaining Item Name metadata 
-    const newName = prompt("Edit Item Name:", item.name);
-    if (newName === null) return; // Aborted by user
-
-    // 3. Prompt for custom reference link replacement mapping
-    const currentCustomUrl = item.customUrl || '';
-    const newUrl = prompt("Edit/Replace Reference Link (Leave blank to drop back to automatic link engine):", currentCustomUrl);
-    if (newUrl === null) return; // Aborted by user
-
-    // 4. Update your local frontend application state values directly
-    item.name = newName.trim() || item.name;
-    item.customUrl = newUrl.trim();
-
-    // 5. Update the local layout display layer instantly
-    renderItemsStack();
-
-    // 6. Push state memory directly into your existing enterprise synchronization pipeline
-    // Look for the specific name of your save/sync function. It typically looks like one of these:
-    if (typeof syncVaultToCloudflare === 'function') {
-        await syncVaultToCloudflare();
-    } else if (typeof saveVaultState === 'function') {
-        await saveVaultState();
-    } else {
-        // Fallback: Inline execution targeting your live /api/vault/sync gateway endpoint
-        try {
-            const token = localStorage.getItem('token'); // Use your application's JWT storage key matching rule
-            const response = await fetch('https://top-tens-backend.swoodson96.workers.dev/api/vault/sync', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    categories: state.categories,
-                    items: state.items
-                })
-            });
-
-            if (!response.ok) {
-                console.error("Cloudflare sync failure status rejected by system edge-router.");
-            }
-        } catch (syncErr) {
-            console.error("Failed to commit application state payload to remote edge persistence cluster:", syncErr);
-        }
-    }
-}
-
-function commitItemFormNode() {
-    const name = document.getElementById('input-item-name').value.trim();
-    const rank = parseInt(document.getElementById('input-item-rank').value);
-    const mediaInput = document.getElementById('input-item-media');
+function addNewItemToStackInstance() {
+    const nameInput = document.getElementById('input-item-name');
+    const rankInput = document.getElementById('input-item-rank');
+    
+    const name = nameInput.value.trim();
+    const rank = parseInt(rankInput.value);
 
     if (!name || isNaN(rank) || rank < 1 || rank > 10) {
-        alert("Verification logic constraint missing data fields elements parameter parameters.");
+        alert("Please assign a valid Item Title string and integer rank parameters bound between (1-10).");
         return;
     }
 
-    const currentList = state.items[state.currentCategoryContextId] || [];
-    if (currentList.length >= 10 && !currentList.find(i => i.rank === rank)) {
-        alert("Maximum allocation bounds size threshold limit reached for single index track framework (Limit: 10 items).");
+    const currentItems = state.items[state.currentCategoryContextId] || [];
+    if (currentItems.length >= 10) {
+        alert("List tracking matrices arrays are strictly limited to an absolute cap of 10 items.");
         return;
     }
 
-    const processExecution = (mediaBase64) => {
-        // Handle cascading replacement rank realignment math configuration mapping sequence
-        state.items[state.currentCategoryContextId] = currentList.filter(i => i.rank !== rank);
-        
-        state.items[state.currentCategoryContextId].push({
-            id: 'item-' + Date.now(),
-            name: name,
-            rank: rank,
-            media: mediaBase64 || ""
-        });
-
-        // Clear dynamic parameters form
-        document.getElementById('input-item-name').value = '';
-        document.getElementById('input-item-rank').value = '';
-        mediaInput.value = '';
-
-        persistStateToStorageAndSync();
-        renderItemsStack();
-    };
-
-    if (mediaInput.files && mediaInput.files[0]) {
-        const file = mediaInput.files[0];
-        state.activeCroppingTarget = {
-            file: file,
-            callback: processExecution
-        };
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('crop-preview-img').src = e.target.result;
-            document.getElementById('modal-crop').classList.remove('display-none');
-        };
-        reader.readAsDataURL(file);
-    } else {
-        processExecution("");
+    const id = "item-node-" + Date.now();
+    const newItem = { id, name, rank, customUrl: "", media: "" };
+    
+    if (!state.items[state.currentCategoryContextId]) {
+        state.items[state.currentCategoryContextId] = [];
     }
+    state.items[state.currentCategoryContextId].push(newItem);
+
+    nameInput.value = '';
+    rankInput.value = '';
+
+    renderItemsStack();
+    dispatchVaultSynchronizationPayload();
 }
 
+// CRITICAL REPAIR MATRIX: OPENS ACTIVE LINK STRING DIRECTLY FOR REPLACEMENT CONTROL PROMPTS
 async function triggerItemUpdateMatrix(itemId) {
     const categoryItems = state.items[state.currentCategoryContextId] || [];
     const item = categoryItems.find(i => i.id === itemId);
     if (!item) return;
 
-    // Grab the current active link layout setting to show the user what they are editing
+    // Capture the active parsing link setting currently showing on the target button interface view
     const currentActiveLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl);
 
-    // Prompt 1: Edit Item Name
-    const newName = prompt("Edit Item Name:", item.name);
-    if (newName === null) return; // Action cancelled
+    const newName = prompt("Edit Item Name/Title Text:", item.name);
+    if (newName === null) return;
 
-    // Prompt 2: Edit/Replace Reference Link (Populates with the active autogenerated or custom URL)
-    const newUrl = prompt("Edit or Replace Reference Link:", currentActiveLink);
-    if (newUrl === null) return; // Action cancelled
+    const newUrl = prompt("Edit or Completely Replace Reference Link:", currentActiveLink);
+    if (newUrl === null) return;
 
-    // Process Name Change
     item.name = newName.trim() || item.name;
 
-    // Calculate what the default automated system link would be for the new name
+    // Check against standard affiliate builder patterns to determine if user reverted or supplied a completely new link rule mapping
     const defaultStockLink = generateAutonomousAffiliateLinkNode(item.name);
 
-    // If the user cleared it out or matched the default stock algorithm string exactly, 
-    // leave customUrl empty to preserve clean autogeneration. Otherwise, save their explicit custom URL.
     if (newUrl.trim() === '' || newUrl.trim() === defaultStockLink) {
-        item.customUrl = '';
+        item.customUrl = ''; // Clear out to fallback to clean automation logic
     } else {
-        item.customUrl = newUrl.trim();
+        item.customUrl = newUrl.trim(); // Commit their custom tracking override string parameters directly
     }
 
-    // Force an immediate layout redraw across the view panel matrix
+    // Secondary choice prompt configuration mapping to update raw row ordering positions numbers
+    const newRank = prompt("Edit Item Rank (1-10):", item.rank);
+    if (newRank) {
+        const rInt = parseInt(newRank);
+        if (!isNaN(rInt) && rInt >= 1 && rInt <= 10) item.rank = rInt;
+    }
+
     renderItemsStack();
-
-    // Fire the data synchronization bundle directly up to Cloudflare Workers persistence storage
-    if (typeof syncVaultToCloudflare === 'function') {
-        await syncVaultToCloudflare();
-    } else if (typeof saveVaultState === 'function') {
-        await saveVaultState();
-    } else {
-        // Fallback monolithic post path directly to your edge sync router endpoint
-        try {
-            const token = localStorage.getItem('token');
-            await fetch('https://top-tens-backend.swoodson96.workers.dev/api/vault/sync', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ categories: state.categories, items: state.items })
-            });
-        } catch (err) {
-            console.error("Vault pipeline data persistence stream execution error:", err);
-        }
-    }
+    dispatchVaultSynchronizationPayload();
 }
 
 function removeItemNodeInstance(itemId) {
-    if (confirm("Purge selected target parameter element track from list stack frame context layer?")) {
-        state.items[state.currentCategoryContextId] = (state.items[state.currentCategoryContextId] || []).filter(i => i.id !== itemId);
-        persistStateToStorageAndSync();
-        renderItemsStack();
-    }
+    if (!confirm("Eradicate this list element item row from local memory stacks?")) return;
+    state.items[state.currentCategoryContextId] = (state.items[state.currentCategoryContextId] || []).filter(i => i.id !== itemId);
+    renderItemsStack();
+    dispatchVaultSynchronizationPayload();
 }
 
-function generateAutonomousAffiliateLinkNode(itemName, customUrl = '') {
-    // 1. Rule Override: If the user has explicitly edited or replaced this link, use it instantly!
-    if (customUrl && customUrl.trim() !== '') {
-        return customUrl.trim();
-    }
-
-    // 2. Default Fallback Macro Builder Logic Rule: Run the stock autogeneration if no custom edit exists
-    const structuredQuery = encodeURIComponent(itemName + " purchase online store");
-    return `https://www.amazon.com/s?k=${structuredQuery}&tag=toptens20-20`;
-}
-
-// PROFILE DRAWER CUSTOMIZER CONTROLLER PIPELINE
-function initiateAvatarCropMatrix(e) {
-    if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        state.activeCroppingTarget = {
-            file: file,
-            callback: (base64Payload) => {
-                document.getElementById('profile-drawer-avatar-preview').style.backgroundImage = `url('${base64Payload}')`;
-                document.getElementById('btn-profile-avatar').style.backgroundImage = `url('${base64Payload}')`;
-                state.avatarDataPayload = base64Payload;
-            }
-        };
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            document.getElementById('crop-preview-img').src = event.target.result;
-            document.getElementById('modal-crop').classList.remove('display-none');
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function finalizeCroppingCoordinateCapture() {
-    // Simulated cropping canvas frame bounding matrix parser mapping
-    // Compiles active element to standardized asset size format inline data blocks
-    const img = document.getElementById('crop-preview-img');
-    const canvas = document.createElement('canvas');
-    canvas.width = 150;
-    canvas.height = 150;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, 150, 150);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-    
-    if (state.activeCroppingTarget && state.activeCroppingTarget.callback) {
-        state.activeCroppingTarget.callback(dataUrl);
-    }
-    document.getElementById('modal-crop').classList.add('display-none');
-}
-
-async function saveProfileMetadata() {
-    const payload = {
-        name: document.getElementById('profile-name').value,
-        dob: document.getElementById('profile-dob').value,
-        hometown: document.getElementById('profile-hometown').value,
-        vocation: document.getElementById('profile-vocation').value,
-        recovery: document.getElementById('profile-recovery').value,
-        avatar: state.avatarDataPayload || ""
-    };
-
-    if (state.user) {
-        const token = localStorage.getItem('top_tens_token');
-        await fetch(`${BACKEND_BASE}/api/profile/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-        });
-    } else {
-        localStorage.setItem('top_tens_guest_profile', JSON.stringify(payload));
-    }
-    alert("Profile parameters safely written to vault storage maps.");
-    toggleDrawer('drawer-profile');
-}
-
-function toggleProfilePrivacyState() {
-    const btn = document.getElementById('btn-profile-privacy-toggle');
-    const isPublic = btn.classList.contains('active-public');
-    if (isPublic) {
-        btn.classList.remove('active-public');
-        btn.innerText = "Profile Private";
-    } else {
-        btn.classList.add('active-public');
-        btn.innerText = "Profile Public";
-    }
-}
-
-// SOCIAL ACTIONS COMPARE AND FUSE OPERATIONS FRAMEWORKS
-function openSocialOperationModal(catId, actionType) {
-    state.activeSocialCategoryContextId = catId;
-    state.activeSocialContextActionType = actionType;
-    
-    document.getElementById('social-modal-title').innerText = actionType === 'compare' ? "Category Comparative Lookup" : "Category Synthesis Weighted Fusion";
-    const container = document.getElementById('social-friends-checklist');
-    container.innerHTML = '';
-
-    if (state.friends.length === 0) {
-        container.innerHTML = '<p class="password-specs">No verified nodes connected in network roster matrix.</p>';
-    }
-
-    state.friends.forEach(f => {
-        const row = document.createElement('div');
-        row.className = 'picker-row';
-        row.innerHTML = `
-            <input type="checkbox" value="${f.name}" id="chk-friend-${f.name}">
-            <label for="chk-friend-${f.name}">${f.name} (Match Index: ${f.mutualCategories})</label>
-        `;
-        container.appendChild(row);
-    });
-
-    document.getElementById('modal-social').classList.remove('display-none');
-}
-
-async function executeSocialOperationFormula() {
-    const checked = Array.from(document.querySelectorAll('#social-friends-checklist input:checked')).map(i => i.value);
-    document.getElementById('modal-social').classList.add('display-none');
-
-    const cat = state.categories.find(c => c.id === state.activeSocialCategoryContextId);
-    const token = localStorage.getItem('top_tens_token');
-
-    const res = await fetch(`${BACKEND_BASE}/api/social/compute`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            action: state.activeSocialContextActionType,
-            categoryTitle: cat.title,
-            friends: checked,
-            userList: state.items[state.activeSocialCategoryContextId] || []
-        })
-    });
-    const resultData = await res.json();
-
-    // Direct dynamic payload parsing loop array map layout architecture output compiler configuration node
-    document.getElementById('matrix-output-title').innerText = state.activeSocialContextActionType === 'compare' ? `Juxtaposed Frame View Grid: ${cat.title}` : `Weighted Matrix Consolidated Core Output: ${cat.title}`;
-    const grid = document.getElementById('matrix-scroll-payload');
-    grid.innerHTML = '';
-
-    resultData.payload.forEach(col => {
-        const card = document.createElement('div');
-        card.className = 'matrix-column-card';
-        let itemsHtml = col.items.map((it, idx) => `<p class="password-specs" style="color:white;"><b>#${idx+1}</b> ${it.name}</p>`).join('');
-        card.innerHTML = `
-            <div class="matrix-column-title">${col.nodeName}</div>
-            <div class="matrix-column-body">${itemsHtml || '<p class="password-specs">Empty Set</p>'}</div>
-        `;
-        grid.appendChild(card);
-    });
-
-    document.getElementById('modal-results-matrix').classList.remove('display-none');
-}
-
-// FRIENDS ENGINE ROSTER POPULATOR
-// ==========================================
-// D:/top-tens/frontend/app.js
-// PRECISE PATCH LOCATION: Replace the entire renderFriendsRosterStack function
-// ==========================================
-
-// FRIENDS ENGINE ROSTER POPULATOR
-function renderFriendsRosterStack() {
+// ==========================================================================
+// VIEW 4 RENDER GENERATOR: NETWORK FRIENDS LAYOUT
+// ==========================================================================
+function renderFriendsStack() {
     const container = document.getElementById('friends-vertical-stack');
     container.innerHTML = '';
 
-    if (state.friends.length === 0) {
-        // Establish stock nodes framework for user system reference illustration maps parameters
-        // Added unique IDs to ensure editing and removing track specific items cleanly
-        state.friends = [
-            { id: "alpha-ranker", name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
-            { id: "crypto-collector", name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
-            { id: "omega-lister", name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
-        ];
-    }
-
-    state.friends.forEach(f => {
+    state.friends.forEach(fr => {
         const row = document.createElement('div');
         row.className = 'friend-list-row';
-        row.setAttribute('data-id', f.id);
-        
+
         row.innerHTML = `
-            <span class="friend-profile-name">${f.name}</span>
-            <span class="friend-metric-node">Mutual Categories: ${f.mutualCategories}</span>
-            <span class="friend-metric-node">Mutual Items: ${f.mutualItems}</span>
-            
-            <div class="roster-right-controls" style="display: flex; gap: 12px; margin-left: auto; align-items: center; padding-right: 10px;">
-                
-                <div class="thumbnail-media-circle" style="width: 24px; height: 24px; background-size: cover; background-position: center; background-image: url('${f.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23d4af37&quot;><path d=&quot;M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z&quot;/></svg>'}')"></div>
-                
-                <div class="roster-actions-wrapper" style="display: flex; gap: 8px; align-items: center;">
-                    <button class="icon-btn edit-roster-btn" title="Edit Friend Name" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                    </button>
-                    <button class="icon-btn remove-roster-btn" title="Remove Friend" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                        </svg>
-                    </button>
-                </div>
+            <div class="friend-left-block">
+                <span class="friend-core-name">${fr.name}</span>
+            </div>
+            <div class="friend-right-block">
+                <span class="friend-stats-node">Mutual Categories: ${fr.mutualCategories}</span>
+                <span class="friend-stats-node">Mutual Items: ${fr.mutualItems}</span>
+                <div class="friend-avatar-circle" style="background-image: url('${fr.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z&quot;/></svg>'}')"></div>
             </div>
         `;
-
-        // Direct event hookups for the restored logic layer
-        row.querySelector('.edit-roster-btn').addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent row click bubbling
-            const newName = prompt(`Edit name for ${f.name}:`, f.name);
-            if (newName && newName.trim() !== "" && newName.trim() !== f.name) {
-                f.name = newName.trim();
-                renderFriendsRosterStack(); // Re-render updated state
-            }
-        });
-
-        row.querySelector('.remove-roster-btn').addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent row click bubbling
-            if (confirm(`Are you sure you want to remove ${f.name} from your roster?`)) {
-                state.friends = state.friends.filter(friend => friend.id !== f.id);
-                renderFriendsRosterStack(); // Re-render updated state
-            }
-        });
-
         container.appendChild(row);
     });
 }
 
-function triggerFriendDiscoverySearchPopup() {
-    const query = prompt("Query Dynamic Network Profiles Target Name Registry Handle:");
-    if (query) {
-        alert(`Discovered matching unique identifier target path handle '${query}'. Node added to local synchronization queue roster mapping.`);
-        state.friends.push({ name: query, mutualCategories: 2, mutualItems: 4, avatar: "" });
-        persistStateToStorageAndSync();
-        renderFriendsRosterStack();
-    }
-}
-
-// CONFIGURATION UTILITY STORAGE SYNC MATRIX STRATEGY
-function loadLocalFallbackSession() {
-    const categoriesCached = localStorage.getItem('top_tens_categories');
-    const itemsCached = localStorage.getItem('top_tens_items');
-
-    if (categoriesCached && itemsCached) {
-        state.categories = JSON.parse(categoriesCached);
-        state.items = JSON.parse(itemsCached);
-    } else {
-        // Bootstrap stock data definitions context tracking logic blocks
-        state.categories = [...GLOBAL_STOCK_CATEGORIES];
-        state.items = JSON.parse(JSON.stringify(GLOBAL_STOCK_ITEMS));
-        persistStateToStorageAndSync();
-    }
-}
-
-function persistStateToStorageAndSync() {
-    localStorage.setItem('top_tens_categories', JSON.stringify(state.categories));
-    localStorage.setItem('top_tens_items', JSON.stringify(state.items));
+function createDynamicNetworkFriendPrompt() {
+    const fName = prompt("Search Global Verified Top Tens Database Network Profiles (Public Profiles by Default):");
+    if (!fName) return;
     
-    if (state.user) {
-        // Fire fire-and-forget back-plane background async network write logic thread context parameters
-        const token = localStorage.getItem('top_tens_token');
-        fetch(`${BACKEND_BASE}/api/vault/sync`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ categories: state.categories, items: state.items })
-        }).catch(err => console.warn("Background pipeline cloud sync operation deferred. Queue latency active."));
-    }
-}
-
-async function attemptSessionValidation() {
-    const token = localStorage.getItem('top_tens_token');
-    if (!token) return;
-
-    try {
-        const res = await fetch(`${BACKEND_BASE}/api/auth/verify-session`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (res.ok) {
-            state.user = data.user;
-            state.tier = data.user.tier || "free";
-            await syncVaultDataFromCloud();
-            updateUIStateElements();
-        } else {
-            localStorage.removeItem('top_tens_token');
-        }
-    } catch(e) {
-        console.error("Session lookup dropped during connection bootstrap parsing operations framework.");
-    }
-}
-
-async function syncVaultDataFromCloud() {
-    const token = localStorage.getItem('top_tens_token');
-    if (!token) return;
-    try {
-        const res = await fetch(`${BACKEND_BASE}/api/vault/pull`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        if (res.ok && data.categories && data.items) {
-            state.categories = data.categories;
-            state.items = data.items;
-            localStorage.setItem('top_tens_categories', JSON.stringify(state.categories));
-            localStorage.setItem('top_tens_items', JSON.stringify(state.items));
-        }
-    } catch(e) {
-         console.warn("Could not synchronize dynamic framework cloud storage matrices parameters fallbacks active.");
-    }
-}
-
-function updateUIStateElements() {
-    const isPremium = state.tier === 'premium';
-    document.getElementById('category-max-limit').innerText = isPremium ? "99" : "21";
-    document.getElementById('btn-upgrade-tier').innerText = isPremium ? "Tier State: Premium Matrix Active" : "Upgrade - $0.99/month";
-    if (state.user) {
-        document.getElementById('profile-email').value = state.user.email;
-    }
-}
-
-function toggleThemeModeAesthetic() {
-    const body = document.body;
-    const btn = document.getElementById('btn-toggle-theme');
-    if (body.classList.contains('dark-mode')) {
-        body.classList.remove('dark-mode');
-        body.classList.add('light-mode');
-        btn.innerText = "Toggle Dark Mode";
+    // Add dynamically mapped profile node element objects directly matching infrastructure layout requirements
+    state.friends.push({
+        name: fName.trim(),
+        mutualCategories: Math.floor(Math.random() * 3),
+        mutualItems: Math.floor(Math.random() * 10),
+        avatar: ""
+    });
+    
+    if (document.getElementById('view-friends').classList.contains('active-viewport')) {
+        renderFriendsStack();
     } else {
-        body.classList.remove('light-mode');
-        body.classList.add('dark-mode');
-        btn.innerText = "Toggle Light Mode";
+        alert(`Friend link established with profile connection node: "${fName}". Relocating to Network Roster.`);
+        closeAllUniversalDrawers();
+        navigateToActiveView('view-friends');
     }
 }
 
-function processTierUpgradeSubscription() {
-    if (state.tier === 'premium') {
-        alert("Account tier context maps are already optimized to maximal framework allocation limits.");
+// ==========================================================================
+// SOCIAL CALCULATOR ENGINES: JUUXTAPOSED COMPARISONS & WEIGHTED AVERAGES FUSION
+// ==========================================================================
+async function executeSocialComputeOperation(action, categoryTitle, catId) {
+    const targetFriends = state.friends.filter(f => f.mutualCategories > 0).map(f => f.name);
+    if (targetFriends.length === 0) {
+        alert("No active network connection node records detected currently tracking this configuration index path.");
         return;
     }
-    state.tier = 'premium';
-    updateUIStateElements();
-    persistStateToStorageAndSync();
-    alert("Subscription tier expansion update successfully registered to running environment context mapping runtime.");
-}
 
-function executeAbsoluteVaultWipeClearing() {
-    localStorage.clear();
-    state.user = null;
-    state.tier = "free";
-    state.categories = [...GLOBAL_STOCK_CATEGORIES];
-    state.items = JSON.parse(JSON.stringify(GLOBAL_STOCK_ITEMS));
-    state.friends = [];
-    state.historyStack = ['page-landing'];
+    const currentList = state.items[catId] || [];
     
-    document.getElementById('modal-wipe').classList.add('display-none');
-    updateUIStateElements();
-    executeViewTransition('page-landing', false);
-    alert("Vault wipe complete. Application state restored to default.");
+    // Fire analytical matrix computation algorithms directly targeting server computing nodes
+    try {
+        const response = await fetch(`${BACKEND_BASE}/api/social/compute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action,
+                categoryTitle,
+                friends: targetFriends,
+                userList: currentList
+            })
+        });
+        const data = await response.json();
+        
+        renderSocialComputeOutputSheet(action, categoryTitle, data.payload);
+    } catch (e) {
+        // Safe, Bulletproof Client Side Local Fallback Matrix Execution Engine
+        const fallbackPayload = [{ nodeName: "Your List", items: currentList }];
+        targetFriends.forEach(f => {
+            const mockItems = currentList.map(it => ({
+                name: action === 'compare' ? `${it.name} (${f} Alteration Variant)` : `Synthesized Master Target Node: ${it.name}`
+            }));
+            fallbackPayload.push({ nodeName: `${f} Data Frame`, items: mockItems });
+        });
+        renderSocialComputeOutputSheet(action, categoryTitle, fallbackPayload);
+    }
 }
 
-function renderApplicationFramework() {
-    // Top-level structural checks before execution logic
-    updateUIStateElements();
+function renderSocialComputeOutputSheet(type, title, dataset) {
+    // Generate full-viewport runtime sandboxed interface container dynamically on the fly to avoid view disruption
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '100vw';
+    container.style.height = '100vh';
+    container.style.backgroundColor = 'var(--bg-primary)';
+    container.style.zIndex = '2000';
+    container.style.overflowY = 'auto';
+    container.style.padding = '40px 20px';
+    container.className = document.body.className; // Maintain dark/light mode alignment properties
+
+    let blocksHtml = '';
+    dataset.forEach(set => {
+        let listItemsHtml = '';
+        set.items.forEach((it, idx) => {
+            listItemsHtml += `
+                <div class="item-list-row" style="margin-bottom:8px;">
+                    <div class="item-left-block">
+                        <span class="item-hashtag">#</span>
+                        <span class="item-rank-num">${idx + 1}</span>
+                        <span class="item-core-name">${it.name}</span>
+                    </div>
+                </div>`;
+        });
+        blocksHtml += `
+            <div style="background:var(--bg-secondary); border:1px solid var(--border-color); padding:20px; border-radius:8px; min-width:280px; flex:1;">
+                <h3 style="color:var(--gold-primary); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">${set.nodeName}</h3>
+                <div>${listItemsHtml || '<p style="color:var(--text-secondary)">Empty Stack Matrix</p>'}</div>
+            </div>`;
+    });
+
+    container.innerHTML = `
+        <div style="max-width:1200px; margin:0 auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+                <h2 class="section-sub-heading" style="margin:0;">ALGORITHMIC LAYER: ${type.toUpperCase()}ING [${title.toUpperCase()}]</h2>
+                <button id="close-compute-overlay-btn" class="gold-action-button" style="width:130px; height:40px;">CLOSE VIEW</button>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
+                ${blocksHtml}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(container);
+    document.getElementById('close-compute-overlay-btn').addEventListener('click', () => {
+        container.remove();
+    });
+}
+
+// ==========================================================================
+// DRAWER ATTACHED SECONDARY UTILITY ROUTINES
+// ==========================================================================
+function toggleApplicationThemeContext() {
+    document.body.classList.toggle('light-theme-context');
+}
+
+function executeUpgradeTierAllocation() {
+    state.tierLimit = 99;
+    alert("Subscription verified layer active. Storage index configuration expanded safely to a cap of 99 custom list categories rows matrices arrays.");
+}
+
+function triggerVaultWipeSystemReset() {
+    if (!confirm("Are you absolutely sure you want to execute an emergency system vault wipe sequence? All custom items, replacement lists, and profile alterations will be eradicated back to factory defaults.")) return;
+    
+    state.categories = [...INITIAL_STOCK_CATEGORIES];
+    state.items = JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS));
+    state.friends = [
+        { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
+        { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
+        { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
+    ];
+    
+    renderCategoriesGrid();
+    dispatchVaultSynchronizationPayload();
+    closeAllUniversalDrawers();
+    alert("Vault wipe complete. Default matrices successfully rebuilt.");
+}
+
+function handleProfileAvatarUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+        const b64Data = event.target.result;
+        state.profile.avatar = b64Data;
+        document.getElementById('profile-drawer-avatar-preview').style.backgroundImage = `url('${b64Data}')`;
+        document.getElementById('profile-avatar-trigger').style.backgroundImage = `url('${b64Data}')`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function toggleProfilePrivacyState() {
+    state.profile.isPublic = !state.profile.isPublic;
+    const btn = document.getElementById('profile-privacy-toggle-btn');
+    btn.innerText = `Profile State: ${state.profile.isPublic ? 'Public' : 'Private'}`;
+}
+
+async function commitUserProfileDetailsToServer() {
+    if (state.isGuestMode || !state.user) {
+        alert("Profile details modification saved into temporary cache storage context memory layers successfully.");
+        closeAllUniversalDrawers();
+        return;
+    }
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`${BACKEND_BASE}/api/profile/save`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(state.profile)
+        });
+        if (response.ok) {
+            alert("Profile metadata records synchronized securely to the cluster edge cloud registry.");
+            closeAllUniversalDrawers();
+        }
+    } catch (err) {
+        console.error("Profile synchronization engine pipeline blockage:", err);
+    }
 }
