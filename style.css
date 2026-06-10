@@ -465,12 +465,39 @@ textarea::placeholder {
 .icon-util-btn {
     background: transparent;
     border: none;
-    color: var(--text-dim);
+    color: var(--text-light);
+    opacity: 0.65;
     cursor: pointer;
     font-size: 1rem;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
+
+/* Crisp high-contrast interactive states across dark/light mode frameworks */
 .icon-util-btn:hover {
     color: var(--gold-primary);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Ensure dedicated structural alignment inside row blocks */
+.row-utility-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+/* Specific safety rule for destructive/remove actions within utility pairs */
+.row-utility-actions .icon-util-btn:has(.fa-trash),
+.row-utility-actions .icon-util-btn-delete,
+.icon-util-btn.dangerous-action {
+    transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.row-utility-actions .icon-util-btn:has(.fa-trash):hover,
+.row-utility-actions .icon-util-btn-delete:hover,
+.icon-util-btn.dangerous-action:hover {
+    color: var(--red-alert);
+    opacity: 1;
 }
 
 /* PAGE 3 AND 4 VERTICAL LIST ELEMENTS MAP */
