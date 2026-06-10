@@ -587,6 +587,12 @@ async function executeSocialOperationFormula() {
 }
 
 // FRIENDS ENGINE ROSTER POPULATOR
+// ==========================================
+// D:/top-tens/frontend/app.js
+// PRECISE PATCH LOCATION: Replace the entire renderFriendsRosterStack function
+// ==========================================
+
+// FRIENDS ENGINE ROSTER POPULATOR
 function renderFriendsRosterStack() {
     const container = document.getElementById('friends-vertical-stack');
     container.innerHTML = '';
@@ -610,21 +616,25 @@ function renderFriendsRosterStack() {
             <span class="friend-profile-name">${f.name}</span>
             <span class="friend-metric-node">Mutual Categories: ${f.mutualCategories}</span>
             <span class="friend-metric-node">Mutual Items: ${f.mutualItems}</span>
-            <div class="thumbnail-media-circle" style="background-image: url('${f.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23d4af37&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z&quot;/></svg>'}')"></div>
             
-            <div class="roster-actions-wrapper" style="display: flex; gap: 8px; margin-left: auto; align-items: center; padding-right: 10px;">
-                <button class="icon-btn edit-roster-btn" title="Edit Friend Name" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                </button>
-                <button class="icon-btn remove-roster-btn" title="Remove Friend" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"></polyline>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                    </svg>
-                </button>
+            <div class="roster-right-controls" style="display: flex; gap: 12px; margin-left: auto; align-items: center; padding-right: 10px;">
+                
+                <div class="thumbnail-media-circle" style="width: 24px; height: 24px; background-size: cover; background-position: center; background-image: url('${f.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23d4af37&quot;><path d=&quot;M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z&quot;/></svg>'}')"></div>
+                
+                <div class="roster-actions-wrapper" style="display: flex; gap: 8px; align-items: center;">
+                    <button class="icon-btn edit-roster-btn" title="Edit Friend Name" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+                    <button class="icon-btn remove-roster-btn" title="Remove Friend" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
 
