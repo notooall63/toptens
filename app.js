@@ -186,7 +186,7 @@ async function executeSignUpPipeline() {
     const msgBox = document.getElementById('auth-status-msg');
 
     // Regex checking validation matching parameters rules
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,20}$/;
     if (!passwordRegex.test(password)) {
         msgBox.style.display = 'block';
         msgBox.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
