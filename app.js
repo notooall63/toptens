@@ -362,49 +362,58 @@ function renderItemsStack() {
 }
 
 async function triggerItemUpdateMatrix(itemId) {
-    // Locate target row entity inside global memory state framework
+    // 1. Locate the item target in local state memory matrices
     const categoryItems = state.items[state.currentCategoryContextId] || [];
     const item = categoryItems.find(i => i.id === itemId);
-    if (!item) return;
+    if (!item) {
+        console.error("Item targeting fault: matching node instance dropped from local memory context.");
+        return;
+    }
 
-    // Step 1: Prompt user for Name metadata revision
+    // 2. Prompt for changing or retaining Item Name metadata 
     const newName = prompt("Edit Item Name:", item.name);
-    if (newName === null) return; // Action aborted by user
+    if (newName === null) return; // Aborted by user
 
-    // Step 2: Prompt user for custom link replacement (blank retains stock/fallback link asset)
+    // 3. Prompt for custom reference link replacement mapping
     const currentCustomUrl = item.customUrl || '';
-    const newUrl = prompt("Edit/Replace Reference Link (Leave completely blank to use the default automatic system link):", currentCustomUrl);
-    if (newUrl === null) return; // Action aborted by user
+    const newUrl = prompt("Edit/Replace Reference Link (Leave blank to drop back to automatic link engine):", currentCustomUrl);
+    if (newUrl === null) return; // Aborted by user
 
-    // Package explicit payload values for network transit map
-    const updatedPayload = {
-        name: newName.trim() || item.name,
-        rank: item.rank,
-        media: item.media || '',
-        customUrl: newUrl.trim()
-    };
+    // 4. Update your local frontend application state values directly
+    item.name = newName.trim() || item.name;
+    item.customUrl = newUrl.trim();
 
-    try {
-        // Issue synchronized PUT update action straight to your Cloudflare backend Worker
-        const response = await fetch(`https://top-tens-backend.swoodson96.workers.dev/api/items/${itemId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(updatedPayload)
-        });
+    // 5. Update the local layout display layer instantly
+    renderItemsStack();
 
-        if (response.ok) {
-            // Commit structural adjustments to local runtime state directly without heavy asset refresh calls
-            item.name = updatedPayload.name;
-            item.customUrl = updatedPayload.customUrl;
-            
-            // Re-render UI layer instantly using the upgraded data matrix properties
-            renderItemsStack();
-        } else {
-            alert("Server rejected asset update path data stream synchronization.");
+    // 6. Push state memory directly into your existing enterprise synchronization pipeline
+    // Look for the specific name of your save/sync function. It typically looks like one of these:
+    if (typeof syncVaultToCloudflare === 'function') {
+        await syncVaultToCloudflare();
+    } else if (typeof saveVaultState === 'function') {
+        await saveVaultState();
+    } else {
+        // Fallback: Inline execution targeting your live /api/vault/sync gateway endpoint
+        try {
+            const token = localStorage.getItem('token'); // Use your application's JWT storage key matching rule
+            const response = await fetch('https://top-tens-backend.swoodson96.workers.dev/api/vault/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    categories: state.categories,
+                    items: state.items
+                })
+            });
+
+            if (!response.ok) {
+                console.error("Cloudflare sync failure status rejected by system edge-router.");
+            }
+        } catch (syncErr) {
+            console.error("Failed to commit application state payload to remote edge persistence cluster:", syncErr);
         }
-    } catch (err) {
-        console.error("Critical link pipeline update fault execution error:", err);
-        alert("Failed to reach live application backend interface system.");
     }
 }
 
