@@ -627,11 +627,6 @@ textarea::placeholder {
     background-color: var(--bg-dark-base);
 }
 
-.row-utility-actions {
-    display: flex;
-    gap: 15px;
-}
-
 /* FRIEND VIEW SPECIFIC LAYOUT NODES */
 .friend-list-row {
     justify-content: space-between;
@@ -646,6 +641,28 @@ textarea::placeholder {
 .friend-metric-node {
     color: var(--text-dim);
     font-size: 0.9rem;
+}
+
+/* Target and elevate inner asset contrast across dark/light mode frameworks */
+.friend-list-row i,
+.friend-list-row svg,
+.friend-list-row .profile-avatar-clickable,
+.friend-list-row [class*="icon"] {
+    color: var(--text-light) !important;
+    fill: var(--text-light);
+    opacity: 0.8;
+    transition: color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Interactive hover configuration states directly applied onto asset metrics */
+.friend-list-row i:hover,
+.friend-list-row svg:hover,
+.friend-list-row [class*="icon"]:hover {
+    color: var(--gold-primary) !important;
+    fill: var(--gold-primary);
+    opacity: 1;
+    transform: scale(1.1);
+    cursor: pointer;
 }
 
 /* UNIVERSAL SLIDING DRAWER SYSTEM INTERFACES */
