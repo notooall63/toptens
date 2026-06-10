@@ -593,22 +593,59 @@ function renderFriendsRosterStack() {
 
     if (state.friends.length === 0) {
         // Establish stock nodes framework for user system reference illustration maps parameters
+        // Added unique IDs to ensure editing and removing track specific items cleanly
         state.friends = [
-            { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
-            { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
-            { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
+            { id: "alpha-ranker", name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
+            { id: "crypto-collector", name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
+            { id: "omega-lister", name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
         ];
     }
 
     state.friends.forEach(f => {
         const row = document.createElement('div');
         row.className = 'friend-list-row';
+        row.setAttribute('data-id', f.id);
+        
         row.innerHTML = `
             <span class="friend-profile-name">${f.name}</span>
             <span class="friend-metric-node">Mutual Categories: ${f.mutualCategories}</span>
             <span class="friend-metric-node">Mutual Items: ${f.mutualItems}</span>
             <div class="thumbnail-media-circle" style="background-image: url('${f.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%23d4af37&quot;><path d=&quot;M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.25z&quot;/></svg>'}')"></div>
+            
+            <div class="roster-actions-wrapper" style="display: flex; gap: 8px; margin-left: auto; align-items: center; padding-right: 10px;">
+                <button class="icon-btn edit-roster-btn" title="Edit Friend Name" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                </button>
+                <button class="icon-btn remove-roster-btn" title="Remove Friend" style="background: transparent; border: none; cursor: pointer; color: #ffffff; opacity: 0.7; padding: 4px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+            </div>
         `;
+
+        // Direct event hookups for the restored logic layer
+        row.querySelector('.edit-roster-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent row click bubbling
+            const newName = prompt(`Edit name for ${f.name}:`, f.name);
+            if (newName && newName.trim() !== "" && newName.trim() !== f.name) {
+                f.name = newName.trim();
+                renderFriendsRosterStack(); // Re-render updated state
+            }
+        });
+
+        row.querySelector('.remove-roster-btn').addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent row click bubbling
+            if (confirm(`Are you sure you want to remove ${f.name} from your roster?`)) {
+                state.friends = state.friends.filter(friend => friend.id !== f.id);
+                renderFriendsRosterStack(); // Re-render updated state
+            }
+        });
+
         container.appendChild(row);
     });
 }
