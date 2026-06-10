@@ -1,3 +1,8 @@
+/* ==========================================================================
+   D:/top-tens/frontend/style.css
+   COMPLETE CORE REVISION - VARIABLES INTEGRATED ACROSS SELECTION MATRIX TABLES
+   ========================================================================== */
+
 /* SYSTEM LEVEL INITIALIZATION AND PROPERTY MATRIX */
 :root {
     --bg-dark-base: #0a0e14;
@@ -41,7 +46,30 @@ body {
     overflow-x: hidden;
     min-height: 100vh;
     position: relative;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* GLOBAL STRUCTURAL FORM THEME ASSIGNMENTS */
+input, 
+textarea, 
+select {
+    color: var(--text-light) !important;
+    background-color: var(--bg-dark-base) !important;
+    border: 1px solid var(--border-color) !important;
+    transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease, border-color 0.2s ease;
+}
+
+input:focus, 
+textarea:focus, 
+select:focus {
+    border-color: var(--gold-primary) !important;
+    outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-dim) !important;
+    opacity: 0.8;
 }
 
 /* BACKGROUND MATRIX LAYOUT & PARTICLE CANVAS MAP */
@@ -235,7 +263,7 @@ body {
     justify-content: space-between;
     padding: 0 30px;
     z-index: 100;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 #global-header.hidden-header {
@@ -369,7 +397,7 @@ body {
     padding: 24px;
     position: relative;
     cursor: pointer;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    transition: border-color 0.2s ease, transform 0.2s ease, background-color var(--transition-speed) ease;
 }
 .category-tab-node:hover {
     border-color: var(--gold-primary);
@@ -392,7 +420,7 @@ body {
 .category-node-title {
     font-size: 1.25rem;
     font-weight: 700;
-    color: white;
+    color: var(--text-light);
     margin-bottom: 4px;
 }
 
@@ -452,6 +480,7 @@ body {
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 30px;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .gold-gradient-text {
@@ -471,11 +500,11 @@ body {
 
 .form-row-inline input[type="text"],
 .form-row-inline input[type="number"] {
-    background-color: var(--bg-dark-base);
-    border: 1px solid var(--border-color);
+    background-color: var(--bg-dark-base) !important;
+    border: 1px solid var(--border-color) !important;
     padding: 12px;
     border-radius: 6px;
-    color: white;
+    color: var(--text-light) !important;
 }
 
 #input-item-name { flex: 2; min-width: 200px; }
@@ -492,6 +521,7 @@ body {
     padding: 12px 16px;
     border-radius: 6px;
     cursor: pointer;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 .file-upload-wrapper input[type="file"] {
     position: absolute;
@@ -513,6 +543,7 @@ body {
     padding: 16px 24px;
     display: flex;
     align-items: center;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .item-list-row {
@@ -540,7 +571,7 @@ body {
 
 .item-core-name {
     font-weight: 600;
-    color: white;
+    color: var(--text-light);
 }
 
 .item-right-block {
@@ -604,7 +635,7 @@ body {
     flex-direction: column;
     padding: 30px;
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
-    transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1), background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .sliding-drawer-panel.horizontal-collapse {
@@ -625,7 +656,7 @@ body {
     cursor: pointer;
 }
 .btn-close-drawer:hover {
-    color: white;
+    color: var(--text-light);
 }
 
 .drawer-body {
@@ -651,16 +682,12 @@ body {
 
 .input-group input {
     width: 100%;
-    background-color: var(--bg-dark-base);
-    border: 1px solid var(--border-color);
+    background-color: var(--bg-dark-base) !important;
+    border: 1px solid var(--border-color) !important;
     padding: 12px;
     border-radius: 6px;
-    color: white;
+    color: var(--text-light) !important;
     font-size: 0.95rem;
-}
-.input-group input:focus {
-    border-color: var(--gold-primary);
-    outline: none;
 }
 
 .pwd-reveal-eye {
@@ -724,6 +751,7 @@ body {
     padding: 12px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .btn-toggle-state {
@@ -735,6 +763,7 @@ body {
     cursor: pointer;
     font-weight: 600;
     font-size: 0.85rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 .btn-toggle-state.active-public {
     background-color: var(--gold-primary);
@@ -758,6 +787,7 @@ body {
     text-align: left;
     font-weight: 600;
     cursor: pointer;
+    transition: border-color 0.2s ease, background-color var(--transition-speed) ease;
 }
 .btn-setting-node:hover {
     border-color: var(--gold-primary);
@@ -794,6 +824,7 @@ body {
     max-width: 500px;
     padding: 30px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 
 .modal-window-box.grand-layout {
@@ -804,7 +835,7 @@ body {
 .modal-window-box h4 {
     font-size: 1.3rem;
     margin-bottom: 15px;
-    color: white;
+    color: var(--text-light);
 }
 
 .modal-actions-row {
@@ -844,6 +875,7 @@ body {
     padding: 10px;
     background-color: var(--bg-dark-base);
     border-radius: 6px;
+    transition: background-color var(--transition-speed) ease;
 }
 
 .matrix-data-grid {
@@ -860,6 +892,7 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 15px;
+    transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
 }
 .matrix-column-title {
     font-weight: 700;
@@ -867,6 +900,7 @@ body {
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 8px;
     margin-bottom: 10px;
+    transition: border-color var(--transition-speed) ease;
 }
 
 /* UTILITY ABSTRACT STRUCTURAL HOOKS */
