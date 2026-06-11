@@ -413,7 +413,7 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
 /* HORIZONTAL MATRIX GRID LISTS */
 .linear-rows-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 800px; margin: 0 auto; }
 
-.item-row-strip, .friend-row-strip {
+.item-row-strip {
     background-color: var(--app-slate-void);
     border-radius: 8px;
     border: 1px solid rgba(212, 175, 55, 0.1);
@@ -421,6 +421,41 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     align-items: center;
     padding: 12px 16px;
     gap: 16px;
+}
+
+/* RESPONSIVE FRIEND ROW STRIP MATRIX */
+.friend-row-strip {
+    background-color: var(--app-slate-void);
+    border-radius: 8px;
+    border: 1px solid rgba(212, 175, 55, 0.1);
+    display: flex;
+    /* Mobile-First Default: Stack vertically so friend names never get squished */
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px;
+    gap: 12px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure child elements inside friend rows take up appropriate space on mobile */
+.friend-row-strip > * {
+    width: 100%;
+}
+
+/* Desktop Expansion Override Layout */
+@media (min-width: 768px) {
+    .friend-row-strip {
+        /* Snaps back to a horizontal row configuration on wider layouts */
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 16px;
+    }
+    
+    .friend-row-strip > * {
+        width: auto;
+    }
 }
 
 .item-prominent-hash { font-family: monospace; font-weight: 900; font-size: 1.3rem; color: var(--app-burnished-gold); width: 30px; }
