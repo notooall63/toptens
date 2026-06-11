@@ -466,6 +466,7 @@ function renderItemsStack() {
     document.getElementById('current-category-view-title').innerText = cat ? `${cat.title} Vault Stack` : "Items Vault Stack List";
 
     const container = document.getElementById('items-vertical-stack');
+    if (!container) return;
     container.innerHTML = '';
 
     const listItems = state.items[state.currentCategoryContextId] || [];
@@ -475,8 +476,10 @@ function renderItemsStack() {
         const row = document.createElement('div');
         row.className = 'item-list-row';
         
-        // CRITICAL INJECTION: Pass both item name AND user customUrl override parameter targets to calculation logic
         const affiliateLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl);
+
+        // Map the image rendering rule directly to item.avatar (with item.media as a secondary fallback)
+        const displayImage = item.avatar || item.media || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z&quot;/></svg>';
 
         row.innerHTML = `
             <div class="item-left-block">
@@ -486,7 +489,7 @@ function renderItemsStack() {
             </div>
             <div class="item-right-block">
                 <a href="${affiliateLink}" target="_blank" class="affiliate-reference-link">Reference Link</a>
-                <div class="thumbnail-media-circle" style="background-image: url('${item.media || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z&quot;/></svg>'}')"></div>
+                <div class="thumbnail-media-circle" style="background-image: url('${displayImage}'); background-size: cover; background-position: center;"></div>
                 <div class="row-utility-actions">
                     <button class="icon-util-btn edit-item-trigger">&#9998;</button>
                     <button class="icon-util-btn remove-item-trigger">&#128465;</button>
@@ -552,20 +555,31 @@ async function triggerItemUpdateMatrix(itemId) {
     
     const item = categoryItems[itemIndex];
 
-    // 3. Capture the active tracking URL link configuration
+    // 3. Capture the active tracking URL link configuration and current image states
     const currentActiveLink = typeof generateAutonomousAffiliateLinkNode === 'function'
         ? generateAutonomousAffiliateLinkNode(item.name, item.customUrl)
         : (item.customUrl || '');
+        
+    // Capture either key variant to handle stock vs custom creation history safely
+    const currentMedia = item.avatar || item.media || '';
 
-    // 4. Prompt for core text identity update rules
+    // 4. Prompt for core text identity update rules sequentially
     const newName = prompt("Edit Item Name/Title Text:", item.name);
     if (newName === null) return;
+
+    // NEW INTERACTION STEP: Collect URL or Base64 data string for the image asset
+    const newMedia = prompt("Edit Thumbnail Media URL / Base64 String (Leave blank for default icon):", currentMedia);
+    if (newMedia === null) return;
 
     const newUrl = prompt("Edit or Completely Replace Reference Link:", currentActiveLink);
     if (newUrl === null) return;
 
     // Apply the text values securely directly to the indexed element parameter matrix
     item.name = newName.trim() || item.name;
+    
+    // Commit to both keys simultaneously to enforce alignment across rendering engines
+    item.avatar = newMedia.trim();
+    item.media = newMedia.trim();
 
     // Handle affiliate URL extraction tracking fallbacks
     if (typeof generateAutonomousAffiliateLinkNode === 'function') {
