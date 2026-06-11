@@ -1,86 +1,87 @@
-// ==========================================================================
-// D:/top-tens/frontend/canvas-sparks.js
-// DYNAMIC VISUAL EFFECTS MATRIX LAYER (FLOWING GOLD WITH DIAMOND SPARKS)
-// ==========================================================================
+/**
+ * Diamond Particle Ray Trace Animation Engine
+ * Triggers random ambient bursts behind UI components.
+ */
 
-(function () {
-    const canvas = document.getElementById("spark-particle-canvas");
+(function() {
+    const canvas = document.getElementById("spark-matrix-canvas");
+    if (!canvas) return;
     const ctx = canvas.getContext("2d");
-
+    
     let particles = [];
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resize);
+    resize();
 
-    window.addEventListener("resize", () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-    });
-
-    class SparkParticleNode {
+    class DiamondSparkle {
         constructor() {
             this.reset();
+            // Stagger start lines randomly across height grids
+            this.y = Math.random() * canvas.height;
         }
-
         reset() {
-            this.x = Math.random() * width;
-            this.y = height + Math.random() * 50;
-            this.size = Math.random() * 2.5 + 0.5;
-            this.speedY = -(Math.random() * 0.7 + 0.2);
-            this.speedX = Math.sin(Math.random() * Math.PI) * 0.2;
-            this.alpha = Math.random() * 0.5 + 0.1;
-            this.sparkleMode = Math.random() > 0.85; // 15% are diamond white flash nodes
-            this.sparkleSpeed = Math.random() * 0.05 + 0.02;
+            this.x = Math.random() * canvas.width;
+            this.y = canvas.height + 10;
+            this.size = Math.random() * 3 + 2;
+            this.speedY = -(Math.random() * 0.7 + 0.3);
+            this.alpha = 0;
+            this.maxAlpha = Math.random() * 0.5 + 0.3;
+            this.fadeSpeed = Math.random() * 0.01 + 0.005;
+            this.phase = Math.random() * Math.PI;
         }
-
         update() {
             this.y += this.speedY;
-            this.x += this.speedX;
+            this.phase += 0.02;
+            
+            // Simulates smooth horizontal atmospheric drift shifts
+            this.x += Math.sin(this.phase) * 0.2;
 
-            if (this.sparkleMode) {
-                this.alpha += this.sparkleSpeed;
-                if (this.alpha > 0.9 || this.alpha < 0.2) {
-                    this.sparkleSpeed = -this.sparkleSpeed;
-                }
+            if (this.alpha < this.maxAlpha) {
+                this.alpha += this.fadeSpeed;
             }
-
-            if (this.y < -10 || this.x < -10 || this.x > width + 10) {
+            if (this.y < -10) {
                 this.reset();
             }
         }
-
         draw() {
             ctx.save();
+            ctx.globalAlpha = this.alpha;
+            ctx.translate(this.x, this.y);
+            
+            // Renders clean pathing geometry matching diamond crystals
             ctx.beginPath();
-            if (this.sparkleMode) {
-                // Diamond Pinpoint Core Flash Vector
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
-                ctx.arc(this.x, this.y, this.size * 1.4, 0, Math.PI * 2);
-            } else {
-                // Flowing Gold Vector
-                ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            }
+            ctx.moveTo(0, -this.size);
+            ctx.lineTo(this.size * 0.6, 0);
+            ctx.lineTo(0, this.size);
+            ctx.lineTo(-this.size * 0.6, 0);
+            ctx.closePath();
+            
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#d4af37";
+            ctx.fillStyle = "linear-gradient(135deg, #ffffff 0%, #d4af37 100%)";
+            ctx.fillStyle = "#f3e5ab";
             ctx.fill();
             ctx.restore();
         }
     }
 
-    function initMatrixPool() {
-        particles = [];
-        for (let i = 0; i < 110; i++) {
-            particles.push(new SparkParticleNode());
-        }
+    // Allocate pool slots for hardware accelerators
+    const poolSize = 45;
+    for(let i=0; i<poolSize; i++) {
+        particles.push(new DiamondSparkle());
     }
 
-    function renderEngineLoop() {
-        ctx.clearRect(0, 0, width, height);
-        for (let i = 0; i < particles.length; i++) {
+    function renderLoopFrame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let i=0; i<particles.length; i++) {
             particles[i].update();
             particles[i].draw();
         }
-        requestAnimationFrame(renderEngineLoop);
+        requestAnimationFrame(renderLoopFrame);
     }
-
-    initMatrixPool();
-    renderEngineLoop();
+    renderLoopFrame();
 })();

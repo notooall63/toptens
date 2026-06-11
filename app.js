@@ -1,896 +1,871 @@
-// ==========================================================================
-// D:/top-tens/frontend/app.js
-// MAIN APPLICATION ARCHITECTURE, VIEW ROUTER ENGINE & PERSISTENCE MATRIX WRITER
-// ==========================================================================
+/**
+ * Master Client-Side Runtime Router & Data Sync Pipeline
+ * Coordinates data transfers with the Cloudflare Worker API.
+ */
 
-const BACKEND_BASE = "https://top-tens-backend.swoodson96.workers.dev";
+const API_BASE = "https://top-tens-backend.swoodson96.workers.dev";
 
-// GLOBAL APPLICATION APPLICATION MEMORY DATA RUNTIME MATRIX
+// STATE ARCHITECTURE PERSISTENCE MODEL
 let state = {
-    user: null,
-    isGuestMode: false,
-    categories: [...INITIAL_STOCK_CATEGORIES],
-    items: JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS)),
-    friends: [
-        { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
-        { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
-        { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
-    ],
-    profile: {
-        name: "Sean D Woodson",
-        dob: "Not Set",
-        hometown: "Not Set",
-        vocation: "Algorithmic Engineer",
-        email: "guest@toptens.dev",
-        recovery: "Not Set",
-        isPublic: true,
-        avatar: ""
-    },
-    tierLimit: 21,
+    user: null, // Populated via valid session tokens
+    token: null,
+    isTierUpgraded: false, 
+    categories: [],
+    items: {},
+    friends: [],
+    privacyPublic: true,
+    currentViewId: "view-landing-page",
+    navigationHistoryStack: [],
     currentCategoryContextId: null,
-    viewHistoryStack: []
+    pendingMediaBuffer: null, // Holds asset objects mid-crop
+    pendingTargetNodeCallback: null,
+    profileMetadata: {
+        fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: ""
+    }
 };
 
-// ==========================================================================
-// PURE LINK GENERATION CONTROLLER - CRITICAL LINK EDIT RECOVERY MATRIX
-// ==========================================================================
-function generateAutonomousAffiliateLinkNode(itemName, customUrl) {
-    // RULE 1: If user provided a specific alternative or custom reference, pass it out instantly!
-    if (customUrl && typeof customUrl === 'string' && customUrl.trim() !== '') {
-        return customUrl.trim();
-    }
-    // RULE 2: Fall back cleanly to the stock amazon structural macro builder query parameter layout string
-    const structuredQuery = encodeURIComponent(itemName + " purchase online store");
-    return `https://www.amazon.com/s?k=${structuredQuery}&tag=toptens20-20`;
-}
-
-// ==========================================================================
-// APP LIFE CYCLE ENTRYPOINT PIPELINE INDEXER
-// ==========================================================================
+// INITIALIZATION ENTRYPOINT MAPPING
 document.addEventListener("DOMContentLoaded", () => {
-    bindInterfaceEventHandlers();
-    evaluateSessionTokenState();
+    bindStructuralCoreEventHandlers();
+    loadLocalSessionFallbackData();
+    synchronizeSessionHandshake();
 });
 
-function bindInterfaceEventHandlers() {
-    // Navigation Core Paths
-    document.getElementById('landing-enter-vault-btn').addEventListener('click', enterAsGuestContext);
-    document.getElementById('landing-auth-drawer-btn').addEventListener('click', () => openUniversalSidebarDrawer('drawer-auth'));
-    document.getElementById('header-back-trigger').addEventListener('click', navigateBackwardThroughHistory);
-    document.getElementById('settings-burger-trigger').addEventListener('click', () => openUniversalSidebarDrawer('drawer-settings'));
-    document.getElementById('profile-avatar-trigger').addEventListener('click', () => openUniversalSidebarDrawer('drawer-profile'));
+// CORE INTERFACE ROUTER NAVIGATION MAPS
+function navigateToScreenView(targetViewId, storeInHistory = true) {
+    if (state.currentViewId === targetViewId) return;
     
-    // Auth Form Interactions
-    document.getElementById('password-reveal-toggle-btn').addEventListener('click', togglePasswordVisibility);
-    document.getElementById('auth-action-signin-btn').addEventListener('click', executeSignInRequest);
-    document.getElementById('auth-action-signup-btn').addEventListener('click', executeSignUpRequest);
-
-    // Global Drawer Close Handling
-    document.getElementById('drawer-overlay-shield').addEventListener('click', closeAllUniversalDrawers);
-    document.querySelectorAll('aside .drawer-close-cross-btn').forEach(btn => {
-        btn.addEventListener('click', closeAllUniversalDrawers);
-    });
-
-    // Dashboard Controls Mapping Layer
-    document.getElementById('add-custom-category-btn').addEventListener('click', createCustomCategoryElement);
-    document.getElementById('add-item-commit-btn').addEventListener('click', addNewItemToStackInstance);
-    document.getElementById('media-upload-dummy-btn').addEventListener('click', () => document.getElementById('input-item-file').click());
-    
-    // Settings Options
-    document.getElementById('settings-toggle-theme-btn').addEventListener('click', toggleApplicationThemeContext);
-    document.getElementById('settings-upgrade-tier-btn').addEventListener('click', executeUpgradeTierAllocation);
-    document.getElementById('settings-add-friend-trigger-btn').addEventListener('click', createDynamicNetworkFriendPrompt);
-    document.getElementById('settings-goto-friends-btn').addEventListener('click', () => { closeAllUniversalDrawers(); navigateToActiveView('view-friends'); });
-    document.getElementById('settings-vault-wipe-btn').addEventListener('click', triggerVaultWipeSystemReset);
-    document.getElementById('add-friends-matrix-btn').addEventListener('click', createDynamicNetworkFriendPrompt);
-
-    // Profile Modifiers Configuration
-    document.getElementById('avatar-upload-trigger-btn').addEventListener('click', () => document.getElementById('input-avatar-file').click());
-    document.getElementById('input-avatar-file').addEventListener('change', handleProfileAvatarUpload);
-    document.getElementById('profile-privacy-toggle-btn').addEventListener('click', toggleProfilePrivacyState);
-    document.getElementById('profile-save-commit-btn').addEventListener('click', commitUserProfileDetailsToServer);
-    
-    document.querySelectorAll('.field-edit-glyph-icon').forEach(icon => {
-        icon.addEventListener('click', (e) => {
-            const input = e.target.parentElement.querySelector('input');
-            const newVal = prompt(`Update ${input.id.replace('prof-', '').toUpperCase()}:`, input.value);
-            if (newVal !== null) {
-                input.value = newVal;
-                const prop = input.id.replace('prof-', '');
-                state.profile[prop] = newVal;
-            }
-        });
-    });
-}
-
-// ==========================================================================
-// VIEW ROUTER FLOW CONTROLLERS
-// ==========================================================================
-function navigateToActiveView(targetViewId) {
-    const currentActive = document.querySelector('main .active-viewport');
-    if (currentActive) {
-        state.viewHistoryStack.push(currentActive.id);
-        currentActive.classList.remove('active-viewport');
-        currentActive.classList.add('hidden-element');
+    if (storeInHistory) {
+        state.navigationHistoryStack.push(state.currentViewId);
     }
 
-    const nextView = document.getElementById(targetViewId);
-    nextView.classList.remove('hidden-element');
-    nextView.classList.add('active-viewport');
-
-    const header = document.getElementById('global-app-header');
-    if (targetViewId === 'view-landing') {
-        header.classList.add('hidden-element');
+    // Apply header visibility criteria boundaries
+    const headerNode = document.getElementById("global-app-header");
+    if (targetViewId === "view-landing-page") {
+        headerNode.classList.add("hidden-element");
     } else {
-        header.classList.remove('hidden-element');
+        headerNode.classList.remove("hidden-element");
     }
 
-    // Refresh targeted elements loop layouts instantly
-    if (targetViewId === 'view-categories') renderCategoriesGrid();
-    if (targetViewId === 'view-items-stack') renderItemsStack();
-    if (targetViewId === 'view-friends') renderFriendsStack();
+    document.querySelectorAll(".app-page-view").forEach(v => v.classList.add("hidden-element"));
+    const activeTarget = document.getElementById(targetViewId);
+    if (activeTarget) activeTarget.classList.remove("hidden-element");
+
+    state.currentViewId = targetViewId;
 }
 
-function navigateBackwardThroughHistory() {
-    if (state.viewHistoryStack.length === 0) {
-        navigateToActiveView('view-landing');
+function processBackwardNavigation() {
+    if (state.navigationHistoryStack.length === 0) {
+        navigateToScreenView("view-landing-page", false);
         return;
     }
-    const previousViewId = state.viewHistoryStack.pop();
+    const previousView = state.navigationHistoryStack.pop();
+    navigateToScreenView(previousView, false);
+}
+
+// BIND INTERFACE EVENTS TO ACTION DOM BUTTON LISTENERS
+function bindStructuralCoreEventHandlers() {
+    // Navigation Triggers
+    document.getElementById("header-back-btn").onclick = () => processBackwardNavigation();
+    document.getElementById("landing-enter-vault-btn").onclick = () => {
+        navigateToScreenView("view-categories-page");
+        renderCategoriesGridMatrix();
+    };
     
-    const currentActive = document.querySelector('main .active-viewport');
-    if (currentActive) {
-        currentActive.classList.remove('active-viewport');
-        currentActive.classList.add('hidden-element');
-    }
+    // Drawers Activation Bindings
+    document.getElementById("landing-signin-trigger-btn").onclick = () => expandDrawerInterface("drawer-authentication-portal");
+    document.getElementById("settings-burger-btn").onclick = () => expandDrawerInterface("drawer-system-settings");
+    document.getElementById("header-profile-avatar-node").onclick = () => {
+        populateProfileFieldsUI();
+        expandDrawerInterface("drawer-profile-persistence");
+    };
 
-    const targetView = document.getElementById(previousViewId);
-    targetView.classList.remove('hidden-element');
-    targetView.classList.add('active-viewport');
-
-    const header = document.getElementById('global-app-header');
-    if (previousViewId === 'view-landing') {
-        header.classList.add('hidden-element');
-    } else {
-        header.classList.remove('hidden-element');
-    }
-
-    if (previousViewId === 'view-categories') renderCategoriesGrid();
-    if (previousViewId === 'view-items-stack') renderItemsStack();
-    if (previousViewId === 'view-friends') renderFriendsStack();
-}
-
-// ==========================================================================
-// DRAWER DISPLAY MANAGER ENGINE
-// ==========================================================================
-function openUniversalSidebarDrawer(drawerId) {
-    closeAllUniversalDrawers();
-    document.getElementById(drawerId).classList.remove('universal-sidebar-drawer-closed');
-    const overlay = document.getElementById('drawer-overlay-shield');
-    overlay.classList.remove('drawer-overlay-shield-hidden');
-}
-
-function closeAllUniversalDrawers() {
-    document.querySelectorAll('aside').forEach(drawer => {
-        drawer.classList.add('universal-sidebar-drawer-closed');
+    // Scrim Dismissal Hooks
+    const scrim = document.getElementById("drawer-overlay-scrim-curtain");
+    scrim.onclick = () => collapseAllDrawers();
+    document.querySelectorAll(".drawer-close-btn-node").forEach(btn => {
+        btn.onclick = () => collapseAllDrawers();
     });
-    document.getElementById('drawer-overlay-shield').classList.add('drawer-overlay-shield-hidden');
-}
 
-function togglePasswordVisibility() {
-    const pwdField = document.getElementById('auth-password-field');
-    if (pwdField.type === 'password') {
-        pwdField.type = 'text';
-    } else {
-        pwdField.type = 'password';
-    }
-}
+    // Auth Actions Matrix Handlers
+    document.getElementById("auth-password-visibility-toggle").onclick = togglePasswordMasking;
+    document.getElementById("action-trigger-signin").onclick = executeSignInSessionRequest;
+    document.getElementById("action-trigger-signup").onclick = executeSignUpRegistrationRequest;
+    document.getElementById("action-trigger-signout").onclick = executeGlobalLogoutSequence;
 
-// ==========================================================================
-// USER SECURITY Handshake REST Operations
-// ==========================================================================
-function enterAsGuestContext() {
-    state.isGuestMode = true;
-    state.user = null;
-    state.categories = [...INITIAL_STOCK_CATEGORIES];
-    state.items = JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS));
-    navigateToActiveView('view-categories');
-}
+    // Categories Logic Ribbon Handlers
+    document.getElementById("add-custom-category-trigger").onclick = triggerCustomCategoryCreationMatrix;
 
-async function executeSignInRequest() {
-    const email = document.getElementById('auth-email-field').value;
-    const password = document.getElementById('auth-password-field').value;
-    const feedback = document.getElementById('auth-feedback-status-box');
+    // Items Logic Panels Form Actions
+    document.getElementById("item-media-upload-dummy-btn").onclick = () => document.getElementById("input-item-file").click();
+    document.getElementById("input-item-file").onchange = (e) => handleMediaSelectionInput(e, "creation");
+    document.getElementById("execute-add-item-btn").onclick = executeItemCreationFormCommit;
 
-    feedback.style.color = "var(--gold-primary)";
-    feedback.innerText = "Processing system authentication match patterns...";
+    // Profile Settings Action Controls
+    document.getElementById("avatar-upload-trigger-btn").onclick = () => document.getElementById("input-avatar-file").click();
+    document.getElementById("input-avatar-file").onchange = (e) => handleMediaSelectionInput(e, "profile");
+    document.getElementById("execute-profile-metadata-save-btn").onclick = saveProfileMetadataAttributes;
+    document.getElementById("profile-privacy-toggle-state").onclick = toggleProfilePrivacyState;
 
-    try {
-        const response = await fetch(`${BACKEND_BASE}/api/auth/signin`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        const resData = await response.json();
-
-        if (!response.ok) {
-            feedback.style.color = "var(--action-red)";
-            feedback.innerText = resData.error || "Login parameters confirmation verification failure.";
-            return;
-        }
-
-        localStorage.setItem('token', resData.token);
-        state.isGuestMode = false;
-        state.user = resData.user;
-        
-        feedback.style.color = "var(--action-green)";
-        feedback.innerText = "Access verified. Syncing vault space...";
-        
-        await pullUserVaultStorageMatrices();
-        closeAllUniversalDrawers();
-        navigateToActiveView('view-categories');
-    } catch (err) {
-        feedback.style.color = "var(--action-red)";
-        feedback.innerText = "Network pipeline error connection blocked.";
-    }
-}
-
-async function executeSignUpRequest() {
-    const email = document.getElementById('auth-email-field').value;
-    const password = document.getElementById('auth-password-field').value;
-    const feedback = document.getElementById('auth-feedback-status-box');
-
-    // Password Parameter Verification Matrix Checklist Rules
-    const reqRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$/;
-    if (!reqRegex.test(password)) {
-        feedback.style.color = "var(--action-red)";
-        feedback.innerText = "Password string rejected. Does not match core constraints architecture requirements.";
-        return;
-    }
-
-    feedback.style.color = "var(--gold-primary)";
-    feedback.innerText = "Registering node. Initializing email activation loop hooks...";
-
-    try {
-        const response = await fetch(`${BACKEND_BASE}/api/auth/signup`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        const resData = await response.json();
-
-        if (!response.ok) {
-            feedback.style.color = "var(--action-red)";
-            feedback.innerText = resData.error || "Registration validation routing path dropped.";
-            return;
-        }
-
-        feedback.style.color = "var(--action-green)";
-        feedback.innerText = "Verification issued. Polling for activation handshake confirmation link...";
-
-        // Set up the poll looping tracking sequence to check if verification is confirmed
-        initializeActivationPollingSequence(email, feedback);
-    } catch (err) {
-        feedback.style.color = "var(--action-red)";
-        feedback.innerText = "Network mapping channel execution error.";
-    }
-}
-
-function initializeActivationPollingSequence(email, feedbackElement) {
-    const pollId = setInterval(async () => {
-        try {
-            const pollRes = await fetch(`${BACKEND_BASE}/api/auth/poll-verification?email=${encodeURIComponent(email)}`);
-            const pollData = await pollRes.json();
-            
-            if (pollData.verified) {
-                clearInterval(pollId);
-                localStorage.setItem('token', pollData.token);
-                state.isGuestMode = false;
-                state.user = pollData.user;
-                
-                feedbackElement.innerText = "Verification path matched! Entering vault workspace context.";
-                await dispatchVaultSynchronizationPayload();
-                
-                setTimeout(() => {
-                    closeAllUniversalDrawers();
-                    navigateToActiveView('view-categories');
-                }, 1500);
+    // Inline Profile Vector Fields Unlock Editing Handlers
+    document.querySelectorAll(".field-inline-edit-icon").forEach(btn => {
+        btn.onclick = (e) => {
+            const targetInput = e.target.parentElement.querySelector("input");
+            if (targetInput) {
+                targetInput.disabled = !targetInput.disabled;
+                if (!targetInput.disabled) targetInput.focus();
             }
-        } catch (e) {
-            console.error("Polling stream interruption skipped:", e);
-        }
-    }, 2500);
+        };
+    });
+
+    // Control Configuration Menu Panel Routing
+    document.getElementById("settings-action-toggle-theme").onclick = toggleThemeDarkLightParameters;
+    document.getElementById("settings-action-upgrade-tier").onclick = processTierUpgradeTransaction;
+    document.getElementById("settings-action-add-friends").onclick = triggerFriendAdditionDialog;
+    document.getElementById("settings-action-goto-friends").onclick = () => {
+        collapseAllDrawers();
+        navigateToScreenView("view-friends-page");
+        renderFriendsRosterStack();
+    };
+    document.getElementById("settings-action-vault-wipe").onclick = triggerConfirmVaultWipe;
+    document.getElementById("settings-action-logout").onclick = executeGlobalLogoutSequence;
+
+    // Media Interceptor Modal Actions Hooks
+    document.getElementById("modal-action-cancel-intercept").onclick = discardMediaInterceptModal;
+    document.getElementById("modal-action-commit-intercept").onclick = commitMediaInterceptModal;
 }
 
-async function evaluateSessionTokenState() {
-    const token = localStorage.getItem('token');
+// SLIDING UTILITY DRAWER OVERLAY CONTROLLERS
+function expandDrawerInterface(drawerId) {
+    collapseAllDrawers();
+    document.getElementById(drawerId).classList.add("drawer-expanded-state");
+    const scrim = document.getElementById("drawer-overlay-scrim-curtain");
+    scrim.className = "drawer-scrim-visible";
+}
+
+function collapseAllDrawers() {
+    document.querySelectorAll(".sliding-drawer-container").forEach(d => d.classList.remove("drawer-expanded-state"));
+    const scrim = document.getElementById("drawer-overlay-scrim-curtain");
+    scrim.className = "drawer-scrim-hidden";
+}
+
+function togglePasswordMasking() {
+    const fld = document.getElementById("auth-password-field");
+    fld.type = (fld.type === "password") ? "text" : "password";
+}
+
+// THEME TOGGLE CONTROLLER
+function toggleThemeDarkLightParameters() {
+    const isLight = document.body.classList.toggle("light-mode-parameters");
+    document.getElementById("settings-action-toggle-theme").innerText = isLight ? "Toggle Viewport: LIGHT MODE" : "Toggle Viewport: DARK MODE";
+}
+
+// AFFILIATE LINK GENERATION FACTORY ENGINE
+function runAffiliateLinkFactoryEngine(itemName, customUrl = "") {
+    if (customUrl.trim() !== "") return customUrl.trim();
+    // Replaces whitespaces with URL safe strings
+    const slug = encodeURIComponent(itemName.toLowerCase().replace(/\s+/g, "-"));
+    return `https://click.linksynergy.com/fs-bin/click?id=top-tens&subid=0&offerid=1001&type=3&tmpid=21&RD_PARM1=https%3A%2F%2Fstore.search.dev%2Fitem%2F${slug}`;
+}
+
+// INPUT DATA LOCAL SEEDING BACKBONE LOADER
+function loadLocalSessionFallbackData() {
+    const cachedCategories = localStorage.getItem("toptens_categories");
+    const cachedItems = localStorage.getItem("toptens_items");
+    const cachedFriends = localStorage.getItem("toptens_friends");
+    const cachedProfile = localStorage.getItem("toptens_profile");
+    const cachedTier = localStorage.getItem("toptens_tier_upgrade");
+
+    state.categories = cachedCategories ? JSON.parse(cachedCategories) : [...window.DEFAULT_STOCK_CATEGORIES];
+    state.items = cachedItems ? JSON.parse(cachedItems) : { ...window.DEFAULT_STOCK_ITEMS };
+    state.friends = cachedFriends ? JSON.parse(cachedFriends) : [...window.DEFAULT_STOCK_FRIENDS];
+    state.isTierUpgraded = (cachedTier === "true");
+
+    if (cachedProfile) {
+        state.profileMetadata = JSON.parse(cachedProfile);
+    }
+    updateProfileAvatarHeaderView();
+}
+
+function updateProfileAvatarHeaderView() {
+    const frame = document.getElementById("header-profile-avatar-node");
+    if (state.profileMetadata.avatar) {
+        frame.style.backgroundImage = `url('${state.profileMetadata.avatar}')`;
+    } else {
+        frame.style.backgroundImage = "none";
+    }
+}
+
+// CLOUD INTERFACE SESSION AUTHENTICATION HANDLING PIPELINES
+async function synchronizeSessionHandshake() {
+    const token = localStorage.getItem("toptens_jwt_token");
     if (!token) return;
-
+    
     try {
-        const response = await fetch(`${BACKEND_BASE}/api/auth/verify-session`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const resp = await fetch(`${API_BASE}/api/auth/verify-session`, {
+            headers: { "Authorization": `Bearer ${token}` }
         });
-        if (response.ok) {
-            const data = await response.json();
-            state.user = data.user;
-            state.isGuestMode = false;
-            await pullUserVaultStorageMatrices();
-            if (document.getElementById('view-landing').classList.contains('active-viewport')) {
-                navigateToActiveView('view-categories');
-            }
+        if (resp.status === 200) {
+            const data = await resp.json();
+            state.user = data.user.email;
+            state.token = token;
+            await pullCloudVaultPayload();
         } else {
-            localStorage.removeItem('token');
+            executeGlobalLogoutSequence();
         }
-    } catch (err) {
-        console.warn("Session token parsing verification route offline. Native persistence offline.");
+    } catch (e) {
+        console.warn("API handshake matrix offline. Operating in isolated offline database mode.");
     }
 }
 
-// ==========================================================================
-// PERSISTENCE STORAGE SYNCHRONIZATION PIPELINES
-// ==========================================================================
-async function dispatchVaultSynchronizationPayload() {
-    if (state.isGuestMode || !state.user) return;
-    const token = localStorage.getItem('token');
+async function executeSignInSessionRequest() {
+    const email = document.getElementById("auth-email-field").value;
+    const password = document.getElementById("auth-password-field").value;
+    const banner = document.getElementById("auth-status-feedback-display");
+
+    if (!email || !password) return;
+
     try {
-        await fetch(`${BACKEND_BASE}/api/vault/sync`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+        const resp = await fetch(`${API_BASE}/api/auth/signin`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await resp.json();
+
+        if (resp.status === 200) {
+            state.token = data.token;
+            state.user = data.user.email;
+            localStorage.setItem("toptens_jwt_token", data.token);
+            banner.className = "realtime-status-banner-box status-success";
+            banner.innerText = "Session validated successfully.";
+            
+            await pullCloudVaultPayload();
+            setTimeout(() => {
+                collapseAllDrawers();
+                navigateToScreenView("view-categories-page");
+                renderCategoriesGridMatrix();
+            }, 1000);
+        } else {
+            banner.className = "realtime-status-banner-box status-error";
+            banner.innerText = data.error || "Authentication credential error.";
+        }
+    } catch (e) {
+        banner.className = "realtime-status-banner-box status-error";
+        banner.innerText = "Cloud server interface offline.";
+    }
+}
+
+async function executeSignUpRegistrationRequest() {
+    const email = document.getElementById("auth-email-field").value;
+    const password = document.getElementById("auth-password-field").value;
+    const banner = document.getElementById("auth-status-feedback-display");
+
+    // Password criteria constraint mapping verification regex
+    const regexConstraint = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\x21-\x7E])[A-Za-z\d\x21-\x7E]{8,20}$/;
+    if (!regexConstraint.test(password)) {
+        banner.className = "realtime-status-banner-box status-error";
+        banner.innerText = "Password does not match system complexity boundaries.";
+        return;
+    }
+
+    try {
+        const resp = await fetch(`${API_BASE}/api/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await resp.json();
+
+        if (resp.status === 202) {
+            banner.className = "realtime-status-banner-box status-success";
+            banner.innerText = "Activation token transmitted. Polling network state activation link hook...";
+            
+            // Poll for verification to simulate real-time registration mapping transitions
+            let pollTimer = setInterval(async () => {
+                const pResp = await fetch(`${API_BASE}/api/auth/poll-verification?email=${encodeURIComponent(email)}`);
+                const pData = await pResp.json();
+                if (pData.verified) {
+                    clearInterval(pollTimer);
+                    state.token = pData.token;
+                    state.user = pData.user.email;
+                    localStorage.setItem("toptens_jwt_token", pData.token);
+                    banner.innerText = "Account confirmed verified! Access unlocked.";
+                    await pushCloudVaultSynchronization();
+                    setTimeout(() => {
+                        collapseAllDrawers();
+                        navigateToScreenView("view-categories-page");
+                        renderCategoriesGridMatrix();
+                    }, 1200);
+                }
+            }, 2500);
+        } else {
+            banner.className = "realtime-status-banner-box status-error";
+            banner.innerText = data.error || "Registration rejected.";
+        }
+    } catch (e) {
+        banner.className = "realtime-status-banner-box status-error";
+        banner.innerText = "Database connection error.";
+    }
+}
+
+function executeGlobalLogoutSequence() {
+    state.user = null;
+    state.token = null;
+    localStorage.removeItem("toptens_jwt_token");
+    localStorage.removeItem("toptens_profile");
+    state.profileMetadata = { fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "" };
+    updateProfileAvatarHeaderView();
+    loadLocalSessionFallbackData();
+    collapseAllDrawers();
+    navigateToScreenView("view-landing-page", false);
+    state.navigationHistoryStack = [];
+}
+
+// STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
+async function pushCloudVaultSynchronization() {
+    if (!state.user || !state.token) {
+        // Enforce guest state persistence rules
+        localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+        localStorage.setItem("toptens_items", JSON.stringify(state.items));
+        return;
+    }
+    try {
+        await fetch(`${API_BASE}/api/vault/sync`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${state.token}` },
             body: JSON.stringify({ categories: state.categories, items: state.items })
         });
-    } catch (e) {
-        console.error("Vault network stream synchronization error write back dropped:", e);
-    }
+    } catch (e) { console.warn("Failed to sync matrix state with cluster."); }
 }
 
-async function pullUserVaultStorageMatrices() {
-    const token = localStorage.getItem('token');
-    if (!token) return;
+async function pullCloudVaultPayload() {
+    if (!state.token) return;
     try {
-        const response = await fetch(`${BACKEND_BASE}/api/vault/pull`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+        const resp = await fetch(`${API_BASE}/api/vault/pull`, {
+            headers: { "Authorization": `Bearer ${state.token}` }
         });
-        if (response.ok) {
-            const data = await response.json();
-            if (data.categories && data.categories.length > 0) {
-                state.categories = data.categories;
-                state.items = data.items || {};
-            }
+        if (resp.status === 200) {
+            const data = await resp.json();
+            if (data.categories && data.categories.length > 0) state.categories = data.categories;
+            if (data.items && Object.keys(data.items).length > 0) state.items = data.items;
+            localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+            localStorage.setItem("toptens_items", JSON.stringify(state.items));
+            if (state.currentViewId === "view-categories-page") renderCategoriesGridMatrix();
         }
-    } catch (e) {
-        console.error("Vault read cluster synchronization matrix error:", e);
-    }
+    } catch (e) { console.warn("Failed to pull down persistent cloud data profiles."); }
 }
 
-// ==========================================================================
-// VIEW 2 RENDER GENERATOR: CATEGORIES MANAGER MATRIX
-// ==========================================================================
-function renderCategoriesGrid() {
-    const grid = document.getElementById('categories-grid-matrix');
-    grid.innerHTML = '';
+// PAGE 2 ENGINE: CATEGORIES LAYOUT MATRIX
+function renderCategoriesGridMatrix() {
+    const grid = document.getElementById("categories-grid-matrix");
+    grid.innerHTML = "";
 
     state.categories.forEach(cat => {
-        const listItems = state.items[cat.id] || [];
-        const card = document.createElement('div');
-        card.className = 'category-elongated-card-tab';
-        
+        const card = document.createElement("div");
+        card.className = "category-elongated-card";
+        card.onclick = (e) => {
+            // Discard execution bubble path if targeting control layers
+            if (e.target.closest("button") || e.target.closest(".node-utilities-corner-cluster")) return;
+            openItemsListViewContext(cat.id);
+        };
+
+        const itemCount = state.items[cat.id] ? state.items[cat.id].length : 0;
+
         card.innerHTML = `
-            <div>
-                <div class="category-tab-meta-header">
-                    <span class="category-emoji-node">${cat.emoji || '📂'}</span>
-                    <span class="category-title-node">${cat.title}</span>
-                </div>
-                <div class="category-counter-node">(${listItems.length} items allocated)</div>
-                <div class="category-tab-actions-row">
-                    <button class="category-utility-btn compare-trigger-action">Compare</button>
-                    <button class="category-utility-btn fuse-trigger-action">Fuse</button>
-                    <button class="category-utility-btn privacy-toggle-trigger ${cat.isPrivate ? 'active-state-toggle' : ''}">
-                        ${cat.isPrivate ? 'Private' : 'Public'}
-                    </button>
-                </div>
+            <div class="category-emoji-frame">${cat.emoji || "📁"}</div>
+            <div class="category-title-label">${cat.name}</div>
+            <div class="category-counter-subtext">(${itemCount} items)</div>
+            <div class="category-card-actions-row">
+                <button class="inline-action-pill-btn" onclick="executeComparePipeline('${cat.id}', '${cat.name}')">Compare</button>
+                <button class="inline-action-pill-btn" onclick="executeFusePipeline('${cat.id}', '${cat.name}')">Fuse</button>
+                <button class="inline-action-pill-btn ${cat.private ? '' : 'active-state'}" onclick="toggleCategoryPrivacyState('${cat.id}', this)">
+                    ${cat.private ? 'Private' : 'Public'}
+                </button>
             </div>
-            <div class="tab-corner-actions-cluster">
-                <button class="icon-util-btn edit-cat-trigger">&#9998;</button>
-                <button class="icon-util-btn remove-cat-trigger">&#128465;</button>
+            <div class="node-utilities-corner-cluster">
+                <span class="icon-action-node-trigger" onclick="triggerCategoryRenamingMatrix('${cat.id}')">✏️</span>
+                <span class="icon-action-node-trigger" onclick="deleteCategoryFromMatrix('${cat.id}')">🗑️</span>
             </div>
         `;
-
-        // Direct Routing Core Frame Clicking Check (Intercept Button Actions)
-        card.addEventListener('click', (e) => {
-            if (e.target.closest('button')) return;
-            state.currentCategoryContextId = cat.id;
-            navigateToActiveView('view-items-stack');
-        });
-
-        card.querySelector('.edit-cat-trigger').addEventListener('click', () => triggerCategoryUpdatePrompt(cat.id));
-        card.querySelector('.remove-cat-trigger').addEventListener('click', () => removeCategoryElementInstance(cat.id));
-        card.querySelector('.compare-trigger-action').addEventListener('click', () => executeSocialComputeOperation('compare', cat.title, cat.id));
-        card.querySelector('.fuse-trigger-action').addEventListener('click', () => executeSocialComputeOperation('fuse', cat.title, cat.id));
-        card.querySelector('.privacy-toggle-trigger').addEventListener('click', () => toggleCategoryPrivacyState(cat.id));
-
         grid.appendChild(card);
     });
 }
 
-function createCustomCategoryElement() {
-    if (state.categories.length >= state.tierLimit) {
-        alert(`Storage boundary allocated tier capacity threshold reached. Free Tier cap: ${state.tierLimit}. Upgrade inside settings drawer.`);
+function triggerCustomCategoryCreationMatrix() {
+    const cap = state.isTierUpgraded ? 99 : 21;
+    if (state.categories.length >= cap) {
+        alert(`Account registration limits tier hit. Active category threshold maximum size is ${cap} configurations.`);
         return;
     }
-    const title = prompt("Enter Custom Category Title:");
-    if (!title) return;
-    
-    const id = "custom-cat-" + Date.now();
-    state.categories.push({ id, title: title.trim(), emoji: "📂", isPrivate: false });
-    state.items[id] = [];
+    const title = prompt("Specify Unique Custom Category Identifier String Name:");
+    if (!title || !title.trim()) return;
 
-    renderCategoriesGrid();
-    dispatchVaultSynchronizationPayload();
+    const emoji = prompt("Assign Single Character Glyph Emoji Symbol:", "📊") || "📊";
+    const newId = "cat_" + Date.now();
+    
+    state.categories.push({ id: newId, name: title.trim(), emoji: emoji.substring(0,2), private: false });
+    state.items[newId] = [];
+    
+    pushCloudVaultSynchronization();
+    renderCategoriesGridMatrix();
 }
 
-function triggerCategoryUpdatePrompt(catId) {
-    const cat = state.categories.find(c => c.id === catId);
-    if (!cat) return;
-    const newTitle = prompt("Update Category Title:", cat.title);
-    if (newTitle) {
-        cat.title = newTitle.trim();
-        renderCategoriesGrid();
-        dispatchVaultSynchronizationPayload();
+function triggerCategoryRenamingMatrix(catId) {
+    const target = state.categories.find(c => c.id === catId);
+    if (!target) return;
+    const newName = prompt("Modify category label token name text string values:", target.name);
+    if (newName && newName.trim()) {
+        target.name = newName.trim();
+        pushCloudVaultSynchronization();
+        renderCategoriesGridMatrix();
     }
 }
 
-function removeCategoryElementInstance(catId) {
-    if (!confirm("Confirm complete eradication of this data tracking category structural frame node?")) return;
+function deleteCategoryFromMatrix(catId) {
+    if (!confirm("Confirm hard removal deletion structural execution pipeline rule?")) return;
     state.categories = state.categories.filter(c => c.id !== catId);
     delete state.items[catId];
-    renderCategoriesGrid();
-    dispatchVaultSynchronizationPayload();
+    pushCloudVaultSynchronization();
+    renderCategoriesGridMatrix();
 }
 
-function toggleCategoryPrivacyState(catId) {
-    const cat = state.categories.find(c => c.id === catId);
-    if (!cat) return;
-    cat.isPrivate = !cat.isPrivate;
-    renderCategoriesGrid();
-    dispatchVaultSynchronizationPayload();
+function toggleCategoryPrivacyState(catId, btnNode) {
+    const target = state.categories.find(c => c.id === catId);
+    if (!target) return;
+    target.private = !target.private;
+    btnNode.classList.toggle("active-state", !target.private);
+    btnNode.innerText = target.private ? "Private" : "Public";
+    pushCloudVaultSynchronization();
 }
 
-// ==========================================================================
-// VIEW 3 RENDER GENERATOR: CRITICAL FIXED ITEMS MANAGER & REPLACEMENT ENGINE
-// ==========================================================================
+// PAGE 3 ENGINE: LIST ITEMS MATRIX VIEWPORT CONTAINER LAYOUTS
+function openItemsListViewContext(catId) {
+    state.currentCategoryContextId = catId;
+    navigateToScreenView("view-items-page");
+    renderItemsStack();
+}
+
 function renderItemsStack() {
-    const cat = state.categories.find(c => c.id === state.currentCategoryContextId);
-    document.getElementById('current-category-view-title').innerText = cat ? `${cat.title} Vault Stack` : "Items Vault Stack List";
+    const container = document.getElementById("items-rows-stack-container");
+    container.innerHTML = "";
+    
+    const contextList = state.items[state.currentCategoryContextId] || [];
+    
+    // Explicit dynamic programmatic sorting tracking logic parameters
+    const orderedItems = [...contextList].sort((a, b) => a.rank - b.rank);
 
-    const container = document.getElementById('items-vertical-stack');
-    if (!container) return;
-    container.innerHTML = '';
+    orderedItems.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "item-row-strip";
 
-    const listItems = state.items[state.currentCategoryContextId] || [];
-    listItems.sort((a, b) => a.rank - b.rank);
-
-    listItems.forEach(item => {
-        const row = document.createElement('div');
-        row.className = 'item-list-row';
-        
-        const affiliateLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl);
-
-        // Map the image rendering rule directly to item.avatar (with item.media as a secondary fallback)
-        const displayImage = item.avatar || item.media || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 5H5l3.5-4.5z&quot;/></svg>';
+        const affLink = runAffiliateLinkFactoryEngine(item.name, item.customUrl);
 
         row.innerHTML = `
-            <div class="item-left-block">
-                <span class="item-hashtag">#</span>
-                <span class="item-rank-num">${item.rank}</span>
-                <span class="item-core-name">${item.name}</span>
+            <div class="item-prominent-hash">#${item.rank}</div>
+            <div class="item-numerical-rank" style="display:none;">${item.rank}</div>
+            <div class="item-core-title">${item.name}</div>
+            <a href="${affLink}" target="_blank" rel="noopener" class="item-reference-hyperlink">Reference Link</a>
+            <div class="circular-media-thumbnail" id="thumb-node-element-${item.id}">
+                ${renderThumbnailMediaAssetStringNode(item.media)}
             </div>
-            <div class="item-right-block">
-                <a href="${affiliateLink}" target="_blank" class="affiliate-reference-link">Reference Link</a>
-                <div class="thumbnail-media-circle" style="background-image: url('${displayImage}'); background-size: cover; background-position: center;"></div>
-                <div class="row-utility-actions">
-                    <button class="icon-util-btn edit-item-trigger">&#9998;</button>
-                    <button class="icon-util-btn remove-item-trigger">&#128465;</button>
-                </div>
-            </div>
-        `;
-
-        row.querySelector('.edit-item-trigger').addEventListener('click', () => triggerItemUpdateMatrix(item.id));
-        row.querySelector('.remove-item-trigger').addEventListener('click', () => removeItemNodeInstance(item.id));
-
-        container.appendChild(row);
-    });
-}
-
-function addNewItemToStackInstance() {
-    const nameInput = document.getElementById('input-item-name');
-    const rankInput = document.getElementById('input-item-rank');
-    
-    const name = nameInput.value.trim();
-    const rank = parseInt(rankInput.value);
-
-    if (!name || isNaN(rank) || rank < 1 || rank > 10) {
-        alert("Please assign a valid Item Title string and integer rank parameters bound between (1-10).");
-        return;
-    }
-
-    const currentItems = state.items[state.currentCategoryContextId] || [];
-    if (currentItems.length >= 10) {
-        alert("List tracking matrices arrays are strictly limited to an absolute cap of 10 items.");
-        return;
-    }
-
-    const id = "item-node-" + Date.now();
-    const newItem = { id, name, rank, customUrl: "", media: "" };
-    
-    if (!state.items[state.currentCategoryContextId]) {
-        state.items[state.currentCategoryContextId] = [];
-    }
-    state.items[state.currentCategoryContextId].push(newItem);
-
-    nameInput.value = '';
-    rankInput.value = '';
-
-    renderItemsStack();
-    dispatchVaultSynchronizationPayload();
-}
-
-// CRITICAL REPAIR MATRIX: OPENS ACTIVE LINK STRING DIRECTLY FOR REPLACEMENT CONTROL PROMPTS
-async function triggerItemUpdateMatrix(itemId) {
-    // 1. Pull down the full array mapping tracking context safely
-    const currentCategoryKey = state.currentCategoryContextId;
-    if (!state.items || !state.items[currentCategoryKey]) {
-        console.error(`Missing items reference array context map tracking for: ${currentCategoryKey}`);
-        return;
-    }
-
-    // Force pull a cloned slice or instance array to safely perform structural updates
-    let categoryItems = [...state.items[currentCategoryKey]];
-    
-    // 2. Identify target item index directly in structural array list
-    const itemIndex = categoryItems.findIndex(i => i.id === itemId);
-    if (itemIndex === -1) return;
-    
-    const item = categoryItems[itemIndex];
-
-    // 3. Capture the active tracking URL link configuration and current image states
-    const currentActiveLink = typeof generateAutonomousAffiliateLinkNode === 'function'
-        ? generateAutonomousAffiliateLinkNode(item.name, item.customUrl)
-        : (item.customUrl || '');
-        
-    // Capture either key variant to handle stock vs custom creation history safely
-    const currentMedia = item.avatar || item.media || '';
-
-    // 4. Prompt for core text identity update rules sequentially
-    const newName = prompt("Edit Item Name/Title Text:", item.name);
-    if (newName === null) return;
-
-    // NEW INTERACTION STEP: Collect URL or Base64 data string for the image asset
-    const newMedia = prompt("Edit Thumbnail Media URL / Base64 String (Leave blank for default icon):", currentMedia);
-    if (newMedia === null) return;
-
-    const newUrl = prompt("Edit or Completely Replace Reference Link:", currentActiveLink);
-    if (newUrl === null) return;
-
-    // Apply the text values securely directly to the indexed element parameter matrix
-    item.name = newName.trim() || item.name;
-    
-    // Commit to both keys simultaneously to enforce alignment across rendering engines
-    item.avatar = newMedia.trim();
-    item.media = newMedia.trim();
-
-    // Handle affiliate URL extraction tracking fallbacks
-    if (typeof generateAutonomousAffiliateLinkNode === 'function') {
-        const defaultStockLink = generateAutonomousAffiliateLinkNode(item.name);
-        if (newUrl.trim() === '' || newUrl.trim() === defaultStockLink) {
-            item.customUrl = ''; 
-        } else {
-            item.customUrl = newUrl.trim(); 
-        }
-    } else {
-        item.customUrl = newUrl.trim();
-    }
-
-    // 5. Prompt layout configuration to shift position ordering numbers safely
-    const newRank = prompt("Edit Item Rank (1-10):", item.rank);
-    if (newRank) {
-        const rInt = parseInt(newRank);
-        if (!isNaN(rInt) && rInt >= 1 && rInt <= 10) {
-            item.rank = rInt;
-        }
-    }
-
-    // 6. Commit the entire array back into state memory blocks to preserve sibling positions
-    state.items[currentCategoryKey] = categoryItems;
-
-    // 7. Re-sort the list array map if ranks shifted, keeping all items bound seamlessly
-    state.items[currentCategoryKey].sort((a, b) => (parseInt(a.rank) || 0) - (parseInt(b.rank) || 0));
-
-    // 8. Commit data array mutations back down to local persist caches
-    localStorage.setItem('toptens_items', JSON.stringify(state.items));
-
-    // 9. Execute layout repaint loops and trigger network push dispatch routines
-    if (typeof renderItemsStack === 'function') {
-        renderItemsStack();
-    }
-    
-    if (typeof dispatchVaultSynchronizationPayload === 'function') {
-        dispatchVaultSynchronizationPayload();
-    }
-}
-
-function removeItemNodeInstance(itemId) {
-    if (!confirm("Eradicate this list element item row from local memory stacks?")) return;
-    state.items[state.currentCategoryContextId] = (state.items[state.currentCategoryContextId] || []).filter(i => i.id !== itemId);
-    renderItemsStack();
-    dispatchVaultSynchronizationPayload();
-}
-
-// ==========================================================================
-// VIEW 4 RENDER GENERATOR: NETWORK FRIENDS LAYOUT
-// ==========================================================================
-function renderFriendsStack() {
-    const container = document.getElementById('friends-vertical-stack');
-    if (!container) return;
-    container.innerHTML = '';
-
-    state.friends.forEach((fr, index) => {
-        const row = document.createElement('div');
-        row.className = 'friend-list-row';
-        row.style.position = 'relative';
-
-        row.innerHTML = `
-            <div class="friend-left-block">
-                <span class="friend-core-name">${fr.name}</span>
-            </div>
-            <div class="friend-right-block" style="display: flex; align-items: center; gap: 12px;">
-                <span class="friend-stats-node">Mutual Categories: ${fr.mutualCategories}</span>
-                <span class="friend-stats-node">Mutual Items: ${fr.mutualItems}</span>
-                <div class="friend-avatar-circle" style="background-image: url('${fr.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z&quot;/></svg>'}')"></div>
-                
-                <div class="friend-actions-wrapper" style="display: flex; gap: 6px; margin-left: 4px;">
-                    <button onclick="inlineEditFriendStackNode(${index})" style="background: rgba(77, 166, 255, 0.1); border: 1px solid #4da6ff; color: #4da6ff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s;">
-                        Edit
-                    </button>
-                    <button onclick="inlineRemoveFriendStackNode(${index})" style="background: rgba(255, 77, 77, 0.1); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s;">
-                        Delete
-                    </button>
-                </div>
+            <div class="node-utilities-corner-cluster" style="position:static;">
+                <span class="icon-action-node-trigger" onclick="triggerInlineItemEditingSequence('${item.id}')">✏️</span>
+                <span class="icon-action-node-trigger" onclick="deleteItemFromInventoryMatrix('${item.id}')">🗑️</span>
             </div>
         `;
         container.appendChild(row);
     });
 }
 
-// MANAGEMENT HANDLERS FOR RUNTIME STACK MUTATIONS
-async function inlineEditFriendStackNode(index) {
-    if (!state.friends || !state.friends[index]) return;
-    const oldName = state.friends[index].name;
-    
-    const newName = prompt(`Modify workspace reference identifier for "${oldName}":`, oldName);
-    if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
-
-    // Apply the update to runtime memory models
-    state.friends[index].name = newName.trim();
-    
-    // Save updated arrays back down to local layout cache layers
-    localStorage.setItem('toptens_friends', JSON.stringify(state.friends));
-    
-    // Force immediate UI repaint
-    renderFriendsStack();
-
-    // Trigger persistence update up to cloud worker mirrors if session token is active
-    if (localStorage.getItem('token') && typeof syncVaultToCloudPersistence === 'function') {
-        await syncVaultToCloudPersistence();
+function renderThumbnailMediaAssetStringNode(mediaStr) {
+    if (!mediaStr) return "";
+    if (mediaStr.startsWith("data:video/")) {
+        return `<video src="${mediaStr}" muted loop autoplay playsinline></video>`;
     }
+    return `<div style="width:100%; height:100%; background-image:url('${mediaStr}'); background-size:cover; background-position:center;"></div>`;
 }
 
-async function inlineRemoveFriendStackNode(index) {
-    if (!state.friends || !state.friends[index]) return;
-    const targetName = state.friends[index].name;
-
-    if (!confirm(`Are you sure you want to permanently strip "${targetName}" from your active comparative view stack?`)) return;
-
-    // Filter node from memory array models
-    state.friends.splice(index, 1);
-    
-    // Commit modified array map back to persistent storage caches
-    localStorage.setItem('toptens_friends', JSON.stringify(state.friends));
-    
-    // Repaint interface lines
-    renderFriendsStack();
-
-    // Force secure global account state replication
-    if (localStorage.getItem('token') && typeof syncVaultToCloudPersistence === 'function') {
-        await syncVaultToCloudPersistence();
-    }
-}
-
-function createDynamicNetworkFriendPrompt() {
-    const fName = prompt("Search Global Verified Top Tens Database Network Profiles (Public Profiles by Default):");
-    if (!fName) return;
-    
-    // Add dynamically mapped profile node element objects directly matching infrastructure layout requirements
-    state.friends.push({
-        name: fName.trim(),
-        mutualCategories: Math.floor(Math.random() * 3),
-        mutualItems: Math.floor(Math.random() * 10),
-        avatar: ""
-    });
-    
-    if (document.getElementById('view-friends').classList.contains('active-viewport')) {
-        renderFriendsStack();
-    } else {
-        alert(`Friend link established with profile connection node: "${fName}". Relocating to Network Roster.`);
-        closeAllUniversalDrawers();
-        navigateToActiveView('view-friends');
-    }
-}
-
-// ==========================================================================
-// SOCIAL CALCULATOR ENGINES: JUUXTAPOSED COMPARISONS & WEIGHTED AVERAGES FUSION
-// ==========================================================================
-async function executeSocialComputeOperation(action, categoryTitle, catId) {
-    const targetFriends = state.friends.filter(f => f.mutualCategories > 0).map(f => f.name);
-    if (targetFriends.length === 0) {
-        alert("No active network connection node records detected currently tracking this configuration index path.");
-        return;
-    }
-
-    const currentList = state.items[catId] || [];
-    
-    // Fire analytical matrix computation algorithms directly targeting server computing nodes
-    try {
-        const response = await fetch(`${BACKEND_BASE}/api/social/compute`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action,
-                categoryTitle,
-                friends: targetFriends,
-                userList: currentList
-            })
-        });
-        const data = await response.json();
-        
-        renderSocialComputeOutputSheet(action, categoryTitle, data.payload);
-    } catch (e) {
-        // Safe, Bulletproof Client Side Local Fallback Matrix Execution Engine
-        const fallbackPayload = [{ nodeName: "Your List", items: currentList }];
-        targetFriends.forEach(f => {
-            const mockItems = currentList.map(it => ({
-                name: action === 'compare' ? `${it.name} (${f} Alteration Variant)` : `Synthesized Master Target Node: ${it.name}`
-            }));
-            fallbackPayload.push({ nodeName: `${f} Data Frame`, items: mockItems });
-        });
-        renderSocialComputeOutputSheet(action, categoryTitle, fallbackPayload);
-    }
-}
-
-function renderSocialComputeOutputSheet(type, title, dataset) {
-    // Generate full-viewport runtime sandboxed interface container dynamically on the fly to avoid view disruption
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '100vw';
-    container.style.height = '100vh';
-    container.style.backgroundColor = 'var(--bg-primary)';
-    container.style.zIndex = '2000';
-    container.style.overflowY = 'auto';
-    container.style.padding = '40px 20px';
-    container.className = document.body.className; // Maintain dark/light mode alignment properties
-
-    let blocksHtml = '';
-    dataset.forEach(set => {
-        let listItemsHtml = '';
-        set.items.forEach((it, idx) => {
-            listItemsHtml += `
-                <div class="item-list-row" style="margin-bottom:8px;">
-                    <div class="item-left-block">
-                        <span class="item-hashtag">#</span>
-                        <span class="item-rank-num">${idx + 1}</span>
-                        <span class="item-core-name">${it.name}</span>
-                    </div>
-                </div>`;
-        });
-        blocksHtml += `
-            <div style="background:var(--bg-secondary); border:1px solid var(--border-color); padding:20px; border-radius:8px; min-width:280px; flex:1;">
-                <h3 style="color:var(--gold-primary); margin-bottom:15px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">${set.nodeName}</h3>
-                <div>${listItemsHtml || '<p style="color:var(--text-secondary)">Empty Stack Matrix</p>'}</div>
-            </div>`;
-    });
-
-    container.innerHTML = `
-        <div style="max-width:1200px; margin:0 auto;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                <h2 class="section-sub-heading" style="margin:0;">ALGORITHMIC LAYER: ${type.toUpperCase()}ING [${title.toUpperCase()}]</h2>
-                <button id="close-compute-overlay-btn" class="gold-action-button" style="width:130px; height:40px;">CLOSE VIEW</button>
-            </div>
-            <div style="display:flex; flex-wrap:wrap; gap:20px; justify-content:center;">
-                ${blocksHtml}
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(container);
-    document.getElementById('close-compute-overlay-btn').addEventListener('click', () => {
-        container.remove();
-    });
-}
-
-// ==========================================================================
-// DRAWER ATTACHED SECONDARY UTILITY ROUTINES
-// ==========================================================================
-function toggleApplicationThemeContext() {
-    document.body.classList.toggle('light-theme-context');
-}
-
-function executeUpgradeTierAllocation() {
-    state.tierLimit = 99;
-    alert("Subscription verified layer active. Storage index configuration expanded safely to a cap of 99 custom list categories rows matrices arrays.");
-}
-
-function triggerVaultWipeSystemReset() {
-    if (!confirm("Are you absolutely sure you want to execute an emergency system vault wipe sequence? All custom items, replacement lists, and profile alterations will be eradicated back to factory defaults.")) return;
-    
-    state.categories = [...INITIAL_STOCK_CATEGORIES];
-    state.items = JSON.parse(JSON.stringify(INITIAL_STOCK_ITEMS));
-    state.friends = [
-        { name: "AlphaRanker", mutualCategories: 1, mutualItems: 9, avatar: "" },
-        { name: "CryptoCollector", mutualCategories: 1, mutualItems: 9, avatar: "" },
-        { name: "OmegaLister", mutualCategories: 0, mutualItems: 0, avatar: "" }
-    ];
-    
-    renderCategoriesGrid();
-    dispatchVaultSynchronizationPayload();
-    closeAllUniversalDrawers();
-    alert("Vault wipe complete. Default matrices successfully rebuilt.");
-}
-
-function handleProfileAvatarUpload(e) {
-    const file = e.target.files[0];
+// HIGH-FIDELITY INTERCEPTOR MEDIA UPLOADER PROCESSING ENGINE
+function handleMediaSelectionInput(event, pipelineContextId) {
+    const file = event.target.files[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = function (event) {
-        const b64Data = event.target.result;
-        state.profile.avatar = b64Data;
-        document.getElementById('profile-drawer-avatar-preview').style.backgroundImage = `url('${b64Data}')`;
-        document.getElementById('profile-avatar-trigger').style.backgroundImage = `url('${b64Data}')`;
+    // Enforce 6-second video duration limits natively
+    if (file.type.startsWith("video/")) {
+        const tempVideoNode = document.createElement("video");
+        tempVideoNode.preload = "metadata";
+        tempVideoNode.src = URL.createObjectURL(file);
+        
+        tempVideoNode.onloadedmetadata = function() {
+            URL.revokeObjectURL(tempVideoNode.src);
+            if (tempVideoNode.duration > 6.1) {
+                alert("Validation failure limit hit. Selected media file length duration maps longer than 6 seconds bounds.");
+                event.target.value = "";
+                return;
+            }
+            launchInterceptorModalCropCanvas(file, pipelineContextId);
+        };
+    } else {
+        launchInterceptorModalCropCanvas(file, pipelineContextId);
+    }
+}
+
+function launchInterceptorModalCropCanvas(file, pipelineContextId) {
+    const modal = document.getElementById("media-crop-preview-modal-overlay");
+    const imgNode = document.getElementById("modal-dynamic-preview-target-image");
+    const vidNode = document.getElementById("modal-dynamic-preview-target-video");
+    
+    imgNode.classList.add("hidden-element");
+    vidNode.classList.add("hidden-element");
+    imgNode.src = "";
+    vidNode.src = "";
+
+    state.pendingMediaBuffer = file;
+    state.pendingTargetNodeCallback = pipelineContextId;
+
+    const fileReader = new FileReader();
+    fileReader.onload = function(e) {
+        modal.classList.remove("hidden-element");
+        if (file.type.startsWith("video/")) {
+            vidNode.src = e.target.getSelection ? "" : e.target.result;
+            vidNode.src = e.target.result;
+            vidNode.classList.remove("hidden-element");
+        } else {
+            imgNode.src = e.target.result;
+            imgNode.classList.remove("hidden-element");
+        }
     };
-    reader.readAsDataURL(file);
+    fileReader.readAsDataURL(file);
+}
+
+function discardMediaInterceptModal() {
+    document.getElementById("media-crop-preview-modal-overlay").classList.add("hidden-element");
+    state.pendingMediaBuffer = null;
+    state.pendingTargetNodeCallback = null;
+}
+
+function commitMediaInterceptModal() {
+    const file = state.pendingMediaBuffer;
+    if (!file) return;
+
+    const fileReader = new FileReader();
+    fileReader.onload = function(e) {
+        const finalBase64String = e.target.result;
+
+        if (typeof state.pendingTargetNodeCallback === "string" && state.pendingTargetNodeCallback.startsWith("inline_edit_")) {
+            const itemId = state.pendingTargetNodeCallback.replace("inline_edit_", "");
+            const list = state.items[state.currentCategoryContextId] || [];
+            const item = list.find(i => i.id === itemId);
+            if (item) {
+                item.media = finalBase64String;
+                renderItemsStack();
+            }
+        } else if (state.pendingTargetNodeCallback === "profile") {
+            state.profileMetadata.avatar = finalBase64String;
+            document.getElementById("profile-drawer-avatar-preview").style.backgroundImage = `url('${finalBase64String}')`;
+            updateProfileAvatarHeaderView();
+        } else if (state.pendingTargetNodeCallback === "creation") {
+            state.creationPendingMediaStringBase64 = finalBase64String;
+            document.getElementById("item-media-upload-dummy-btn").innerText = "Asset Buffered";
+        }
+        discardMediaInterceptModal();
+    };
+    fileReader.readAsDataURL(file);
+}
+
+function executeItemCreationFormCommit() {
+    const titleInp = document.getElementById("input-item-title");
+    const rankInp = document.getElementById("input-item-rank");
+    const urlInp = document.getElementById("input-item-custom-url");
+
+    const title = titleInp.value.trim();
+    const rank = parseInt(rankInp.value);
+    const customUrl = urlInp.value.trim();
+
+    if (!title || isNaN(rank) || rank < 1 || rank > 10) {
+        alert("Enforced list arrays require accurate title descriptions mapped alongside valid sequence ranks (1-10).");
+        return;
+    }
+
+    const contextList = state.items[state.currentCategoryContextId] || [];
+    if (contextList.length >= 10) {
+        alert("Hard bounds operational matrix cap overflow error. Top Tens items indices sizes max length limits are locked to exactly 10 allocation tracks.");
+        return;
+    }
+
+    const newItem = {
+        id: "item_" + Date.now(),
+        name: title,
+        rank: rank,
+        customUrl: customUrl,
+        media: state.creationPendingMediaStringBase64 || ""
+    };
+
+    contextList.push(newItem);
+    state.items[state.currentCategoryContextId] = contextList;
+
+    // Reset Form Elements State Layer Bounds
+    titleInp.value = "";
+    rankInp.value = "";
+    urlInp.value = "";
+    state.creationPendingMediaStringBase64 = null;
+    document.getElementById("item-media-upload-dummy-btn").innerText = "Upload Media";
+
+    pushCloudVaultSynchronization();
+    renderItemsStack();
+}
+
+async function triggerInlineItemEditingSequence(itemId) {
+    const list = state.items[state.currentCategoryContextId] || [];
+    const item = list.find(i => i.id === itemId);
+    if (!item) return;
+
+    const nextTitle = prompt("Modify Item Identity Title Text:", item.name);
+    if (nextTitle === null) return; 
+
+    const nextRankStr = prompt("Assign Modified Item Numerical Rank (1-10):", item.rank);
+    if (nextRankStr === null) return;
+    const nextRank = parseInt(nextRankStr);
+
+    const nextUrl = prompt("Modify Custom Affiliate Forward Target Redirection URL (Leave empty to revert to autogeneration rules):", item.customUrl);
+    if (nextUrl === null) return;
+
+    if (confirm("Would you like to rewrite or completely replace the video loops or static layout graphics assigned to this node's asset slot?")) {
+        const inlineFileInput = document.getElementById("input-item-file");
+        
+        // Temporarily hijack file change target handlers pointing back to item id reference matrix pointers
+        inlineFileInput.onchange = (e) => handleMediaSelectionInput(e, `inline_edit_${item.id}`);
+        inlineFileInput.click();
+        
+        // Restore downstream baseline structural capture listeners after thread stack window clears
+        setTimeout(() => {
+            document.getElementById("input-item-file").onchange = (ev) => handleMediaSelectionInput(ev, "creation");
+        }, 1000);
+    }
+
+    item.name = nextTitle.trim() || item.name;
+    if (!isNaN(nextRank) && nextRank >= 1 && nextRank <= 10) item.rank = nextRank;
+    item.customUrl = nextUrl.trim();
+
+    pushCloudVaultSynchronization();
+    renderItemsStack();
+}
+
+function deleteItemFromInventoryMatrix(itemId) {
+    if (!confirm("Remove item node from tracking schema lists completely?")) return;
+    let list = state.items[state.currentCategoryContextId] || [];
+    list = list.filter(i => i.id !== itemId);
+    state.items[state.currentCategoryContextId] = list;
+    pushCloudVaultSynchronization();
+    renderItemsStack();
+}
+
+// PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
+function renderFriendsRosterStack() {
+    const container = document.getElementById("friends-rows-stack-container");
+    container.innerHTML = "";
+
+    state.friends.forEach((friend, idx) => {
+        const row = document.createElement("div");
+        row.className = "friend-row-strip";
+
+        // Simulates common attribute map matches across data fields
+        const mutualCategories = Math.floor(Math.random() * 3) + 1;
+        const mutualItems = Math.floor(Math.random() * 7) + 3;
+
+        row.innerHTML = `
+            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
+            <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
+            <div class="node-utilities-corner-cluster" style="position:static;">
+                <span class="icon-action-node-trigger" onclick="deleteFriendFromRoster(${idx})">🗑️</span>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function triggerFriendAdditionDialog() {
+    const name = prompt("Search for target peer profile network identity handle to map:");
+    if (!name || !name.trim()) return;
+
+    state.friends.push({ name: name.trim(), avatar: "" });
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    
+    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
+    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
+}
+
+function deleteFriendFromRoster(indexIdx) {
+    if (!confirm("Disconnect target peer tracking path variables completely?")) return;
+    state.friends.splice(indexIdx, 1);
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    renderFriendsRosterStack();
+}
+
+// COMPUTATIONAL LOGIC CORES: JUXTAPOSITION MATRIX AND AVERAGE COMBINATIONS FUSION
+function executeComparePipeline(categoryId, categoryTitle) {
+    navigateToScreenView("view-compare-matrix-page");
+    const container = document.getElementById("compare-matrix-scroller");
+    container.innerHTML = "";
+
+    document.getElementById("compare-matrix-view-headline").innerText = `Juxtaposed Comparisons Matrix: ${categoryTitle}`;
+
+    // Column A: Source Base Layout Dataset
+    const myCol = document.createElement("div");
+    myCol.className = "matrix-column-node-sheet";
+    myCol.innerHTML = `<h4 class="matrix-column-headline">Your Local Vault</h4>`;
+    
+    const myItems = state.items[categoryId] || [];
+    myItems.sort((a,b)=>a.rank - b.rank).forEach(it => {
+        myCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+    });
+    container.appendChild(myCol);
+
+    // Dynamic evaluation compilation map across network bindings structures
+    state.friends.forEach(fr => {
+        const frCol = document.createElement("div");
+        frCol.className = "matrix-column-node-sheet";
+        frCol.innerHTML = `<h4 class="matrix-column-headline">${fr.name} Array</h4>`;
+        
+        // Simulates randomized structural offsets for visualization tracking comparison grids
+        const mockDerivatives = myItems.map(it => ({
+            rank: it.rank,
+            name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
+        }));
+
+        mockDerivatives.forEach(it => {
+            frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+        });
+        container.appendChild(frCol);
+    });
+}
+
+function executeFusePipeline(categoryId, categoryTitle) {
+    navigateToScreenView("view-fuse-matrix-page");
+    const container = document.getElementById("fuse-matrix-rows-container");
+    container.innerHTML = "";
+
+    document.getElementById("fuse-matrix-view-headline").innerText = `Synthesized Weighted Rank Average Master: ${categoryTitle}`;
+
+    const baselineItems = state.items[categoryId] || [];
+    if (baselineItems.length === 0) {
+        container.innerHTML = `<p style="text-align:center; color:var(--app-text-muted);">Unable to process combinations across blank metric spaces.</p>`;
+        return;
+    }
+
+    // Mathematical Weighted Matrix Score Interpolations Engine
+    let weightScoringMapMap = {};
+    
+    // Process local array paths layers inputs parameters scoring scales rules variables
+    baselineItems.forEach(it => {
+        if (!weightScoringMapMap[it.name]) weightScoringMapMap[it.name] = { scoreAccumulator: 0, trackingHits: 0 };
+        weightScoringMapMap[it.name].scoreAccumulator += (11 - it.rank) * 1.5; // Heavy weight amplification modifiers assignments
+        weightScoringMapMap[it.name].trackingHits++;
+    });
+
+    // Extract consolidated matrix listings elements
+    let masterCompiledFuseList = Object.keys(weightScoringMapMap).map(name => {
+        return { name: name, globalWeightRank: weightScoringMapMap[name].scoreAccumulator };
+    });
+
+    masterCompiledFuseList.sort((a, b) => b.globalWeightRank - a.globalWeightRank);
+
+    masterCompiledFuseList.slice(0, 10).forEach((item, index) => {
+        const row = document.createElement("div");
+        row.className = "item-row-strip";
+        row.innerHTML = `
+            <div class="item-prominent-hash">M#${index + 1}</div>
+            <div class="item-core-title" style="color:var(--app-electric-blue); font-weight:700;">${item.name}</div>
+            <div style="font-size:0.8rem; font-family:monospace; color:var(--app-burnished-gold);">Synthesized Vector Score Matrix: ${Math.floor(item.globalWeightRank)} points</div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+// PROFILE DRAWER INTERFACE FORM BINDERS
+function populateProfileFieldsUI() {
+    const p = state.profileMetadata;
+    document.getElementById("profile-field-fullname").value = p.fullname || "";
+    document.getElementById("profile-field-dob").value = p.dob || "";
+    document.getElementById("profile-field-hometown").value = p.hometown || "";
+    document.getElementById("profile-field-vocation").value = p.vocation || "";
+    document.getElementById("profile-field-email").value = p.email || state.user || "unlinked@guest.mode";
+    document.getElementById("profile-field-recovery").value = p.recovery || "";
+
+    const previewNode = document.getElementById("profile-drawer-avatar-preview");
+    if (p.avatar) {
+        previewNode.style.backgroundImage = `url('${p.avatar}')`;
+    } else {
+        previewNode.style.backgroundImage = "none";
+    }
+}
+
+function saveProfileMetadataAttributes() {
+    state.profileMetadata.fullname = document.getElementById("profile-field-fullname").value;
+    state.profileMetadata.dob = document.getElementById("profile-field-dob").value;
+    state.profileMetadata.hometown = document.getElementById("profile-field-hometown").value;
+    state.profileMetadata.vocation = document.getElementById("profile-field-vocation").value;
+    state.profileMetadata.email = document.getElementById("profile-field-email").value;
+    state.profileMetadata.recovery = document.getElementById("profile-field-recovery").value;
+
+    localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
+    
+    // Locks input vectors immediately back to secure view state modes structures
+    document.querySelectorAll(".editable-tab-field-container input").forEach(i => i.disabled = true);
+    
+    if (state.user && state.token) {
+        // Post extended metadata elements directly to live enterprise worker nodes pipelines
+        fetch(`${API_BASE}/api/profile/save`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${state.token}` },
+            body: JSON.stringify(state.profileMetadata)
+        }).then(() => console.log("Profile updates committed directly to live DB nodes storage."));
+    }
+    
+    alert("Profile parameters successfully registered to processing core.");
+    collapseAllDrawers();
 }
 
 function toggleProfilePrivacyState() {
-    state.profile.isPublic = !state.profile.isPublic;
-    const btn = document.getElementById('profile-privacy-toggle-btn');
-    btn.innerText = `Profile State: ${state.profile.isPublic ? 'Public' : 'Private'}`;
+    state.privacyPublic = !state.privacyPublic;
+    const node = document.getElementById("profile-privacy-toggle-state");
+    node.innerText = state.privacyPublic ? "PUBLIC ACCESS" : "PRIVATE COVERT";
+    node.className = state.privacyPublic ? "gold-action-button miniature-btn" : "gold-action-button miniature-btn variant-dark-btn";
 }
 
-async function commitUserProfileDetailsToServer() {
-    if (state.isGuestMode || !state.user) {
-        alert("Profile details modification saved into temporary cache storage context memory layers successfully.");
-        closeAllUniversalDrawers();
+// EXPANDED CAP RULES ADJUSTMENT HOOKS (UPGRADES & DESTRUCTION TRIGGERS)
+function processTierUpgradeTransaction() {
+    if (state.isTierUpgraded) {
+        alert("Account structure index validation verified: Expanded storage node matrices allocation tracks are already unlocked.");
         return;
     }
-    const token = localStorage.getItem('token');
-    try {
-        const response = await fetch(`${BACKEND_BASE}/api/profile/save`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(state.profile)
-        });
-        if (response.ok) {
-            alert("Profile metadata records synchronized securely to the cluster edge cloud registry.");
-            closeAllUniversalDrawers();
-        }
-    } catch (err) {
-        console.error("Profile synchronization engine pipeline blockage:", err);
+    if (confirm("Execute background structural initialization sandbox route for Tier Upgrade expandability ($0.99/mo processing mapping channels allocation bounds)?")) {
+        state.isTierUpgraded = true;
+        localStorage.setItem("toptens_tier_upgrade", "true");
+        alert("Transaction complete. Maximum track limits expanded up to 99 customized tracking registers slots.");
+        collapseAllDrawers();
+        if (state.currentViewId === "view-categories-page") renderCategoriesGridMatrix();
+    }
+}
+
+function triggerConfirmVaultWipe() {
+    const confirmPrompt = prompt("CRITICAL CORE HARD RESET ACTION SEQUENCER INTERCEPT TRIGGER. To completely scrub all tracking records arrays and roll back database clusters to zero default values maps, type exactly \"CONFIRM WIPE\" down in the window box:");
+    if (confirmPrompt === "CONFIRM WIPE") {
+        localStorage.clear();
+        state.user = null;
+        state.token = null;
+        state.isTierUpgraded = false;
+        
+        loadLocalSessionFallbackData();
+        collapseAllDrawers();
+        navigateToScreenView("view-landing-page", false);
+        state.navigationHistoryStack = [];
+        
+        alert("Structural data arrays cleared successfully. Factory matrix baseline defaults restored.");
+    } else {
+        alert("Validation mismatch verification code failure. Deletion scrubbing loop dropped.");
     }
 }
