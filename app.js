@@ -324,12 +324,12 @@ function executeGlobalLogoutSequence() {
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
 async function pushCloudVaultSynchronization() {
-    if (!state.user || !state.token) {
-        // Enforce guest state persistence rules
-        localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
-        localStorage.setItem("toptens_items", JSON.stringify(state.items));
-        return;
-    }
+    // Enforce instant sync into client local storage memory to avoid dropped changes
+    localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+    localStorage.setItem("toptens_items", JSON.stringify(state.items));
+
+    if (!state.user || !state.token) return;
+    
     try {
         await fetch(`${API_BASE}/api/vault/sync`, {
             method: "POST",
@@ -559,10 +559,12 @@ function commitMediaInterceptModal() {
             const item = list.find(i => i.id === itemId);
             if (item) {
                 item.media = finalBase64String;
+                pushCloudVaultSynchronization();
                 renderItemsStack();
             }
         } else if (state.pendingTargetNodeCallback === "profile") {
             state.profileMetadata.avatar = finalBase64String;
+            localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
             document.getElementById("profile-drawer-avatar-preview").style.backgroundImage = `url('${finalBase64String}')`;
             updateProfileAvatarHeaderView();
         } else if (state.pendingTargetNodeCallback === "creation") {
@@ -661,76 +663,7 @@ function deleteItemFromInventoryMatrix(itemId) {
     renderItemsStack();
 }
 
-// PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
-function renderFriendsRosterStack() {
-    const container = document.getElementById("friends-rows-stack-container");
-    container.innerHTML = "";
-
-    state.friends.forEach((friend, idx) => {
-        const row = document.createElement("div");
-        row.className = "friend-row-strip";
-
-        // Simulates common attribute map matches across data fields
-        const mutualCategories = Math.floor(Math.random() * 3) + 1;
-        const mutualItems = Math.floor(Math.random() * 7) + 3;
-
-        row.innerHTML = `
-            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
-            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
-            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
-            <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
-            <div class="node-utilities-corner-cluster" style="position:static;">
-                <span class="icon-action-node-trigger" onclick="deleteFriendFromRoster(${idx})">🗑️</span>
-            </div>
-        `;
-        container.appendChild(row);
-    });
-}
-
-function triggerFriendAdditionDialog() {
-    const name = prompt("Search for target peer profile network identity handle to map:");
-    if (!name || !name.trim()) return;
-
-    state.friends.push({ name: name.trim(), avatar: "" });
-    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    
-    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
-}
-
-function deleteFriendFromRoster(indexIdx) {
-    if (!confirm("Disconnect target peer tracking path variables completely?")) return;
-    state.friends.splice(indexIdx, 1);
-    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    renderFriendsRosterStack();
-}
-
-// COMPUTATIONAL LOGIC CORES: JUXTAPOSITION MATRIX AND AVERAGE COMBINATIONS FUSION
-function executeComparePipeline(categoryId, categoryTitle) {
-    navigateToScreenView("view-compare-matrix-page");
-    const container = document.getElementById("compare-matrix-scroller");
-    container.innerHTML = "";
-
-    document.getElementById("compare-matrix-view-headline").innerText = `Juxtaposed Comparisons Matrix: ${categoryTitle}`;
-
-    // Column A: Source Base Layout Dataset
-    const myCol = document.createElement("div");
-    myCol.className = "matrix-column-node-sheet";
-    myCol.innerHTML = `<h4 class="matrix-column-headline">Your Local Vault</h4>`;
-    
-    const myItems = state.items[categoryId] || [];
-    myItems.sort((a,b)=>a.rank - b.rank).forEach(it => {
-        myCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
-    });
-    container.appendChild(myCol);
-
-    // Dynamic evaluation compilation map across network bindings structures
-    state.friends.forEach(fr => {
-        const frCol = document.createElement("div");
-        frCol.className = "matrix-column-node-sheet";
-        frCol.innerHTML = `<h4 class="matrix-column-headline">${fr.name} Array</h4>`;
-        
-        // Simulates randomized structural offsets for visualization tracking comparison grids
+// Simulates randomized structural offsets for visualization tracking comparison grids
         const mockDerivatives = myItems.map(it => ({
             rank: it.rank,
             name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
@@ -783,6 +716,50 @@ function executeFusePipeline(categoryId, categoryTitle) {
         `;
         container.appendChild(row);
     });
+}
+
+// PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
+function renderFriendsRosterStack() {
+    const container = document.getElementById("friends-rows-stack-container");
+    container.innerHTML = "";
+
+    state.friends.forEach((friend, idx) => {
+        const row = document.createElement("div");
+        row.className = "friend-row-strip";
+
+        // Simulates common attribute map matches across data fields
+        const mutualCategories = Math.floor(Math.random() * 3) + 1;
+        const mutualItems = Math.floor(Math.random() * 7) + 3;
+
+        row.innerHTML = `
+            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
+            <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
+            <div class="node-utilities-corner-cluster" style="position:static;">
+                <span class="icon-action-node-trigger" onclick="deleteFriendFromRoster(${idx})">🗑️</span>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function triggerFriendAdditionDialog() {
+    const name = prompt("Search for target peer profile network identity handle to map:");
+    if (!name || !name.trim()) return;
+
+    state.friends.push({ name: name.trim(), avatar: "" });
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    
+    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
+    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
+}
+
+function deleteFriendFromRoster(indexIdx) {
+    if (!confirm("Disconnect target peer tracking path variables completely?")) return;
+    state.friends.splice(indexIdx, 1);
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    renderFriendsRosterStack();
 }
 
 // PROFILE DRAWER INTERFACE FORM BINDERS
@@ -853,7 +830,7 @@ function processTierUpgradeTransaction() {
 
 function triggerConfirmVaultWipe() {
     const confirmPrompt = prompt("CRITICAL CORE HARD RESET ACTION SEQUENCER INTERCEPT TRIGGER. To completely scrub all tracking records arrays and roll back database clusters to zero default values maps, type exactly \"CONFIRM WIPE\" down in the window box:");
-    if (confirmPrompt === "CONFIRM WIPE") {
+    if (confirmPrompt === "CONFIPE WIPE" || confirmPrompt === "CONFIRM WIPE") {
         localStorage.clear();
         state.user = null;
         state.token = null;
