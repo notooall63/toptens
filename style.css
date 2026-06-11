@@ -413,14 +413,24 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
 /* HORIZONTAL MATRIX GRID LISTS */
 .linear-rows-list { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 800px; margin: 0 auto; }
 
+/* FLUID RESPONSIVE ITEM STRIP ROW SYSTEM */
 .item-row-strip {
     background-color: var(--app-slate-void);
     border-radius: 8px;
     border: 1px solid rgba(212, 175, 55, 0.1);
     display: flex;
     align-items: center;
+    /* Mobile Optimization: Allow elements to wrap to a new line instead of squeezing text */
+    flex-wrap: wrap;
     padding: 12px 16px;
-    gap: 16px;
+    gap: 12px;
+}
+
+/* Ensure inner text links or titles scale down gracefully if words are exceptionally long */
+.item-row-strip > span, 
+.item-row-strip > a {
+    word-break: break-word;
+    min-width: 0;
 }
 
 /* RESPONSIVE FRIEND ROW STRIP MATRIX */
