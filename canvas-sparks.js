@@ -1,86 +1,104 @@
-// ==========================================================================
-// D:/top-tens/frontend/canvas-sparks.js
-// DYNAMIC VISUAL EFFECTS MATRIX LAYER (FLOWING GOLD WITH DIAMOND SPARKS)
-// ==========================================================================
+/**
+ * Top Tens - Fluid Metallic Gold Flow Animation and Diamond Sparkle Engine
+ */
+(function() {
+    const canvas = document.getElementById('sparklesCanvas');
+    if (!canvas) return;
 
-(function () {
-    const canvas = document.getElementById("spark-particle-canvas");
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-    let particles = [];
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
+    const particlesArray = [];
+    const maximumSparklesCount = 65;
 
-    window.addEventListener("resize", () => {
+    // Monitor resize loops dynamically to reset dimensional constraints
+    window.addEventListener('resize', () => {
         width = canvas.width = window.innerWidth;
         height = canvas.height = window.innerHeight;
     });
 
-    class SparkParticleNode {
+    class SparkleParticleNode {
         constructor() {
-            this.reset();
+            this.resetState();
         }
 
-        reset() {
+        resetState() {
             this.x = Math.random() * width;
-            this.y = height + Math.random() * 50;
-            this.size = Math.random() * 2.5 + 0.5;
-            this.speedY = -(Math.random() * 0.7 + 0.2);
-            this.speedX = Math.sin(Math.random() * Math.PI) * 0.2;
-            this.alpha = Math.random() * 0.5 + 0.1;
-            this.sparkleMode = Math.random() > 0.85; // 15% are diamond white flash nodes
-            this.sparkleSpeed = Math.random() * 0.05 + 0.02;
+            this.y = Math.random() * height;
+            this.radius = Math.random() * 1.5 + 0.5;
+            this.alpha = Math.random() * 0.4 + 0.1;
+            this.sparkleVelocity = Math.random() * 0.02 + 0.005;
+            this.glowFactor = Math.random() > 0.85; // High luminescence flags
         }
 
-        update() {
-            this.y += this.speedY;
-            this.x += this.speedX;
-
-            if (this.sparkleMode) {
-                this.alpha += this.sparkleSpeed;
-                if (this.alpha > 0.9 || this.alpha < 0.2) {
-                    this.sparkleSpeed = -this.sparkleSpeed;
-                }
+        updateCalculatedVectors() {
+            // Apply slight ambient drift mimicking fluid gold rivers currents
+            this.y -= Math.random() * 0.2 + 0.05;
+            this.x += Math.sin(this.y * 0.01) * 0.1;
+            
+            // Loop shimmer alphas
+            this.alpha += this.sparkleVelocity;
+            if (this.alpha > 0.95 || this.alpha < 0.05) {
+                this.sparkleVelocity = -this.sparkleVelocity;
             }
 
-            if (this.y < -10 || this.x < -10 || this.x > width + 10) {
-                this.reset();
-            }
+            // Recycle off-screen items
+            if (this.y < 0) this.resetState();
         }
 
-        draw() {
-            ctx.save();
-            ctx.beginPath();
-            if (this.sparkleMode) {
-                // Diamond Pinpoint Core Flash Vector
-                ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
-                ctx.arc(this.x, this.y, this.size * 1.4, 0, Math.PI * 2);
+        drawFrameContext(context) {
+            context.save();
+            context.beginPath();
+            context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            
+            if (this.glowFactor) {
+                context.shadowBlur = 10;
+                context.shadowColor = "#fcf6ba";
+                context.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
             } else {
-                // Flowing Gold Vector
-                ctx.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                // Production-grade deep gold solid metallic parameters mapping
+                context.fillStyle = `rgba(212, 175, 55, ${this.alpha})`;
             }
-            ctx.fill();
-            ctx.restore();
+            
+            context.fill();
+            context.restore();
         }
     }
 
-    function initMatrixPool() {
-        particles = [];
-        for (let i = 0; i < 110; i++) {
-            particles.push(new SparkParticleNode());
-        }
+    // Initialize tracking arrays
+    for (let i = 0; i < maximumSparklesCount; i++) {
+        particlesArray.push(new SparkleParticleNode());
     }
 
-    function renderEngineLoop() {
+    function runAnimationPipelineLoop() {
         ctx.clearRect(0, 0, width, height);
-        for (let i = 0; i < particles.length; i++) {
-            particles[i].update();
-            particles[i].draw();
+        
+        // Draw ambient background metallic gold flow stream vector
+        const isLightModeActive = document.body.classList.contains('light-mode');
+        const coreGradient = ctx.createLinearGradient(0, 0, width, height);
+        
+        if (isLightModeActive) {
+            coreGradient.addColorStop(0, 'rgba(244, 245, 247, 1)');
+            coreGradient.addColorStop(0.5, 'rgba(212, 175, 55, 0.02)');
+            coreGradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
+        } else {
+            coreGradient.addColorStop(0, 'rgba(10, 11, 13, 1)');
+            coreGradient.addColorStop(0.5, 'rgba(212, 175, 55, 0.035)');
+            coreGradient.addColorStop(1, 'rgba(20, 22, 26, 1)');
         }
-        requestAnimationFrame(renderEngineLoop);
+        
+        ctx.fillStyle = coreGradient;
+        ctx.fillRect(0, 0, width, height);
+
+        // Map and step across sparkle vector sets
+        particlesArray.forEach(p => {
+            p.updateCalculatedVectors();
+            p.drawFrameContext(ctx);
+        });
+
+        requestAnimationFrame(runAnimationPipelineLoop);
     }
 
-    initMatrixPool();
-    renderEngineLoop();
+    runAnimationPipelineLoop();
 })();

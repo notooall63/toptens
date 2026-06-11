@@ -1,127 +1,149 @@
-// ==========================================================================
-// D:/top-tens/frontend/stockitems.js
-// 9 DEFAULT STOCK CATEGORIES COMPLYING WITH SEAN D WOODSON'S CORE LAYOUTS
-// ==========================================================================
-
-const INITIAL_STOCK_CATEGORIES = [
-    { id: "cat-1", title: "Shoes", emoji: "👟" },
-    { id: "cat-2", title: "Inspiring Athletes", emoji: "🏆" },
-    { id: "cat-3", title: "Tech Devices", emoji: "💻" },
-    { id: "cat-4", title: "Celebrities", emoji: "✨" },
-    { id: "cat-5", title: "Post 2000 Movies", emoji: "🎬" },
-    { id: "cat-6", title: "90s Rap Songs", emoji: "🎤" },
-    { id: "cat-7", title: "Post 2010 Video Games", emoji: "🎮" },
-    { id: "cat-8", title: "Novels", emoji: "📚" },
-    { id: "cat-9", title: "Restaurants", emoji: "🍔" }
+/**
+ * Top Tens - Production Standard Stock Categories & Items Compliance Matrix Data Array
+ */
+const STOCK_CATEGORIES_DATA_MATRIX = [
+    {
+        name: "Shoes",
+        isPublic: true,
+        items: [
+            { name: "Air Jordan 1 Retro High OG", rank: 1, media: "" },
+            { name: "Adidas Ultraboost Light", rank: 2, media: "" },
+            { name: "Nike Air Max 90", rank: 3, media: "" },
+            { name: "Balenciaga Triple S", rank: 4, media: "" },
+            { name: "New Balance 990v6", rank: 5, media: "" },
+            { name: "Asics Gel-Kayano 30", rank: 6, media: "" },
+            { name: "Converse Chuck Taylor All Star", rank: 7, media: "" },
+            { name: "Vans Old Skool Core Class", rank: 8, media: "" },
+            { name: "Puma Suede Classic", rank: 9, media: "" },
+            { name: "Reebok Club C 85 Vintage", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Inspiring Athletes",
+        isPublic: true,
+        items: [
+            { name: "Muhammad Ali", rank: 1, media: "" },
+            { name: "Michael Jordan", rank: 2, media: "" },
+            { name: "Serena Williams", rank: 3, media: "" },
+            { name: "Usain Bolt", rank: 4, media: "" },
+            { name: "Lionel Messi", rank: 5, media: "" },
+            { name: "Kobe Bryant", rank: 6, media: "" },
+            { name: "Simone Biles", rank: 7, media: "" },
+            { name: "Roger Federer", rank: 8, media: "" },
+            { name: "LeBron James", rank: 9, media: "" },
+            { name: "Tiger Woods", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Tech Devices",
+        isPublic: true,
+        items: [
+            { name: "Apple iPhone 15 Pro Max", rank: 1, media: "" },
+            { name: "MacBook Pro M3 Max 16-inch", rank: 2, media: "" },
+            { name: "Samsung Galaxy S24 Ultra", rank: 3, media: "" },
+            { name: "Sony WH-1000XM5 Headphones", rank: 4, media: "" },
+            { name: "Apple iPad Pro M2 Layer", rank: 5, media: "" },
+            { name: "ASUS ROG Zephyrus G14", rank: 6, media: "" },
+            { name: "Nintendo Switch OLED Model", rank: 7, media: "" },
+            { name: "DJI Mini 4 Pro Drone Asset", rank: 8, media: "" },
+            { name: "Steam Deck OLED Handheld", rank: 9, media: "" },
+            { name: "Anker Prime 20K Power Bank", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Celebrities",
+        isPublic: true,
+        items: [
+            { name: "Keanu Reeves", rank: 1, media: "" },
+            { name: "Dwayne Johnson", rank: 2, media: "" },
+            { name: "Tom Hanks", rank: 3, media: "" },
+            { name: "Rihanna", rank: 4, media: "" },
+            { name: "Taylor Swift", rank: 5, media: "" },
+            { name: "Leonardo DiCaprio", rank: 6, media: "" },
+            { name: "Ryan Reynolds", rank: 7, media: "" },
+            { name: "Denzel Washington", rank: 8, media: "" },
+            { name: "Margot Robbie", rank: 9, media: "" },
+            { name: "Robert Downey Jr.", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Post 2000 Movies",
+        isPublic: true,
+        items: [
+            { name: "The Dark Knight (2008)", rank: 1, media: "" },
+            { name: "Inception (2010)", rank: 2, media: "" },
+            { name: "Interstellar (2014)", rank: 3, media: "" },
+            { name: "Parasite (2019)", rank: 4, media: "" },
+            { name: "The Lord of the Rings: Return of the King", rank: 5, media: "" },
+            { name: "Mad Max: Fury Road (2015)", rank: 6, media: "" },
+            { name: "Whiplash (2014)", rank: 7, media: "" },
+            { name: "Spider-Man: Into the Spider-Verse", rank: 8, media: "" },
+            { name: "Everything Everywhere All At Once", rank: 9, media: "" },
+            { name: "Gladiator (2000)", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "90s Rap Songs",
+        isPublic: true,
+        items: [
+            { name: "Juicy - Notorious B.I.G.", rank: 1, media: "" },
+            { name: "California Love - 2Pac", rank: 2, media: "" },
+            { name: "Nuthin' But A 'G' Thang - Dr. Dre", rank: 3, media: "" },
+            { name: "C.R.E.A.M. - Wu-Tang Clan", rank: 4, media: "" },
+            { name: "Shook Ones, Pt. II - Mobb Deep", rank: 5, media: "" },
+            { name: "The World Is Yours - Nas", rank: 6, media: "" },
+            { name: "Mind Playing Tricks on Me - Geto Boys", rank: 7, media: "" },
+            { name: "Regulate - Warren G", rank: 8, media: "" },
+            { name: "Hypnotize - Notorious B.I.G.", rank: 9, media: "" },
+            { name: "Dear Mama - 2Pac", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Post 2010 Video Games",
+        isPublic: true,
+        items: [
+            { name: "Elden Ring (2022)", rank: 1, media: "" },
+            { name: "The Legend of Zelda: Breath of the Wild", rank: 2, media: "" },
+            { name: "The Witcher 3: Wild Hunt", rank: 3, media: "" },
+            { name: "Red Dead Redemption 2", rank: 4, media: "" },
+            { name: "The Last of Us Part II", rank: 5, media: "" },
+            { name: "God of War (2018)", rank: 6, media: "" },
+            { name: "Hades (2020)", rank: 7, media: "" },
+            { name: "GTA V (2013)", rank: 8, media: "" },
+            { name: "Cyberpunk 2077: Phantom Liberty", rank: 9, media: "" },
+            { name: "Minecraft Core Evolution", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Novels",
+        isPublic: true,
+        items: [
+            { name: "To Kill a Mockingbird", rank: 1, media: "" },
+            { name: "1984", rank: 2, media: "" },
+            { name: "The Great Gatsby", rank: 3, media: "" },
+            { name: "One Hundred Years of Solitude", rank: 4, media: "" },
+            { name: "The Catcher in the Rye", rank: 5, media: "" },
+            { name: "Crime and Punishment", rank: 6, media: "" },
+            { name: "The Hobbit", rank: 7, media: "" },
+            { name: "Brave New World", rank: 8, media: "" },
+            { name: "Dune", rank: 9, media: "" },
+            { name: "The Road", rank: 10, media: "" }
+        ]
+    },
+    {
+        name: "Restaurants",
+        isPublic: true,
+        items: [
+            { name: "Central (Lima, Peru)", rank: 1, media: "" },
+            { name: "Disfrutar (Barcelona, Spain)", rank: 2, media: "" },
+            { name: "DiverXO (Madrid, Spain)", rank: 3, media: "" },
+            { name: "Atomix (New York, USA)", rank: 4, media: "" },
+            { name: "Alchemist (Copenhagen, Denmark)", rank: 5, media: "" },
+            { name: "Maido (Lima, Peru)", rank: 6, media: "" },
+            { name: "Lido 84 (Gardone Riviera, Italy)", rank: 7, media: "" },
+            { name: "Asador Etxebarri (Axpe, Spain)", rank: 8, media: "" },
+            { name: "Le Du (Bangkok, Thailand)", rank: 9, media: "" },
+            { name: "Table by Bruno Verjus (Paris, France)", rank: 10, media: "" }
+        ]
+    }
 ];
-
-const INITIAL_STOCK_ITEMS = {
-    "cat-1": [
-        { id: "shoes-1", name: "Air Jordan 1 Retro High", rank: 1, customUrl: "", media: "" },
-        { id: "shoes-2", name: "Adidas Ultraboost Light", rank: 2, customUrl: "", media: "" },
-        { id: "shoes-3", name: "Nike Air Max 90", rank: 3, customUrl: "", media: "" },
-        { id: "shoes-4", name: "New Balance 990v6", rank: 4, customUrl: "", media: "" },
-        { id: "shoes-5", name: "Balenciaga Triple S", rank: 5, customUrl: "", media: "" },
-        { id: "shoes-6", name: "Asics Gel-Kayano 30", rank: 6, customUrl: "", media: "" },
-        { id: "shoes-7", name: "Puma Suede Classic", rank: 7, customUrl: "", media: "" },
-        { id: "shoes-8", name: "Vans Old Skool", rank: 8, customUrl: "", media: "" },
-        { id: "shoes-9", name: "Converse Chuck Taylor All Star", rank: 9, customUrl: "", media: "" },
-        { id: "shoes-10", name: "Salomon XT-6 Black", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-2": [
-        { id: "ath-1", name: "Michael Jordan", rank: 1, customUrl: "", media: "" },
-        { id: "ath-2", name: "Kobe Bryant", rank: 2, customUrl: "", media: "" },
-        { id: "ath-3", name: "LeBron James", rank: 3, customUrl: "", media: "" },
-        { id: "ath-4", name: "Muhammad Ali", rank: 4, customUrl: "", media: "" },
-        { id: "ath-5", name: "Usain Bolt", rank: 5, customUrl: "", media: "" },
-        { id: "ath-6", name: "Serena Williams", rank: 6, customUrl: "", media: "" },
-        { id: "ath-7", name: "Lionel Messi", rank: 7, customUrl: "", media: "" },
-        { id: "ath-8", name: "Cristiano Ronaldo", rank: 8, customUrl: "", media: "" },
-        { id: "ath-9", name: "Tom Brady", rank: 9, customUrl: "", media: "" },
-        { id: "ath-10", name: "Tiger Woods", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-3": [
-        { id: "tech-1", name: "iPhone 15 Pro Max", rank: 1, customUrl: "", media: "" },
-        { id: "tech-2", name: "MacBook Pro M3 Max", rank: 2, customUrl: "", media: "" },
-        { id: "tech-3", name: "ASUS ROG Ally X", rank: 3, customUrl: "", media: "" },
-        { id: "tech-4", name: "Sony WH-1000XM5", rank: 4, customUrl: "", media: "" },
-        { id: "tech-5", name: "Samsung Galaxy S24 Ultra", rank: 5, customUrl: "", media: "" },
-        { id: "tech-6", name: "iPad Pro Tandem OLED", rank: 6, customUrl: "", media: "" },
-        { id: "tech-7", name: "Steam Deck OLED", rank: 7, customUrl: "", media: "" },
-        { id: "tech-8", name: "DJI Mini 4 Pro", rank: 8, customUrl: "", media: "" },
-        { id: "tech-9", name: "Apple Watch Ultra 2", rank: 9, customUrl: "", media: "" },
-        { id: "tech-10", name: "Apple Vision Pro", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-4": [
-        { id: "cel-1", name: "Keanu Reeves", rank: 1, customUrl: "", media: "" },
-        { id: "cel-2", name: "Tom Cruise", rank: 2, customUrl: "", media: "" },
-        { id: "cel-3", name: "Dwayne Johnson", rank: 3, customUrl: "", media: "" },
-        { id: "cel-4", name: "Leonardo DiCaprio", rank: 4, customUrl: "", media: "" },
-        { id: "cel-5", name: "Scarlett Johansson", rank: 5, customUrl: "", media: "" },
-        { id: "cel-6", name: "Margot Robbie", rank: 6, customUrl: "", media: "" },
-        { id: "cel-7", name: "Ryan Reynolds", rank: 7, customUrl: "", media: "" },
-        { id: "cel-8", name: "Brad Pitt", rank: 8, customUrl: "", media: "" },
-        { id: "cel-9", name: "Johnny Depp", rank: 9, customUrl: "", media: "" },
-        { id: "cel-10", name: "Robert Downey Jr.", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-5": [
-        { id: "mov-1", name: "Inception", rank: 1, customUrl: "", media: "" },
-        { id: "mov-2", name: "The Dark Knight", rank: 2, customUrl: "", media: "" },
-        { id: "mov-3", name: "Interstellar", rank: 3, customUrl: "", media: "" },
-        { id: "mov-4", name: "Avatar", rank: 4, customUrl: "", media: "" },
-        { id: "mov-5", name: "Gladiator", rank: 5, customUrl: "", media: "" },
-        { id: "mov-6", name: "The Lord of the Rings", rank: 6, customUrl: "", media: "" },
-        { id: "mov-7", name: "The Matrix Reloaded", rank: 7, customUrl: "", media: "" },
-        { id: "mov-8", name: "Spider-Man: Into the Spider-Verse", rank: 8, customUrl: "", media: "" },
-        { id: "mov-9", name: "Everything Everywhere All at Once", rank: 9, customUrl: "", media: "" },
-        { id: "mov-10", name: "Whiplash", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-6": [
-        { id: "rap-1", name: "Juicy - Notorious BIG", rank: 1, customUrl: "", media: "" },
-        { id: "rap-2", name: "California Love - Tupac", rank: 2, customUrl: "", media: "" },
-        { id: "rap-3", name: "Nuthin But A G Thang - Dr Dre", rank: 3, customUrl: "", media: "" },
-        { id: "rap-4", name: "NY State of Mind - Nas", rank: 4, customUrl: "", media: "" },
-        { id: "rap-5", name: "C.R.E.A.M. - Wu-Tang Clan", rank: 5, customUrl: "", media: "" },
-        { id: "rap-6", name: "Shook Ones Pt II - Mobb Deep", rank: 6, customUrl: "", media: "" },
-        { id: "rap-7", name: "Rosa Parks - Outkast", rank: 7, customUrl: "", media: "" },
-        { id: "rap-8", name: "Hypnotize - Notorious BIG", rank: 8, customUrl: "", media: "" },
-        { id: "rap-9", name: "Dear Mama - Tupac", rank: 9, customUrl: "", media: "" },
-        { id: "rap-10", name: "Regulate - Warren G", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-7": [
-        { id: "gam-1", name: "Grand Theft Auto V", rank: 1, customUrl: "", media: "" },
-        { id: "gam-2", name: "The Witcher 3: Wild Hunt", rank: 2, customUrl: "", media: "" },
-        { id: "gam-3", name: "Elden Ring", rank: 3, customUrl: "", media: "" },
-        { id: "gam-4", name: "Red Dead Redemption 2", rank: 4, customUrl: "", media: "" },
-        { id: "gam-5", name: "The Last of Us Part II", rank: 5, customUrl: "", media: "" },
-        { id: "gam-6", name: "God of War Ragnarok", rank: 6, customUrl: "", media: "" },
-        { id: "gam-7", name: "Minecraft", rank: 7, customUrl: "", media: "" },
-        { id: "gam-8", name: "Skyrim", rank: 8, customUrl: "", media: "" },
-        { id: "gam-9", name: "Cyberpunk 2077", rank: 9, customUrl: "", media: "" },
-        { id: "gam-10", name: "Zelda: Tears of the Kingdom", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-8": [
-        { id: "nov-1", name: "The Da Vinci Code", rank: 1, customUrl: "", media: "" },
-        { id: "nov-2", name: "The Road", rank: 2, customUrl: "", media: "" },
-        { id: "nov-3", name: "Gone Girl", rank: 3, customUrl: "", media: "" },
-        { id: "nov-4", name: "The Kite Runner", rank: 4, customUrl: "", media: "" },
-        { id: "nov-5", name: "A Game of Thrones", rank: 5, customUrl: "", media: "" },
-        { id: "nov-6", name: "Harry Potter and the Deathly Hallows", rank: 6, customUrl: "", media: "" },
-        { id: "nov-7", name: "Life of Pi", rank: 7, customUrl: "", media: "" },
-        { id: "nov-8", name: "The Hunger Games", rank: 8, customUrl: "", media: "" },
-        { id: "nov-9", name: "The Girl with the Dragon Tattoo", rank: 9, customUrl: "", media: "" },
-        { id: "nov-10", name: "Normal People", rank: 10, customUrl: "", media: "" }
-    ],
-    "cat-9": [
-        { id: "res-1", name: "The French Laundry", rank: 1, customUrl: "", media: "" },
-        { id: "res-2", name: "Le Bernardin", rank: 2, customUrl: "", media: "" },
-        { id: "res-3", name: "Alinea", rank: 3, customUrl: "", media: "" },
-        { id: "res-4", name: "Eleven Madison Park", rank: 4, customUrl: "", media: "" },
-        { id: "res-5", name: "Per Se", rank: 5, customUrl: "", media: "" },
-        { id: "res-6", name: "Osteria Francescana", rank: 6, customUrl: "", media: "" },
-        { id: "res-7", name: "Central", rank: 7, customUrl: "", media: "" },
-        { id: "res-8", name: "Noma", rank: 8, customUrl: "", media: "" },
-        { id: "res-9", name: "Asador Etxebarri", rank: 9, customUrl: "", media: "" },
-        { id: "res-10", name: "Atomix", rank: 10, customUrl: "", media: "" }
-    ]
-};
