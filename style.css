@@ -46,11 +46,34 @@ body, html {
     height: 100%;
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    overflow: hidden;
+    /* Changed from hidden to auto/visible to allow global layout scrolling when content flows down */
+    overflow-x: hidden;
+    overflow-y: auto;
     position: relative;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* LANDING PAGE SPECIFIC VIEW LAYER OVERRIDE */
+/* This keeps your landing page perfectly locked to the screen with no scrolling */
+#landing-page-view, .landing-page-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* CONTAINER AND VIEW REALIGNMENT */
+/* Ensures all other sub-pages and item lists expand fully without getting trapped by parent heights */
+.page-view:not(#landing-page-view) {
+    width: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: visible;
+    padding-bottom: 40px; /* Provides clean spacing at the bottom of lists */
+}
 #spark-particle-canvas {
     position: fixed;
     top: 0;
