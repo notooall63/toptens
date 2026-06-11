@@ -526,23 +526,28 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
     state.pendingMediaBuffer = file;
     state.pendingTargetNodeCallback = pipelineContextId;
 
-    const fileReader = new FileReader();
-    fileReader.onload = function(e) {
-        modal.classList.remove("hidden-element");
-        if (file.type.startsWith("video/")) {
-            vidNode.src = e.target.getSelection ? "" : e.target.result;
-            vidNode.src = e.target.result;
-            vidNode.classList.remove("hidden-element");
-        } else {
-            imgNode.src = e.target.result;
-            imgNode.classList.remove("hidden-element");
-        }
-    };
-    fileReader.readAsDataURL(file);
+    // Mobile Performance Boost: Use an Object URL for immediate preview rendering rather than synchronous Base64 conversion
+    const temporaryObjectUrl = URL.createObjectURL(file);
+    modal.classList.remove("hidden-element");
+
+    if (file.type.startsWith("video/")) {
+        vidNode.src = temporaryObjectUrl;
+        vidNode.classList.remove("hidden-element");
+    } else {
+        imgNode.src = temporaryObjectUrl;
+        imgNode.classList.remove("hidden-element");
+    }
 }
 
 function discardMediaInterceptModal() {
     const modal = document.getElementById("media-crop-preview-modal-overlay");
+    const imgNode = document.getElementById("modal-dynamic-preview-target-image");
+    const vidNode = document.getElementById("modal-dynamic-preview-target-video");
+
+    // Revoke object URLs safely to eliminate mobile memory leaks
+    if (imgNode && imgNode.src && imgNode.src.startsWith("blob:")) URL.revokeObjectURL(imgNode.src);
+    if (vidNode && vidNode.src && vidNode.src.startsWith("blob:")) URL.revokeObjectURL(vidNode.src);
+
     if (modal) modal.classList.add("hidden-element");
     state.pendingMediaBuffer = null;
     state.pendingTargetNodeCallback = null;
@@ -581,9 +586,11 @@ function commitMediaInterceptModal() {
             const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
             if (dummyBtn) dummyBtn.innerText = "Asset Buffered";
         }
-        discardMediaInterceptModal();
     };
+
     fileReader.readAsDataURL(file);
+    // UI Lifecycle Optimization: Dismiss modal view immediately to prevent UI locking on mobile threads
+    discardMediaInterceptModal();
 }
 
 function executeItemCreationFormCommit() {
