@@ -516,6 +516,8 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
     const imgNode = document.getElementById("modal-dynamic-preview-target-image");
     const vidNode = document.getElementById("modal-dynamic-preview-target-video");
     
+    if (!modal || !imgNode || !vidNode) return;
+
     imgNode.classList.add("hidden-element");
     vidNode.classList.add("hidden-element");
     imgNode.src = "";
@@ -540,7 +542,8 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
 }
 
 function discardMediaInterceptModal() {
-    document.getElementById("media-crop-preview-modal-overlay").classList.add("hidden-element");
+    const modal = document.getElementById("media-crop-preview-modal-overlay");
+    if (modal) modal.classList.add("hidden-element");
     state.pendingMediaBuffer = null;
     state.pendingTargetNodeCallback = null;
 }
@@ -563,13 +566,20 @@ function commitMediaInterceptModal() {
                 renderItemsStack();
             }
         } else if (state.pendingTargetNodeCallback === "profile") {
+            if (!state.profileMetadata) state.profileMetadata = {};
             state.profileMetadata.avatar = finalBase64String;
             localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
-            document.getElementById("profile-drawer-avatar-preview").style.backgroundImage = `url('${finalBase64String}')`;
-            updateProfileAvatarHeaderView();
+            
+            const previewNode = document.getElementById("profile-drawer-avatar-preview");
+            if (previewNode) previewNode.style.backgroundImage = `url('${finalBase64String}')`;
+            
+            if (typeof updateProfileAvatarHeaderView === "function") {
+                updateProfileAvatarHeaderView();
+            }
         } else if (state.pendingTargetNodeCallback === "creation") {
             state.creationPendingMediaStringBase64 = finalBase64String;
-            document.getElementById("item-media-upload-dummy-btn").innerText = "Asset Buffered";
+            const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
+            if (dummyBtn) dummyBtn.innerText = "Asset Buffered";
         }
         discardMediaInterceptModal();
     };
@@ -580,6 +590,8 @@ function executeItemCreationFormCommit() {
     const titleInp = document.getElementById("input-item-title");
     const rankInp = document.getElementById("input-item-rank");
     const urlInp = document.getElementById("input-item-custom-url");
+
+    if (!titleInp || !rankInp || !urlInp) return;
 
     const title = titleInp.value.trim();
     const rank = parseInt(rankInp.value);
@@ -612,7 +624,9 @@ function executeItemCreationFormCommit() {
     rankInp.value = "";
     urlInp.value = "";
     state.creationPendingMediaStringBase64 = null;
-    document.getElementById("item-media-upload-dummy-btn").innerText = "Upload Media";
+    
+    const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
+    if (dummyBtn) dummyBtn.innerText = "Upload Media";
 
     pushCloudVaultSynchronization();
     renderItemsStack();
@@ -635,15 +649,19 @@ async function triggerInlineItemEditingSequence(itemId) {
 
     if (confirm("Would you like to rewrite or completely replace the video loops or static layout graphics assigned to this node's asset slot?")) {
         const inlineFileInput = document.getElementById("input-item-file");
-        
-        // Temporarily hijack file change target handlers pointing back to item id reference matrix pointers
-        inlineFileInput.onchange = (e) => handleMediaSelectionInput(e, `inline_edit_${item.id}`);
-        inlineFileInput.click();
-        
-        // Restore downstream baseline structural capture listeners after thread stack window clears
-        setTimeout(() => {
-            document.getElementById("input-item-file").onchange = (ev) => handleMediaSelectionInput(ev, "creation");
-        }, 1000);
+        if (inlineFileInput) {
+            // Temporarily hijack file change target handlers pointing back to item id reference matrix pointers
+            inlineFileInput.onchange = (e) => handleMediaSelectionInput(e, `inline_edit_${item.id}`);
+            inlineFileInput.click();
+            
+            // Restore downstream baseline structural capture listeners after thread stack window clears
+            setTimeout(() => {
+                const baseFileInput = document.getElementById("input-item-file");
+                if (baseFileInput) {
+                    baseFileInput.onchange = (ev) => handleMediaSelectionInput(ev, "creation");
+                }
+            }, 1000);
+        }
     }
 
     item.name = nextTitle.trim() || item.name;
@@ -663,25 +681,14 @@ function deleteItemFromInventoryMatrix(itemId) {
     renderItemsStack();
 }
 
-// Simulates randomized structural offsets for visualization tracking comparison grids
-        const mockDerivatives = myItems.map(it => ({
-            rank: it.rank,
-            name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
-        }));
-
-        mockDerivatives.forEach(it => {
-            frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
-        });
-        container.appendChild(frCol);
-    });
-}
-
 function executeFusePipeline(categoryId, categoryTitle) {
     navigateToScreenView("view-fuse-matrix-page");
     const container = document.getElementById("fuse-matrix-rows-container");
+    if (!container) return;
     container.innerHTML = "";
 
-    document.getElementById("fuse-matrix-view-headline").innerText = `Synthesized Weighted Rank Average Master: ${categoryTitle}`;
+    const headlineNode = document.getElementById("fuse-matrix-view-headline");
+    if (headlineNode) headlineNode.innerText = `Synthesized Weighted Rank Average Master: ${categoryTitle}`;
 
     const baselineItems = state.items[categoryId] || [];
     if (baselineItems.length === 0) {
@@ -721,7 +728,10 @@ function executeFusePipeline(categoryId, categoryTitle) {
 // PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
 function renderFriendsRosterStack() {
     const container = document.getElementById("friends-rows-stack-container");
+    if (!container) return;
     container.innerHTML = "";
+
+    if (!state.friends) state.friends = [];
 
     state.friends.forEach((friend, idx) => {
         const row = document.createElement("div");
@@ -748,6 +758,7 @@ function triggerFriendAdditionDialog() {
     const name = prompt("Search for target peer profile network identity handle to map:");
     if (!name || !name.trim()) return;
 
+    if (!state.friends) state.friends = [];
     state.friends.push({ name: name.trim(), avatar: "" });
     localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
     
@@ -757,6 +768,7 @@ function triggerFriendAdditionDialog() {
 
 function deleteFriendFromRoster(indexIdx) {
     if (!confirm("Disconnect target peer tracking path variables completely?")) return;
+    if (!state.friends) state.friends = [];
     state.friends.splice(indexIdx, 1);
     localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
     renderFriendsRosterStack();
@@ -764,29 +776,48 @@ function deleteFriendFromRoster(indexIdx) {
 
 // PROFILE DRAWER INTERFACE FORM BINDERS
 function populateProfileFieldsUI() {
-    const p = state.profileMetadata;
-    document.getElementById("profile-field-fullname").value = p.fullname || "";
-    document.getElementById("profile-field-dob").value = p.dob || "";
-    document.getElementById("profile-field-hometown").value = p.hometown || "";
-    document.getElementById("profile-field-vocation").value = p.vocation || "";
-    document.getElementById("profile-field-email").value = p.email || state.user || "unlinked@guest.mode";
-    document.getElementById("profile-field-recovery").value = p.recovery || "";
+    const p = state.profileMetadata || {};
+    
+    const fnNode = document.getElementById("profile-field-fullname");
+    const dobNode = document.getElementById("profile-field-dob");
+    const htNode = document.getElementById("profile-field-hometown");
+    const vocNode = document.getElementById("profile-field-vocation");
+    const emailNode = document.getElementById("profile-field-email");
+    const recNode = document.getElementById("profile-field-recovery");
+
+    if (fnNode) fnNode.value = p.fullname || "";
+    if (dobNode) dobNode.value = p.dob || "";
+    if (htNode) htNode.value = p.hometown || "";
+    if (vocNode) vocNode.value = p.vocation || "";
+    if (emailNode) emailNode.value = p.email || state.user || "unlinked@guest.mode";
+    if (recNode) recNode.value = p.recovery || "";
 
     const previewNode = document.getElementById("profile-drawer-avatar-preview");
-    if (p.avatar) {
-        previewNode.style.backgroundImage = `url('${p.avatar}')`;
-    } else {
-        previewNode.style.backgroundImage = "none";
+    if (previewNode) {
+        if (p.avatar) {
+            previewNode.style.backgroundImage = `url('${p.avatar}')`;
+        } else {
+            previewNode.style.backgroundImage = "none";
+        }
     }
 }
 
 function saveProfileMetadataAttributes() {
-    state.profileMetadata.fullname = document.getElementById("profile-field-fullname").value;
-    state.profileMetadata.dob = document.getElementById("profile-field-dob").value;
-    state.profileMetadata.hometown = document.getElementById("profile-field-hometown").value;
-    state.profileMetadata.vocation = document.getElementById("profile-field-vocation").value;
-    state.profileMetadata.email = document.getElementById("profile-field-email").value;
-    state.profileMetadata.recovery = document.getElementById("profile-field-recovery").value;
+    if (!state.profileMetadata) state.profileMetadata = {};
+    
+    const fnNode = document.getElementById("profile-field-fullname");
+    const dobNode = document.getElementById("profile-field-dob");
+    const htNode = document.getElementById("profile-field-hometown");
+    const vocNode = document.getElementById("profile-field-vocation");
+    const emailNode = document.getElementById("profile-field-email");
+    const recNode = document.getElementById("profile-field-recovery");
+
+    if (fnNode) state.profileMetadata.fullname = fnNode.value;
+    if (dobNode) state.profileMetadata.dob = dobNode.value;
+    if (htNode) state.profileMetadata.hometown = htNode.value;
+    if (vocNode) state.profileMetadata.vocation = vocNode.value;
+    if (emailNode) state.profileMetadata.email = emailNode.value;
+    if (recNode) state.profileMetadata.recovery = recNode.value;
 
     localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
     
@@ -809,8 +840,10 @@ function saveProfileMetadataAttributes() {
 function toggleProfilePrivacyState() {
     state.privacyPublic = !state.privacyPublic;
     const node = document.getElementById("profile-privacy-toggle-state");
-    node.innerText = state.privacyPublic ? "PUBLIC ACCESS" : "PRIVATE COVERT";
-    node.className = state.privacyPublic ? "gold-action-button miniature-btn" : "gold-action-button miniature-btn variant-dark-btn";
+    if (node) {
+        node.innerText = state.privacyPublic ? "PUBLIC ACCESS" : "PRIVATE COVERT";
+        node.className = state.privacyPublic ? "gold-action-button miniature-btn" : "gold-action-button miniature-btn variant-dark-btn";
+    }
 }
 
 // EXPANDED CAP RULES ADJUSTMENT HOOKS (UPGRADES & DESTRUCTION TRIGGERS)
@@ -824,7 +857,9 @@ function processTierUpgradeTransaction() {
         localStorage.setItem("toptens_tier_upgrade", "true");
         alert("Transaction complete. Maximum track limits expanded up to 99 customized tracking registers slots.");
         collapseAllDrawers();
-        if (state.currentViewId === "view-categories-page") renderCategoriesGridMatrix();
+        if (state.currentViewId === "view-categories-page" && typeof renderCategoriesGridMatrix === "function") {
+            renderCategoriesGridMatrix();
+        }
     }
 }
 
@@ -836,7 +871,9 @@ function triggerConfirmVaultWipe() {
         state.token = null;
         state.isTierUpgraded = false;
         
-        loadLocalSessionFallbackData();
+        if (typeof loadLocalSessionFallbackData === "function") {
+            loadLocalSessionFallbackData();
+        }
         collapseAllDrawers();
         navigateToScreenView("view-landing-page", false);
         state.navigationHistoryStack = [];
