@@ -209,6 +209,14 @@ async function synchronizeSessionHandshake() {
             const data = await resp.json();
             state.user = data.user.email;
             state.token = token;
+
+            // Cross-Device Session Restore: Verify if an updated profile was returned during handshake
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
+                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
+            }
+
             await pullCloudVaultPayload();
         } else {
             executeGlobalLogoutSequence();
@@ -237,6 +245,17 @@ async function executeSignInSessionRequest() {
             state.token = data.token;
             state.user = data.user.email;
             localStorage.setItem("toptens_jwt_token", data.token);
+
+            // FINAL CONNECTION STEP: Unpack cloud profile dataset and commit directly into client state tracking
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
+                
+                // Immediately refresh layout views to paint incoming avatar graphic configurations
+                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
+                if (typeof updateProfileAvatarHeaderView === "function") updateProfileAvatarHeaderView();
+            }
+
             banner.className = "realtime-status-banner-box status-success";
             banner.innerText = "Session validated successfully.";
             
