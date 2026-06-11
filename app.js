@@ -583,24 +583,79 @@ function removeItemNodeInstance(itemId) {
 // ==========================================================================
 function renderFriendsStack() {
     const container = document.getElementById('friends-vertical-stack');
+    if (!container) return;
     container.innerHTML = '';
 
-    state.friends.forEach(fr => {
+    state.friends.forEach((fr, index) => {
         const row = document.createElement('div');
         row.className = 'friend-list-row';
+        row.style.position = 'relative';
 
         row.innerHTML = `
             <div class="friend-left-block">
                 <span class="friend-core-name">${fr.name}</span>
             </div>
-            <div class="friend-right-block">
+            <div class="friend-right-block" style="display: flex; align-items: center; gap: 12px;">
                 <span class="friend-stats-node">Mutual Categories: ${fr.mutualCategories}</span>
                 <span class="friend-stats-node">Mutual Items: ${fr.mutualItems}</span>
                 <div class="friend-avatar-circle" style="background-image: url('${fr.avatar || 'data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; viewBox=&quot;0 0 24 24&quot; fill=&quot;%238a99ad&quot;><path d=&quot;M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-4-8-4z&quot;/></svg>'}')"></div>
+                
+                <div class="friend-actions-wrapper" style="display: flex; gap: 6px; margin-left: 4px;">
+                    <button onclick="inlineEditFriendStackNode(${index})" style="background: rgba(77, 166, 255, 0.1); border: 1px solid #4da6ff; color: #4da6ff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s;">
+                        Edit
+                    </button>
+                    <button onclick="inlineRemoveFriendStackNode(${index})" style="background: rgba(255, 77, 77, 0.1); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; transition: all 0.2s;">
+                        Delete
+                    </button>
+                </div>
             </div>
         `;
         container.appendChild(row);
     });
+}
+
+// MANAGEMENT HANDLERS FOR RUNTIME STACK MUTATIONS
+async function inlineEditFriendStackNode(index) {
+    if (!state.friends || !state.friends[index]) return;
+    const oldName = state.friends[index].name;
+    
+    const newName = prompt(`Modify workspace reference identifier for "${oldName}":`, oldName);
+    if (!newName || newName.trim() === "" || newName.trim() === oldName) return;
+
+    // Apply the update to runtime memory models
+    state.friends[index].name = newName.trim();
+    
+    // Save updated arrays back down to local layout cache layers
+    localStorage.setItem('toptens_friends', JSON.stringify(state.friends));
+    
+    // Force immediate UI repaint
+    renderFriendsStack();
+
+    // Trigger persistence update up to cloud worker mirrors if session token is active
+    if (localStorage.getItem('token') && typeof syncVaultToCloudPersistence === 'function') {
+        await syncVaultToCloudPersistence();
+    }
+}
+
+async function inlineRemoveFriendStackNode(index) {
+    if (!state.friends || !state.friends[index]) return;
+    const targetName = state.friends[index].name;
+
+    if (!confirm(`Are you sure you want to permanently strip "${targetName}" from your active comparative view stack?`)) return;
+
+    // Filter node from memory array models
+    state.friends.splice(index, 1);
+    
+    // Commit modified array map back to persistent storage caches
+    localStorage.setItem('toptens_friends', JSON.stringify(state.friends));
+    
+    // Repaint interface lines
+    renderFriendsStack();
+
+    // Force secure global account state replication
+    if (localStorage.getItem('token') && typeof syncVaultToCloudPersistence === 'function') {
+        await syncVaultToCloudPersistence();
+    }
 }
 
 function createDynamicNetworkFriendPrompt() {
