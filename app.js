@@ -536,39 +536,75 @@ function addNewItemToStackInstance() {
 
 // CRITICAL REPAIR MATRIX: OPENS ACTIVE LINK STRING DIRECTLY FOR REPLACEMENT CONTROL PROMPTS
 async function triggerItemUpdateMatrix(itemId) {
-    const categoryItems = state.items[state.currentCategoryContextId] || [];
-    const item = categoryItems.find(i => i.id === itemId);
-    if (!item) return;
+    // 1. Pull down the full array mapping tracking context safely
+    const currentCategoryKey = state.currentCategoryContextId;
+    if (!state.items || !state.items[currentCategoryKey]) {
+        console.error(`Missing items reference array context map tracking for: ${currentCategoryKey}`);
+        return;
+    }
 
-    // Capture the active parsing link setting currently showing on the target button interface view
-    const currentActiveLink = generateAutonomousAffiliateLinkNode(item.name, item.customUrl);
+    // Force pull a cloned slice or instance array to safely perform structural updates
+    let categoryItems = [...state.items[currentCategoryKey]];
+    
+    // 2. Identify target item index directly in structural array list
+    const itemIndex = categoryItems.findIndex(i => i.id === itemId);
+    if (itemIndex === -1) return;
+    
+    const item = categoryItems[itemIndex];
 
+    // 3. Capture the active tracking URL link configuration
+    const currentActiveLink = typeof generateAutonomousAffiliateLinkNode === 'function'
+        ? generateAutonomousAffiliateLinkNode(item.name, item.customUrl)
+        : (item.customUrl || '');
+
+    // 4. Prompt for core text identity update rules
     const newName = prompt("Edit Item Name/Title Text:", item.name);
     if (newName === null) return;
 
     const newUrl = prompt("Edit or Completely Replace Reference Link:", currentActiveLink);
     if (newUrl === null) return;
 
+    // Apply the text values securely directly to the indexed element parameter matrix
     item.name = newName.trim() || item.name;
 
-    // Check against standard affiliate builder patterns to determine if user reverted or supplied a completely new link rule mapping
-    const defaultStockLink = generateAutonomousAffiliateLinkNode(item.name);
-
-    if (newUrl.trim() === '' || newUrl.trim() === defaultStockLink) {
-        item.customUrl = ''; // Clear out to fallback to clean automation logic
+    // Handle affiliate URL extraction tracking fallbacks
+    if (typeof generateAutonomousAffiliateLinkNode === 'function') {
+        const defaultStockLink = generateAutonomousAffiliateLinkNode(item.name);
+        if (newUrl.trim() === '' || newUrl.trim() === defaultStockLink) {
+            item.customUrl = ''; 
+        } else {
+            item.customUrl = newUrl.trim(); 
+        }
     } else {
-        item.customUrl = newUrl.trim(); // Commit their custom tracking override string parameters directly
+        item.customUrl = newUrl.trim();
     }
 
-    // Secondary choice prompt configuration mapping to update raw row ordering positions numbers
+    // 5. Prompt layout configuration to shift position ordering numbers safely
     const newRank = prompt("Edit Item Rank (1-10):", item.rank);
     if (newRank) {
         const rInt = parseInt(newRank);
-        if (!isNaN(rInt) && rInt >= 1 && rInt <= 10) item.rank = rInt;
+        if (!isNaN(rInt) && rInt >= 1 && rInt <= 10) {
+            item.rank = rInt;
+        }
     }
 
-    renderItemsStack();
-    dispatchVaultSynchronizationPayload();
+    // 6. Commit the entire array back into state memory blocks to preserve sibling positions
+    state.items[currentCategoryKey] = categoryItems;
+
+    // 7. Re-sort the list array map if ranks shifted, keeping all items bound seamlessly
+    state.items[currentCategoryKey].sort((a, b) => (parseInt(a.rank) || 0) - (parseInt(b.rank) || 0));
+
+    // 8. Commit data array mutations back down to local persist caches
+    localStorage.setItem('toptens_items', JSON.stringify(state.items));
+
+    // 9. Execute layout repaint loops and trigger network push dispatch routines
+    if (typeof renderItemsStack === 'function') {
+        renderItemsStack();
+    }
+    
+    if (typeof dispatchVaultSynchronizationPayload === 'function') {
+        dispatchVaultSynchronizationPayload();
+    }
 }
 
 function removeItemNodeInstance(itemId) {
