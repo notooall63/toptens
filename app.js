@@ -807,6 +807,24 @@ function populateProfileFieldsUI() {
             previewNode.style.backgroundImage = "none";
         }
     }
+
+    // Cross-Device Sync Interceptor: If state is empty but credentials exist, pull from cloud worker database
+    if (state.token && (!state.profileMetadata || !state.profileMetadata.fullname)) {
+        fetch(`${API_BASE}/api/vault/pull-profile`, {
+            method: "GET",
+            headers: { "Authorization": `Bearer ${state.token}` }
+        })
+        .then(res => res.ok ? res.json() : null)
+        .then(cloudProfile => {
+            if (cloudProfile) {
+                state.profileMetadata = cloudProfile;
+                localStorage.setItem("toptens_profile", JSON.stringify(cloudProfile));
+                // Recurse once safely to bind fields now that data maps are populated
+                populateProfileFieldsUI();
+            }
+        })
+        .catch(err => console.warn("Background profile synchronization fetch skipped:", err));
+    }
 }
 
 function saveProfileMetadataAttributes() {
