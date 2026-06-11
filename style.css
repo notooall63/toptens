@@ -303,9 +303,22 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
 
 .responsive-tiles-grid {
     display: grid;
-    grid-template-columns: repeat(3, 100px); /* Strict row structure layout rules */
+    /* Mobile-First Default: Single vertical track taking full safe width bounds */
+    grid-template-columns: 1fr; 
     justify-content: center;
     gap: 20px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+/* Desktop Responsive Layout Layer Scale Breakpoint Override */
+@media (min-width: 768px) {
+    .responsive-tiles-grid {
+        /* Restores the high-fidelity 3-column matrix array on wide desktop viewports */
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
 }
 
 @media (min-width: 640px) {
