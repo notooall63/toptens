@@ -605,6 +605,13 @@ function commitMediaInterceptModal() {
             const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
             if (dummyBtn) dummyBtn.innerText = "Asset Buffered";
         }
+
+        // RESET ENVIRONMENT LIFECYCLE HOOKS TO BASELINE DEFENSIVE POSTURE
+        // This ensures subsequent input interactions process using standard creation channels
+        const baseFileInputElement = document.getElementById("input-item-file");
+        if (baseFileInputElement) {
+            baseFileInputElement.onchange = (ev) => handleMediaSelectionInput(ev, "creation");
+        }
     };
 
     fileReader.readAsDataURL(file);
