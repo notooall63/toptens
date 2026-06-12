@@ -157,7 +157,7 @@ function togglePasswordMasking() {
 // THEME TOGGLE CONTROLLER
 function toggleThemeDarkLightParameters() {
     const isLight = document.body.classList.toggle("light-mode-parameters");
-    document.getElementById("settings-action-toggle-theme").innerText = isLight ? "Toggle Viewport: LIGHT MODE" : "Toggle Viewport: DARK MODE";
+    document.getElementById("settings-action-toggle-theme").innerText = isLight ? "Toggle Dark/Light Mode: LIGHT MODE" : "Toggle Dark/Light Mode: DARK MODE";
 }
 
 // AFFILIATE LINK GENERATION FACTORY ENGINE
