@@ -324,17 +324,23 @@ function executeGlobalLogoutSequence() {
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
 async function pushCloudVaultSynchronization() {
-    if (!state.user || !state.token) {
-        // Enforce guest state persistence rules
-        localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
-        localStorage.setItem("toptens_items", JSON.stringify(state.items));
-        return;
-    }
+    // Enforce instant sync into client local storage memory to avoid dropped changes
+    localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+    localStorage.setItem("toptens_items", JSON.stringify(state.items));
+    localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
+
+    if (!state.user || !state.token) return;
+
     try {
         await fetch(`${API_BASE}/api/vault/sync`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${state.token}` },
-            body: JSON.stringify({ categories: state.categories, items: state.items })
+            // Bundling profileMetadata allows avatar binary frames to cross device partitions
+            body: JSON.stringify({ 
+                categories: state.categories, 
+                items: state.items,
+                profileMetadata: state.profileMetadata 
+            })
         });
     } catch (e) { console.warn("Failed to sync matrix state with cluster."); }
 }
@@ -351,6 +357,15 @@ async function pullCloudVaultPayload() {
             if (data.items && Object.keys(data.items).length > 0) state.items = data.items;
             localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
             localStorage.setItem("toptens_items", JSON.stringify(state.items));
+            
+            // Hydrate profile data fields and avatar assets cleanly on cross-device loads
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
+                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
+                updateProfileAvatarHeaderView();
+            }
+
             if (state.currentViewId === "view-categories-page") renderCategoriesGridMatrix();
         }
     } catch (e) { console.warn("Failed to pull down persistent cloud data profiles."); }
@@ -568,6 +583,12 @@ function commitMediaInterceptModal() {
         } else if (state.pendingTargetNodeCallback === "creation") {
             state.creationPendingMediaStringBase64 = finalBase64String;
             document.getElementById("item-media-upload-dummy-btn").innerText = "Asset Buffered";
+        }
+        
+        // Reset file upload intercept paths securely back to default settings tracks
+        const baseFileInputElement = document.getElementById("input-item-file");
+        if (baseFileInputElement) {
+            baseFileInputElement.onchange = (ev) => handleMediaSelectionInput(ev, "creation");
         }
         discardMediaInterceptModal();
     };
@@ -815,6 +836,9 @@ function saveProfileMetadataAttributes() {
     
     // Locks input vectors immediately back to secure view state modes structures
     document.querySelectorAll(".editable-tab-field-container input").forEach(i => i.disabled = true);
+    
+    // Fire the complete sync sequence to dispatch the updated metadata across devices
+    pushCloudVaultSynchronization();
     
     if (state.user && state.token) {
         // Post extended metadata elements directly to live enterprise worker nodes pipelines
