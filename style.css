@@ -425,28 +425,52 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     align-items: center;
     padding: 12px 16px;
     gap: 16px;
-    /* Allow components to wrap cleanly on narrow mobile dimensions instead of squishing */
-    flex-wrap: wrap;
     box-sizing: border-box;
     width: 100%;
 }
 
-/* Mobile Optimizations for Items and Friends rows */
-@media (max-width: 480px) {
+/* Responsive Mobile Layout: Force Row Strips to expand vertically to prevent text truncation */
+@media (max-width: 600px) {
     .item-row-strip, .friend-row-strip {
-        padding: 14px;
-        gap: 10px;
+        flex-direction: column;
+        align-items: flex-start; /* Aligns text cleanly to the left edge */
+        padding: 16px;
+        gap: 12px;
+        height: auto; /* Allows the tab to stretch infinitely downward */
     }
-    
-    /* Ensure the item title takes up full width on wrap to keep readability high */
+
+    /* Keep the prominent hash and media thumbnail on the same top line if desired, or let them stack */
+    .item-prominent-hash {
+        font-size: 1.3rem;
+        border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        width: 100%;
+        padding-bottom: 4px;
+    }
+
     .item-core-title {
-        flex: 1 1 100%;
-        font-size: 1.05rem;
+        width: 100%;
+        font-size: 1.1rem;
+        white-space: normal; /* Forces text wrap if titles are extremely long */
+        word-break: break-word;
+        line-height: 1.4;
     }
-    
-    /* Push links and controls to fill space gracefully when wrapped */
+
     .item-reference-hyperlink {
-        margin-left: 0 !important;
+        margin-left: 0 !important; /* Overrides desktop right-push alignments */
+        width: 100%;
+        word-break: break-all; /* Prevents long URLs from breaking screen edges */
+    }
+
+    /* Force controls and buttons to the bottom wrapper row space */
+    .item-row-strip .node-utilities-corner-cluster,
+    .friend-row-strip .node-utilities-corner-cluster {
+        width: 100%;
+        display: flex;
+        justify-content: flex-end;
+        gap: 16px;
+        margin-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        padding-top: 8px;
     }
 }
 
