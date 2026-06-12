@@ -209,6 +209,14 @@ async function synchronizeSessionHandshake() {
             const data = await resp.json();
             state.user = data.user.email;
             state.token = token;
+
+            // Cross-Device Session Restore: Verify if an updated profile was returned during handshake
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
+                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
+            }
+
             await pullCloudVaultPayload();
         } else {
             executeGlobalLogoutSequence();
@@ -237,6 +245,17 @@ async function executeSignInSessionRequest() {
             state.token = data.token;
             state.user = data.user.email;
             localStorage.setItem("toptens_jwt_token", data.token);
+
+            // FINAL CONNECTION STEP: Unpack cloud profile dataset and commit directly into client state tracking
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
+                
+                // Immediately refresh layout views to paint incoming avatar graphic configurations
+                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
+                if (typeof updateProfileAvatarHeaderView === "function") updateProfileAvatarHeaderView();
+            }
+
             banner.className = "realtime-status-banner-box status-success";
             banner.innerText = "Session validated successfully.";
             
@@ -324,12 +343,12 @@ function executeGlobalLogoutSequence() {
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
 async function pushCloudVaultSynchronization() {
-    if (!state.user || !state.token) {
-        // Enforce guest state persistence rules
-        localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
-        localStorage.setItem("toptens_items", JSON.stringify(state.items));
-        return;
-    }
+    // Enforce instant sync into client local storage memory to avoid dropped changes
+    localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+    localStorage.setItem("toptens_items", JSON.stringify(state.items));
+
+    if (!state.user || !state.token) return;
+    
     try {
         await fetch(`${API_BASE}/api/vault/sync`, {
             method: "POST",
@@ -526,23 +545,28 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
     state.pendingMediaBuffer = file;
     state.pendingTargetNodeCallback = pipelineContextId;
 
-    const fileReader = new FileReader();
-    fileReader.onload = function(e) {
-        modal.classList.remove("hidden-element");
-        if (file.type.startsWith("video/")) {
-            vidNode.src = e.target.getSelection ? "" : e.target.result;
-            vidNode.src = e.target.result;
-            vidNode.classList.remove("hidden-element");
-        } else {
-            imgNode.src = e.target.result;
-            imgNode.classList.remove("hidden-element");
-        }
-    };
-    fileReader.readAsDataURL(file);
+    // Mobile Performance Boost: Use an Object URL for immediate preview rendering rather than synchronous Base64 conversion
+    const temporaryObjectUrl = URL.createObjectURL(file);
+    modal.classList.remove("hidden-element");
+
+    if (file.type.startsWith("video/")) {
+        vidNode.src = temporaryObjectUrl;
+        vidNode.classList.remove("hidden-element");
+    } else {
+        imgNode.src = temporaryObjectUrl;
+        imgNode.classList.remove("hidden-element");
+    }
 }
 
 function discardMediaInterceptModal() {
     const modal = document.getElementById("media-crop-preview-modal-overlay");
+    const imgNode = document.getElementById("modal-dynamic-preview-target-image");
+    const vidNode = document.getElementById("modal-dynamic-preview-target-video");
+
+    // Revoke object URLs safely to eliminate mobile memory leaks
+    if (imgNode && imgNode.src && imgNode.src.startsWith("blob:")) URL.revokeObjectURL(imgNode.src);
+    if (vidNode && vidNode.src && vidNode.src.startsWith("blob:")) URL.revokeObjectURL(vidNode.src);
+
     if (modal) modal.classList.add("hidden-element");
     state.pendingMediaBuffer = null;
     state.pendingTargetNodeCallback = null;
@@ -581,9 +605,11 @@ function commitMediaInterceptModal() {
             const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
             if (dummyBtn) dummyBtn.innerText = "Asset Buffered";
         }
-        discardMediaInterceptModal();
     };
+
     fileReader.readAsDataURL(file);
+    // UI Lifecycle Optimization: Dismiss modal view immediately to prevent UI locking on mobile threads
+    discardMediaInterceptModal();
 }
 
 function executeItemCreationFormCommit() {
