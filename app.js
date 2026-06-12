@@ -209,14 +209,6 @@ async function synchronizeSessionHandshake() {
             const data = await resp.json();
             state.user = data.user.email;
             state.token = token;
-
-            // Cross-Device Session Restore: Verify if an updated profile was returned during handshake
-            if (data.profileMetadata) {
-                state.profileMetadata = data.profileMetadata;
-                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
-                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
-            }
-
             await pullCloudVaultPayload();
         } else {
             executeGlobalLogoutSequence();
@@ -245,17 +237,6 @@ async function executeSignInSessionRequest() {
             state.token = data.token;
             state.user = data.user.email;
             localStorage.setItem("toptens_jwt_token", data.token);
-
-            // FINAL CONNECTION STEP: Unpack cloud profile dataset and commit directly into client state tracking
-            if (data.profileMetadata) {
-                state.profileMetadata = data.profileMetadata;
-                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
-                
-                // Immediately refresh layout views to paint incoming avatar graphic configurations
-                if (typeof populateProfileFieldsUI === "function") populateProfileFieldsUI();
-                if (typeof updateProfileAvatarHeaderView === "function") updateProfileAvatarHeaderView();
-            }
-
             banner.className = "realtime-status-banner-box status-success";
             banner.innerText = "Session validated successfully.";
             
@@ -343,12 +324,12 @@ function executeGlobalLogoutSequence() {
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
 async function pushCloudVaultSynchronization() {
-    // Enforce instant sync into client local storage memory to avoid dropped changes
-    localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
-    localStorage.setItem("toptens_items", JSON.stringify(state.items));
-
-    if (!state.user || !state.token) return;
-    
+    if (!state.user || !state.token) {
+        // Enforce guest state persistence rules
+        localStorage.setItem("toptens_categories", JSON.stringify(state.categories));
+        localStorage.setItem("toptens_items", JSON.stringify(state.items));
+        return;
+    }
     try {
         await fetch(`${API_BASE}/api/vault/sync`, {
             method: "POST",
@@ -535,8 +516,6 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
     const imgNode = document.getElementById("modal-dynamic-preview-target-image");
     const vidNode = document.getElementById("modal-dynamic-preview-target-video");
     
-    if (!modal || !imgNode || !vidNode) return;
-
     imgNode.classList.add("hidden-element");
     vidNode.classList.add("hidden-element");
     imgNode.src = "";
@@ -545,29 +524,23 @@ function launchInterceptorModalCropCanvas(file, pipelineContextId) {
     state.pendingMediaBuffer = file;
     state.pendingTargetNodeCallback = pipelineContextId;
 
-    // Mobile Performance Boost: Use an Object URL for immediate preview rendering rather than synchronous Base64 conversion
-    const temporaryObjectUrl = URL.createObjectURL(file);
-    modal.classList.remove("hidden-element");
-
-    if (file.type.startsWith("video/")) {
-        vidNode.src = temporaryObjectUrl;
-        vidNode.classList.remove("hidden-element");
-    } else {
-        imgNode.src = temporaryObjectUrl;
-        imgNode.classList.remove("hidden-element");
-    }
+    const fileReader = new FileReader();
+    fileReader.onload = function(e) {
+        modal.classList.remove("hidden-element");
+        if (file.type.startsWith("video/")) {
+            vidNode.src = e.target.getSelection ? "" : e.target.result;
+            vidNode.src = e.target.result;
+            vidNode.classList.remove("hidden-element");
+        } else {
+            imgNode.src = e.target.result;
+            imgNode.classList.remove("hidden-element");
+        }
+    };
+    fileReader.readAsDataURL(file);
 }
 
 function discardMediaInterceptModal() {
-    const modal = document.getElementById("media-crop-preview-modal-overlay");
-    const imgNode = document.getElementById("modal-dynamic-preview-target-image");
-    const vidNode = document.getElementById("modal-dynamic-preview-target-video");
-
-    // Revoke object URLs safely to eliminate mobile memory leaks
-    if (imgNode && imgNode.src && imgNode.src.startsWith("blob:")) URL.revokeObjectURL(imgNode.src);
-    if (vidNode && vidNode.src && vidNode.src.startsWith("blob:")) URL.revokeObjectURL(vidNode.src);
-
-    if (modal) modal.classList.add("hidden-element");
+    document.getElementById("media-crop-preview-modal-overlay").classList.add("hidden-element");
     state.pendingMediaBuffer = null;
     state.pendingTargetNodeCallback = null;
 }
@@ -586,38 +559,25 @@ function commitMediaInterceptModal() {
             const item = list.find(i => i.id === itemId);
             if (item) {
                 item.media = finalBase64String;
-                pushCloudVaultSynchronization();
                 renderItemsStack();
             }
         } else if (state.pendingTargetNodeCallback === "profile") {
-            if (!state.profileMetadata) state.profileMetadata = {};
             state.profileMetadata.avatar = finalBase64String;
-            localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
-            
-            const previewNode = document.getElementById("profile-drawer-avatar-preview");
-            if (previewNode) previewNode.style.backgroundImage = `url('${finalBase64String}')`;
-            
-            if (typeof updateProfileAvatarHeaderView === "function") {
-                updateProfileAvatarHeaderView();
-            }
+            document.getElementById("profile-drawer-avatar-preview").style.backgroundImage = `url('${finalBase64String}')`;
+            updateProfileAvatarHeaderView();
         } else if (state.pendingTargetNodeCallback === "creation") {
             state.creationPendingMediaStringBase64 = finalBase64String;
-            const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
-            if (dummyBtn) dummyBtn.innerText = "Asset Buffered";
+            document.getElementById("item-media-upload-dummy-btn").innerText = "Asset Buffered";
         }
+        discardMediaInterceptModal();
     };
-
     fileReader.readAsDataURL(file);
-    // UI Lifecycle Optimization: Dismiss modal view immediately to prevent UI locking on mobile threads
-    discardMediaInterceptModal();
 }
 
 function executeItemCreationFormCommit() {
     const titleInp = document.getElementById("input-item-title");
     const rankInp = document.getElementById("input-item-rank");
     const urlInp = document.getElementById("input-item-custom-url");
-
-    if (!titleInp || !rankInp || !urlInp) return;
 
     const title = titleInp.value.trim();
     const rank = parseInt(rankInp.value);
@@ -650,9 +610,7 @@ function executeItemCreationFormCommit() {
     rankInp.value = "";
     urlInp.value = "";
     state.creationPendingMediaStringBase64 = null;
-    
-    const dummyBtn = document.getElementById("item-media-upload-dummy-btn");
-    if (dummyBtn) dummyBtn.innerText = "Upload Media";
+    document.getElementById("item-media-upload-dummy-btn").innerText = "Upload Media";
 
     pushCloudVaultSynchronization();
     renderItemsStack();
@@ -675,19 +633,15 @@ async function triggerInlineItemEditingSequence(itemId) {
 
     if (confirm("Would you like to rewrite or completely replace the video loops or static layout graphics assigned to this node's asset slot?")) {
         const inlineFileInput = document.getElementById("input-item-file");
-        if (inlineFileInput) {
-            // Temporarily hijack file change target handlers pointing back to item id reference matrix pointers
-            inlineFileInput.onchange = (e) => handleMediaSelectionInput(e, `inline_edit_${item.id}`);
-            inlineFileInput.click();
-            
-            // Restore downstream baseline structural capture listeners after thread stack window clears
-            setTimeout(() => {
-                const baseFileInput = document.getElementById("input-item-file");
-                if (baseFileInput) {
-                    baseFileInput.onchange = (ev) => handleMediaSelectionInput(ev, "creation");
-                }
-            }, 1000);
-        }
+        
+        // Temporarily hijack file change target handlers pointing back to item id reference matrix pointers
+        inlineFileInput.onchange = (e) => handleMediaSelectionInput(e, `inline_edit_${item.id}`);
+        inlineFileInput.click();
+        
+        // Restore downstream baseline structural capture listeners after thread stack window clears
+        setTimeout(() => {
+            document.getElementById("input-item-file").onchange = (ev) => handleMediaSelectionInput(ev, "creation");
+        }, 1000);
     }
 
     item.name = nextTitle.trim() || item.name;
@@ -707,14 +661,94 @@ function deleteItemFromInventoryMatrix(itemId) {
     renderItemsStack();
 }
 
+// PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
+function renderFriendsRosterStack() {
+    const container = document.getElementById("friends-rows-stack-container");
+    container.innerHTML = "";
+
+    state.friends.forEach((friend, idx) => {
+        const row = document.createElement("div");
+        row.className = "friend-row-strip";
+
+        // Simulates common attribute map matches across data fields
+        const mutualCategories = Math.floor(Math.random() * 3) + 1;
+        const mutualItems = Math.floor(Math.random() * 7) + 3;
+
+        row.innerHTML = `
+            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
+            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
+            <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
+            <div class="node-utilities-corner-cluster" style="position:static;">
+                <span class="icon-action-node-trigger" onclick="deleteFriendFromRoster(${idx})">🗑️</span>
+            </div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function triggerFriendAdditionDialog() {
+    const name = prompt("Search for target peer profile network identity handle to map:");
+    if (!name || !name.trim()) return;
+
+    state.friends.push({ name: name.trim(), avatar: "" });
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    
+    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
+    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
+}
+
+function deleteFriendFromRoster(indexIdx) {
+    if (!confirm("Disconnect target peer tracking path variables completely?")) return;
+    state.friends.splice(indexIdx, 1);
+    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+    renderFriendsRosterStack();
+}
+
+// COMPUTATIONAL LOGIC CORES: JUXTAPOSITION MATRIX AND AVERAGE COMBINATIONS FUSION
+function executeComparePipeline(categoryId, categoryTitle) {
+    navigateToScreenView("view-compare-matrix-page");
+    const container = document.getElementById("compare-matrix-scroller");
+    container.innerHTML = "";
+
+    document.getElementById("compare-matrix-view-headline").innerText = `Juxtaposed Comparisons Matrix: ${categoryTitle}`;
+
+    // Column A: Source Base Layout Dataset
+    const myCol = document.createElement("div");
+    myCol.className = "matrix-column-node-sheet";
+    myCol.innerHTML = `<h4 class="matrix-column-headline">Your Local Vault</h4>`;
+    
+    const myItems = state.items[categoryId] || [];
+    myItems.sort((a,b)=>a.rank - b.rank).forEach(it => {
+        myCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+    });
+    container.appendChild(myCol);
+
+    // Dynamic evaluation compilation map across network bindings structures
+    state.friends.forEach(fr => {
+        const frCol = document.createElement("div");
+        frCol.className = "matrix-column-node-sheet";
+        frCol.innerHTML = `<h4 class="matrix-column-headline">${fr.name} Array</h4>`;
+        
+        // Simulates randomized structural offsets for visualization tracking comparison grids
+        const mockDerivatives = myItems.map(it => ({
+            rank: it.rank,
+            name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
+        }));
+
+        mockDerivatives.forEach(it => {
+            frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+        });
+        container.appendChild(frCol);
+    });
+}
+
 function executeFusePipeline(categoryId, categoryTitle) {
     navigateToScreenView("view-fuse-matrix-page");
     const container = document.getElementById("fuse-matrix-rows-container");
-    if (!container) return;
     container.innerHTML = "";
 
-    const headlineNode = document.getElementById("fuse-matrix-view-headline");
-    if (headlineNode) headlineNode.innerText = `Synthesized Weighted Rank Average Master: ${categoryTitle}`;
+    document.getElementById("fuse-matrix-view-headline").innerText = `Synthesized Weighted Rank Average Master: ${categoryTitle}`;
 
     const baselineItems = state.items[categoryId] || [];
     if (baselineItems.length === 0) {
@@ -751,99 +785,31 @@ function executeFusePipeline(categoryId, categoryTitle) {
     });
 }
 
-// PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
-function renderFriendsRosterStack() {
-    const container = document.getElementById("friends-rows-stack-container");
-    if (!container) return;
-    container.innerHTML = "";
-
-    if (!state.friends) state.friends = [];
-
-    state.friends.forEach((friend, idx) => {
-        const row = document.createElement("div");
-        row.className = "friend-row-strip";
-
-        // Simulates common attribute map matches across data fields
-        const mutualCategories = Math.floor(Math.random() * 3) + 1;
-        const mutualItems = Math.floor(Math.random() * 7) + 3;
-
-        row.innerHTML = `
-            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
-            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
-            <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
-            <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
-            <div class="node-utilities-corner-cluster" style="position:static;">
-                <span class="icon-action-node-trigger" onclick="deleteFriendFromRoster(${idx})">🗑️</span>
-            </div>
-        `;
-        container.appendChild(row);
-    });
-}
-
-function triggerFriendAdditionDialog() {
-    const name = prompt("Search for target peer profile network identity handle to map:");
-    if (!name || !name.trim()) return;
-
-    if (!state.friends) state.friends = [];
-    state.friends.push({ name: name.trim(), avatar: "" });
-    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    
-    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
-}
-
-function deleteFriendFromRoster(indexIdx) {
-    if (!confirm("Disconnect target peer tracking path variables completely?")) return;
-    if (!state.friends) state.friends = [];
-    state.friends.splice(indexIdx, 1);
-    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    renderFriendsRosterStack();
-}
-
 // PROFILE DRAWER INTERFACE FORM BINDERS
 function populateProfileFieldsUI() {
-    const p = state.profileMetadata || {};
-    
-    const fnNode = document.getElementById("profile-field-fullname");
-    const dobNode = document.getElementById("profile-field-dob");
-    const htNode = document.getElementById("profile-field-hometown");
-    const vocNode = document.getElementById("profile-field-vocation");
-    const emailNode = document.getElementById("profile-field-email");
-    const recNode = document.getElementById("profile-field-recovery");
-
-    if (fnNode) fnNode.value = p.fullname || "";
-    if (dobNode) dobNode.value = p.dob || "";
-    if (htNode) htNode.value = p.hometown || "";
-    if (vocNode) vocNode.value = p.vocation || "";
-    if (emailNode) emailNode.value = p.email || state.user || "unlinked@guest.mode";
-    if (recNode) recNode.value = p.recovery || "";
+    const p = state.profileMetadata;
+    document.getElementById("profile-field-fullname").value = p.fullname || "";
+    document.getElementById("profile-field-dob").value = p.dob || "";
+    document.getElementById("profile-field-hometown").value = p.hometown || "";
+    document.getElementById("profile-field-vocation").value = p.vocation || "";
+    document.getElementById("profile-field-email").value = p.email || state.user || "unlinked@guest.mode";
+    document.getElementById("profile-field-recovery").value = p.recovery || "";
 
     const previewNode = document.getElementById("profile-drawer-avatar-preview");
-    if (previewNode) {
-        if (p.avatar) {
-            previewNode.style.backgroundImage = `url('${p.avatar}')`;
-        } else {
-            previewNode.style.backgroundImage = "none";
-        }
+    if (p.avatar) {
+        previewNode.style.backgroundImage = `url('${p.avatar}')`;
+    } else {
+        previewNode.style.backgroundImage = "none";
     }
 }
 
 function saveProfileMetadataAttributes() {
-    if (!state.profileMetadata) state.profileMetadata = {};
-    
-    const fnNode = document.getElementById("profile-field-fullname");
-    const dobNode = document.getElementById("profile-field-dob");
-    const htNode = document.getElementById("profile-field-hometown");
-    const vocNode = document.getElementById("profile-field-vocation");
-    const emailNode = document.getElementById("profile-field-email");
-    const recNode = document.getElementById("profile-field-recovery");
-
-    if (fnNode) state.profileMetadata.fullname = fnNode.value;
-    if (dobNode) state.profileMetadata.dob = dobNode.value;
-    if (htNode) state.profileMetadata.hometown = htNode.value;
-    if (vocNode) state.profileMetadata.vocation = vocNode.value;
-    if (emailNode) state.profileMetadata.email = emailNode.value;
-    if (recNode) state.profileMetadata.recovery = recNode.value;
+    state.profileMetadata.fullname = document.getElementById("profile-field-fullname").value;
+    state.profileMetadata.dob = document.getElementById("profile-field-dob").value;
+    state.profileMetadata.hometown = document.getElementById("profile-field-hometown").value;
+    state.profileMetadata.vocation = document.getElementById("profile-field-vocation").value;
+    state.profileMetadata.email = document.getElementById("profile-field-email").value;
+    state.profileMetadata.recovery = document.getElementById("profile-field-recovery").value;
 
     localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
     
@@ -866,10 +832,8 @@ function saveProfileMetadataAttributes() {
 function toggleProfilePrivacyState() {
     state.privacyPublic = !state.privacyPublic;
     const node = document.getElementById("profile-privacy-toggle-state");
-    if (node) {
-        node.innerText = state.privacyPublic ? "PUBLIC ACCESS" : "PRIVATE COVERT";
-        node.className = state.privacyPublic ? "gold-action-button miniature-btn" : "gold-action-button miniature-btn variant-dark-btn";
-    }
+    node.innerText = state.privacyPublic ? "PUBLIC ACCESS" : "PRIVATE COVERT";
+    node.className = state.privacyPublic ? "gold-action-button miniature-btn" : "gold-action-button miniature-btn variant-dark-btn";
 }
 
 // EXPANDED CAP RULES ADJUSTMENT HOOKS (UPGRADES & DESTRUCTION TRIGGERS)
@@ -883,23 +847,19 @@ function processTierUpgradeTransaction() {
         localStorage.setItem("toptens_tier_upgrade", "true");
         alert("Transaction complete. Maximum track limits expanded up to 99 customized tracking registers slots.");
         collapseAllDrawers();
-        if (state.currentViewId === "view-categories-page" && typeof renderCategoriesGridMatrix === "function") {
-            renderCategoriesGridMatrix();
-        }
+        if (state.currentViewId === "view-categories-page") renderCategoriesGridMatrix();
     }
 }
 
 function triggerConfirmVaultWipe() {
     const confirmPrompt = prompt("CRITICAL CORE HARD RESET ACTION SEQUENCER INTERCEPT TRIGGER. To completely scrub all tracking records arrays and roll back database clusters to zero default values maps, type exactly \"CONFIRM WIPE\" down in the window box:");
-    if (confirmPrompt === "CONFIPE WIPE" || confirmPrompt === "CONFIRM WIPE") {
+    if (confirmPrompt === "CONFIRM WIPE") {
         localStorage.clear();
         state.user = null;
         state.token = null;
         state.isTierUpgraded = false;
         
-        if (typeof loadLocalSessionFallbackData === "function") {
-            loadLocalSessionFallbackData();
-        }
+        loadLocalSessionFallbackData();
         collapseAllDrawers();
         navigateToScreenView("view-landing-page", false);
         state.navigationHistoryStack = [];
