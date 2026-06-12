@@ -210,6 +210,23 @@ async function synchronizeSessionHandshake() {
             state.user = data.user.email;
             state.token = token;
             await pullCloudVaultPayload();
+            
+            // Sync profile data across devices during session handshake validation
+            try {
+                const profileResp = await fetch(`${API_BASE}/api/vault/pull-profile`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (profileResp.status === 200) {
+                    const profileData = await profileResp.json();
+                    if (profileData) {
+                        state.profileMetadata = profileData;
+                        localStorage.setItem("toptens_profile", JSON.stringify(profileData));
+                        updateProfileAvatarHeaderView();
+                    }
+                }
+            } catch (pErr) {
+                console.warn("Unable to pull down synchronized cloud profile data.");
+            }
         } else {
             executeGlobalLogoutSequence();
         }
@@ -237,6 +254,14 @@ async function executeSignInSessionRequest() {
             state.token = data.token;
             state.user = data.user.email;
             localStorage.setItem("toptens_jwt_token", data.token);
+            
+            // Populate profile metadata fields instantly on login from backend response
+            if (data.profileMetadata) {
+                state.profileMetadata = data.profileMetadata;
+                localStorage.setItem("toptens_profile", JSON.stringify(data.profileMetadata));
+                updateProfileAvatarHeaderView();
+            }
+
             banner.className = "realtime-status-banner-box status-success";
             banner.innerText = "Session validated successfully.";
             
