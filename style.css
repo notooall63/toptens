@@ -425,6 +425,29 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     align-items: center;
     padding: 12px 16px;
     gap: 16px;
+    /* Allow components to wrap cleanly on narrow mobile dimensions instead of squishing */
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Mobile Optimizations for Items and Friends rows */
+@media (max-width: 480px) {
+    .item-row-strip, .friend-row-strip {
+        padding: 14px;
+        gap: 10px;
+    }
+    
+    /* Ensure the item title takes up full width on wrap to keep readability high */
+    .item-core-title {
+        flex: 1 1 100%;
+        font-size: 1.05rem;
+    }
+    
+    /* Push links and controls to fill space gracefully when wrapped */
+    .item-reference-hyperlink {
+        margin-left: 0 !important;
+    }
 }
 
 .item-prominent-hash { font-family: monospace; font-weight: 900; font-size: 1.3rem; color: var(--app-burnished-gold); width: 30px; }
