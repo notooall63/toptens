@@ -312,6 +312,19 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     .responsive-tiles-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+#categories-grid-matrix {
+    display: grid;
+    /* Automatically balance columns down to a safe minimum mobile target boundary of 280px */
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+    .responsive-tiles-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
 .category-elongated-card {
     background-color: var(--app-slate-void);
     border: 1px solid rgba(212, 175, 55, 0.15);
@@ -323,6 +336,8 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     position: relative;
     cursor: pointer;
     transition: transform 0.2s ease, border-color 0.2s ease;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .category-elongated-card:hover {
@@ -336,6 +351,8 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
 
 .category-card-actions-row {
     display: flex;
+    /* Enables clean row-wrapping on compact devices to eliminate horizontal squeezing entirely */
+    flex-wrap: wrap;
     width: 100%;
     gap: 6px;
     justify-content: center;
