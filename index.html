@@ -52,7 +52,7 @@
                 <div class="lateral-ad-rail left-rail"></div>
                 <div class="center-content-backbone">
                     <div class="control-action-ribbon">
-                        <button id="add-custom-category-trigger" class="emerald-action-button">+ Add New Custom Category</button>
+                        <button id="add-custom-category-trigger" class="emerald-action-button">+ Add New Custom Category--Up To 21 Total</button>
                     </div>
                     <div id="categories-grid-matrix" class="responsive-tiles-grid"></div>
                 </div>
@@ -65,18 +65,18 @@
                 <div class="lateral-ad-rail left-rail"></div>
                 <div class="center-content-backbone">
                     <div class="item-creation-box-panel">
-                        <h3 class="panel-section-title">Add Custom Item Sequence</h3>
+                        <h3 class="panel-section-title">Add Custom Item--Up To 10 Per Category List</h3>
                         <div class="form-inputs-row">
                             <input type="text" id="input-item-title" placeholder="Item Name/Title" required />
                             <input type="number" id="input-item-rank" placeholder="Rank (1-10)" min="1" max="10" required />
                             <input type="url" id="input-item-custom-url" placeholder="Custom Link (Optional)" />
                             
                             <div class="proxy-upload-wrapper">
-                                <button type="button" id="item-media-upload-dummy-btn" class="gold-action-button miniature-btn">Upload Media</button>
+                                <button type="button" id="item-media-upload-dummy-btn" class="gold-action-button miniature-btn">Upload Media--Pic Or Up-To 6-Sec. Video</button>
                                 <input type="file" id="input-item-file" accept="image/*,video/*" class="hidden-element">
                             </div>
                         </div>
-                        <button id="execute-add-item-btn" class="emerald-action-button full-width-btn">Commit Item to Matrix</button>
+                        <button id="execute-add-item-btn" class="emerald-action-button full-width-btn">Commit Item to Category List</button>
                     </div>
                     <div id="items-rows-stack-container" class="linear-rows-list"></div>
                 </div>
@@ -116,17 +116,17 @@
 
     <div id="drawer-authentication-portal" class="sliding-drawer-container">
         <div class="drawer-header-ribbon">
-            <h3>Identity Vault Entry</h3>
+            <h3>Top Tens Registration Panel</h3>
             <button class="drawer-close-btn-node" aria-label="Close">✕</button>
         </div>
         <div class="drawer-body-scroll-pad">
             <form id="auth-runtime-form" autocomplete="on">
                 <div class="input-block-group">
-                    <label for="auth-email-field">Network Verification Email Address</label>
+                    <label for="auth-email-field">Top Tens Account Email Address</label>
                     <input type="email" id="auth-email-field" placeholder="name@domain.com" required autocomplete="email">
                 </div>
                 <div class="input-block-group relative-position">
-                    <label for="auth-password-field">Cryptographic Access Password</label>
+                    <label for="auth-password-field">Top Tens Account Password</label>
                     <input type="password" id="auth-password-field" required autocomplete="current-password">
                     <button type="button" id="auth-password-visibility-toggle" class="visibility-eye-btn" aria-label="Toggle Password Visibility">👁️</button>
                     <p class="password-constraints-hint-text">
@@ -134,9 +134,9 @@
                     </p>
                 </div>
                 <div class="vertical-drawer-actions-stack">
-                    <button type="button" id="action-trigger-signin" class="gold-action-button">Sign In Authorization</button>
-                    <button type="button" id="action-trigger-signup" class="gold-action-button">Register System Profile</button>
-                    <button type="button" id="action-trigger-signout" class="gold-action-button variant-dark-btn">Disconnect Session Token</button>
+                    <button type="button" id="action-trigger-signin" class="gold-action-button">Sign In</button>
+                    <button type="button" id="action-trigger-signup" class="gold-action-button">Sign Up</button>
+                    <button type="button" id="action-trigger-signout" class="gold-action-button variant-dark-btn">Sign Out</button>
                 </div>
             </form>
             <div id="auth-status-feedback-display" class="realtime-status-banner-box"></div>
@@ -145,7 +145,7 @@
 
     <div id="drawer-profile-persistence" class="sliding-drawer-container">
         <div class="drawer-header-ribbon">
-            <h3>Personal Cryptography Metadata</h3>
+            <h3>Profile Panel</h3>
             <button class="drawer-close-btn-node" aria-label="Close">✕</button>
         </div>
         <div class="drawer-body-scroll-pad">
@@ -155,67 +155,67 @@
                 <input type="file" id="input-avatar-file" accept="image/*" class="hidden-element">
             </div>
             <div class="input-block-group">
-                <label>Legal Account Identity Name</label>
+                <label>Top Tens Profile Name</label>
                 <div class="editable-tab-field-container">
                     <input type="text" id="profile-field-fullname" disabled placeholder="Not specified">
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="input-block-group">
-                <label>Date of Chronological Birth</label>
+                <label>Date Of Inception(How Old Do You Feel?)</label>
                 <div class="editable-tab-field-container">
                     <input type="date" id="profile-field-dob" disabled>
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="input-block-group">
-                <label>Hometown Location Grid</label>
+                <label>Hometown (Natural or Adopted)</label>
                 <div class="editable-tab-field-container">
                     <input type="text" id="profile-field-hometown" disabled placeholder="City, State, Country">
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="input-block-group">
-                <label>Professional Vocation Vector</label>
+                <label>Chosen or Wishful Vocation</label>
                 <div class="editable-tab-field-container">
                     <input type="text" id="profile-field-vocation" disabled placeholder="Occupation Profile">
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="input-block-group">
-                <label>Primary Account Email Link</label>
+                <label>Top Tens Account Email</label>
                 <div class="editable-tab-field-container">
                     <input type="email" id="profile-field-email" disabled>
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="input-block-group">
-                <label>Recovery Contact Vector (Phone/Email)</label>
+                <label>Recovery Contact(Phone/Email)</label>
                 <div class="editable-tab-field-container">
                     <input type="text" id="profile-field-recovery" disabled placeholder="+1 (555) 000-0000 / backup@domain.com">
                     <button class="field-inline-edit-icon" aria-label="Edit">✏️</button>
                 </div>
             </div>
             <div class="toggle-switch-card-layout">
-                <span class="toggle-descriptor-label">Network Profile Access Mode:</span>
-                <button id="profile-privacy-toggle-state" class="gold-action-button miniature-btn">PUBLIC ACCESS</button>
+                <span class="toggle-descriptor-label">Top Tens Profile Status:</span>
+                <button id="profile-privacy-toggle-state" class="gold-action-button miniature-btn">PUBLIC STATUS</button>
             </div>
-            <button id="execute-profile-metadata-save-btn" class="gold-action-button full-width-btn margin-top-block">Save Extended Profile Attributes</button>
+            <button id="execute-profile-metadata-save-btn" class="gold-action-button full-width-btn margin-top-block">Save/Update Top Tens Profile Info</button>
         </div>
     </div>
 
     <div id="drawer-system-settings" class="sliding-drawer-container">
         <div class="drawer-header-ribbon">
-            <h3>Configuration Panel</h3>
+            <h3>Settings Panel</h3>
             <button class="drawer-close-btn-node" aria-label="Close">✕</button>
         </div>
         <div class="drawer-body-scroll-pad vertical-drawer-actions-stack">
-            <button id="settings-action-toggle-theme" class="gold-action-button">Toggle Viewport: DARK MODE</button>
-            <button id="settings-action-upgrade-tier" class="gold-action-button">Upgrade Storage Matrix ($0.99/mo)</button>
-            <button id="settings-action-add-friends" class="gold-action-button">Add Connected Friends</button>
-            <button id="settings-action-goto-friends" class="gold-action-button">Visit Friends Page</button>
-            <button id="settings-action-vault-wipe" class="gold-action-button warning-color-btn">Vault-Wipe Data Reset</button>
-            <button id="settings-action-logout" class="gold-action-button variant-dark-btn">Disconnect System Session</button>
+            <button id="settings-action-toggle-theme" class="gold-action-button">Toggle Light/Dark Mode: DARK MODE</button>
+            <button id="settings-action-upgrade-tier" class="gold-action-button">Upgrade Top Tens($0.99/mo)--Ad Free and Up To 99 Categories</button>
+            <button id="settings-action-add-friends" class="gold-action-button">Add Top Tens Friends (Friends Are Added According Top Tens Profile Names--To Compare And Fuze Your Lists With Your Friends', Please Fill In Your Profile Name In The Profile Panel, And Save It)</button>
+            <button id="settings-action-goto-friends" class="gold-action-button">Go To Friends Page</button>
+            <button id="settings-action-vault-wipe" class="gold-action-button warning-color-btn">Vault-Wipe (Erase All Inputted Data And Restore Default Settings)</button>
+            <button id="settings-action-logout" class="gold-action-button variant-dark-btn">Sign Out</button>
         </div>
     </div>
 
