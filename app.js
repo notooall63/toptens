@@ -122,6 +122,11 @@ function bindStructuralCoreEventHandlers() {
     document.getElementById("settings-action-toggle-theme").onclick = toggleThemeDarkLightParameters;
     document.getElementById("settings-action-upgrade-tier").onclick = processTierUpgradeTransaction;
     document.getElementById("settings-action-add-friends").onclick = triggerFriendAdditionDialog;
+    
+    const globalFriendBtn = document.getElementById("add-friends-global-trigger");
+    if (globalFriendBtn) {
+        globalFriendBtn.onclick = triggerFriendAdditionDialog;
+    }
     document.getElementById("settings-action-goto-friends").onclick = () => {
         collapseAllDrawers();
         navigateToScreenView("view-friends-page");
@@ -712,15 +717,52 @@ function renderFriendsRosterStack() {
     });
 }
 
-function triggerFriendAdditionDialog() {
-    const name = prompt("Search for target peer profile network identity handle to map:");
+async function triggerFriendAdditionDialog() {
+    const name = prompt("Enter the exact Top Tens Profile Name or Account Email of the verified peer to link:");
     if (!name || !name.trim()) return;
 
-    state.friends.push({ name: name.trim(), avatar: "" });
-    localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    
-    if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-    alert(`Profile handle "${name.trim()}" linked to communications network successfully.`);
+    const formattedTargetHandle = name.trim();
+
+    // Check if user is operating logged-in or offline
+    if (!state.token) {
+        // Fallback for guest mode sandbox testing
+        state.friends.push({ name: formattedTargetHandle, avatar: "" });
+        localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+        if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
+        alert(`[Sandbox Preview] Handle "${formattedTargetHandle}" mapped locally to guest tracking array.`);
+        return;
+    }
+
+    try {
+        // Execute dynamic network registration mapping across active accounts database
+        const resp = await fetch(`${API_BASE}/api/friends/add`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${state.token}`
+            },
+            body: JSON.stringify({ friendProfileName: formattedTargetHandle })
+        });
+
+        const data = await resp.json();
+
+        if (resp.status === 200 || data.success) {
+            // Push updated object verified metadata node back to local collection stack cache
+            state.friends.push({ 
+                name: data.friendName || formattedTargetHandle, 
+                avatar: data.friendAvatar || "" 
+            });
+            localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+            
+            if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
+            alert(`Verified relationship connected successfully! Added profile: "${formattedTargetHandle}".`);
+        } else {
+            alert(`Network synchronization rejected: ${data.error || "Profile handle could not be located in database master records."}`);
+        }
+    } catch (err) {
+        console.error("Network error executing friend synchronization layer:", err);
+        alert("Unable to reach synchronization servers. Check your backend status pipelines.");
+    }
 }
 
 function deleteFriendFromRoster(indexIdx) {
