@@ -721,7 +721,8 @@ async function triggerFriendAdditionDialog() {
     const name = prompt("Enter the exact Top Tens Profile Name of the verified user to link:");
     if (!name || !name.trim()) return;
 
-    const formattedTargetHandle = name.trim();
+    // Enforce case-insensitive matching support for safer validation runs
+    const formattedTargetHandle = name.trim().toLowerCase();
 
     // Block non-logged-in sandboxed users from fabricating fake peers
     if (!state.token) {
@@ -752,6 +753,12 @@ async function triggerFriendAdditionDialog() {
                 return;
             }
 
+            // Avoid adding duplicate visual items to your client view array
+            if (state.friends.some(f => f.name.toLowerCase() === targetName.toLowerCase())) {
+                alert("Connection Matrix Notice: This user tracking map is already linked to your roster.");
+                return;
+            }
+
             // Save the verified peer profile to the active tracking stack cache
             state.friends.push({ 
                 name: targetName, 
@@ -763,7 +770,7 @@ async function triggerFriendAdditionDialog() {
             alert(`Success! Linked with verified Top Tens user: "${targetName}".`);
         } else {
             // Rejects input cleanly if handle doesn't exist on Cloudflare's master register table
-            alert(`User Not Found: "${formattedTargetHandle}" is not a registered Top Tens user. Please check the spelling of their Profile Name.`);
+            alert(`User Not Found: "${name.trim()}" is not a registered Top Tens user. Please check the spelling of their Profile Name.`);
         }
     } catch (err) {
         console.error("Network error executing friend synchronization layer:", err);
@@ -876,8 +883,28 @@ function populateProfileFieldsUI() {
     }
 }
 
-function saveProfileMetadataAttributes() {
-    state.profileMetadata.fullname = document.getElementById("profile-field-fullname").value;
+async function saveProfileMetadataAttributes() {
+    const inputFullname = document.getElementById("profile-field-fullname").value.trim();
+    
+    // Validate uniqueness of profile display handles if logged into a sync state session
+    if (inputFullname && state.user && state.token) {
+        try {
+            const checkResp = await fetch(`${API_BASE}/api/profile/check-name?fullname=${encodeURIComponent(inputFullname)}`, {
+                headers: { "Authorization": `Bearer ${state.token}` }
+            });
+            const checkData = await checkResp.json();
+            
+            // Block change tracking if name matches another account's recorded value maps
+            if (checkResp.status === 200 && checkData.taken && checkData.ownerEmail !== state.user) {
+                alert(`Profile Name Taken: The identifier string "${inputFullname}" is already assigned to a different registered account. Please choose a unique layout name.`);
+                return;
+            }
+        } catch (e) {
+            console.warn("Name replication check system uncontactable. Progressing under fallback rules.");
+        }
+    }
+
+    state.profileMetadata.fullname = inputFullname;
     state.profileMetadata.dob = document.getElementById("profile-field-dob").value;
     state.profileMetadata.hometown = document.getElementById("profile-field-hometown").value;
     state.profileMetadata.vocation = document.getElementById("profile-field-vocation").value;
@@ -886,11 +913,9 @@ function saveProfileMetadataAttributes() {
 
     localStorage.setItem("toptens_profile", JSON.stringify(state.profileMetadata));
     
-    // Locks input vectors immediately back to secure view state modes structures
     document.querySelectorAll(".editable-tab-field-container input").forEach(i => i.disabled = true);
     
     if (state.user && state.token) {
-        // Post extended metadata elements directly to live enterprise worker nodes pipelines
         fetch(`${API_BASE}/api/profile/save`, {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${state.token}` },
