@@ -34,7 +34,8 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    user-select: none;
+    -webkit-user-select: none; /* FIXED: Prevents selection highlighting in Safari 3+ and iOS Safari */
+    user-select: none;         /* Standard syntax for modern Chromium and Firefox engines */
     -webkit-tap-highlight-color: transparent;
 }
 
