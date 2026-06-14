@@ -97,6 +97,11 @@ body {
 }
 
 /* FIXED GLOBAL NAVIGATION LAYER BANNER */
+* {
+    -webkit-user-select: none; /* FIXED: Prevents selection highlighting in Safari 3+ and iOS Safari */
+    user-select: none;         /* Standard syntax for modern Chromium and Firefox engines */
+}
+
 #global-app-header {
     position: fixed;
     top: 0;
