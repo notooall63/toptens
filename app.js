@@ -742,10 +742,14 @@ async function triggerFriendAdditionDialog() {
         });
 
         const data = await resp.json();
+		
+        if (!resp.ok) {
+            alert(data.error || "Failed to process target validation lookups.");
+            return;
+        }
 
-        // STRICT GATEKEEPER: Only proceed if the server certifies this user actually exists in the DB
+        // UNIFIED SUCCESS ENGINE GATEKEEPER: Executes only on certified server validation match
         if (resp.status === 200 && data.success) {
-            // Verify that the backend passed back an actual valid profile match
             const targetName = data.friendName || data.username;
             
             if (!targetName) {
@@ -754,20 +758,62 @@ async function triggerFriendAdditionDialog() {
             }
 
             // Avoid adding duplicate visual items to your client view array
-            if (state.friends.some(f => f.name.toLowerCase() === targetName.toLowerCase())) {
+            if (Array.isArray(state.friends) && state.friends.some(f => f.name && f.name.toLowerCase() === targetName.toLowerCase())) {
                 alert("Connection Matrix Notice: This user tracking map is already linked to your roster.");
                 return;
             }
 
-            // Save the verified peer profile to the active tracking stack cache
-            state.friends.push({ 
-                name: targetName, 
-                avatar: data.friendAvatar || "" 
-            });
-            localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+            // Compute mutual overlapping intersection matrices
+            let mutualCount = 0;
+            const friendItems = data.vaultData?.items || {};
             
-            if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-            alert(`Success! Linked with verified Top Tens user: "${targetName}".`);
+            // Cross-reference current user state against friend item names
+            if (state.items && typeof state.items === 'object') {
+                Object.keys(state.items).forEach(catId => {
+                    const userCatItems = state.items[catId] || [];
+                    userCatItems.forEach(uItem => {
+                        if (!uItem || !uItem.name) return;
+                        
+                        // Scan friend items across all categories for any matching strings
+                        Object.keys(friendItems).forEach(fCatId => {
+                            const fCatItems = friendItems[fCatId] || [];
+                            if (fCatItems.some(fItem => fItem && fItem.name && fItem.name.trim().toLowerCase() === uItem.name.trim().toLowerCase())) {
+                                mutualCount++;
+                            }
+                        });
+                    });
+                });
+            }
+
+            // Construct the fully fleshed out data node structure for state tracking
+            const newFriendNode = {
+                name: targetName,
+                avatar: data.friendAvatar || "",
+                email: data.friendEmail || "",
+                mutualItemsCount: mutualCount,
+                vaultData: data.vaultData || { categories: [], items: {} }
+            };
+
+            // Initialize or safeguard array instances cleanly
+            if (!Array.isArray(state.friends)) {
+                state.friends = [];
+            }
+            
+            // Double-check fallback filter tracking to protect the memory state array entries
+            state.friends = state.friends.filter(f => f.name.toLowerCase() !== targetName.toLowerCase());
+            state.friends.push(newFriendNode);
+            localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
+
+            alert(`Successfully synced with ${targetName}! Found ${mutualCount} mutual matching item targets.`);
+            
+            // Re-render your social or friends UI view component matrix here
+            if (state.currentViewId === "view-friends-page" && typeof renderFriendsRosterStack === 'function') {
+                renderFriendsRosterStack();
+            } else if (typeof renderSocialDashboardMatrix === 'function') {
+                renderSocialDashboardMatrix();
+            } else if (state.currentViewId === "view-social-page" && typeof renderSocialPage === 'function') {
+                renderSocialPage();
+            }
         } else {
             // Rejects input cleanly if handle doesn't exist on Cloudflare's master register table
             alert(`User Not Found: "${name.trim()}" is not a registered Top Tens user. Please check the spelling of their Profile Name.`);
@@ -782,7 +828,7 @@ function deleteFriendFromRoster(indexIdx) {
     if (!confirm("Disconnect target peer tracking path variables completely?")) return;
     state.friends.splice(indexIdx, 1);
     localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-    renderFriendsRosterStack();
+    if (typeof renderFriendsRosterStack === 'function') renderFriendsRosterStack();
 }
 
 // COMPUTATIONAL LOGIC CORES: JUXTAPOSITION MATRIX AND AVERAGE COMBINATIONS FUSION
@@ -810,15 +856,24 @@ function executeComparePipeline(categoryId, categoryTitle) {
         frCol.className = "matrix-column-node-sheet";
         frCol.innerHTML = `<h4 class="matrix-column-headline">${fr.name} Array</h4>`;
         
-        // Simulates randomized structural offsets for visualization tracking comparison grids
-        const mockDerivatives = myItems.map(it => ({
-            rank: it.rank,
-            name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
-        }));
+        // Use real sync data if it exists; otherwise use mock structure details fallback rules
+        const friendVaultItems = fr.vaultData?.items?.[categoryId] || [];
+        
+        if (friendVaultItems.length > 0) {
+            friendVaultItems.sort((a,b)=>a.rank - b.rank).forEach(it => {
+                frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+            });
+        } else {
+            // Simulates randomized structural offsets if no sync vault data matches this specific tracking register channel yet
+            const mockDerivatives = myItems.map(it => ({
+                rank: it.rank,
+                name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
+            }));
 
-        mockDerivatives.forEach(it => {
-            frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
-        });
+            mockDerivatives.forEach(it => {
+                frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
+            });
+        }
         container.appendChild(frCol);
     });
 }
