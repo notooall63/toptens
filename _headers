@@ -1,0 +1,4 @@
+# FILE LOCATION: D:/top-tens/frontend/_headers
+# Target all static assets (*.css, *.js, *.png, etc.)
+/*
+  Cache-Control: public, max-age=31536000, immutable
