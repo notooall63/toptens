@@ -558,7 +558,8 @@ body:has(#global-app-header:not(.hidden-element)) #primary-viewport-container {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px); /* FIXED: Adds support for Safari 9+ and iOS Safari */
+    backdrop-filter: blur(4px);         /* Standard syntax for modern Chromium and Firefox engines */
     z-index: var(--layer-scrim-curtain);
     transition: opacity 0.2s ease;
 }
