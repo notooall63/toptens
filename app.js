@@ -718,23 +718,19 @@ function renderFriendsRosterStack() {
 }
 
 async function triggerFriendAdditionDialog() {
-    const name = prompt("Enter the exact Top Tens Profile Name or Account Email of the verified peer to link:");
+    const name = prompt("Enter the exact Top Tens Profile Name of the verified user to link:");
     if (!name || !name.trim()) return;
 
     const formattedTargetHandle = name.trim();
 
-    // Check if user is operating logged-in or offline
+    // Block non-logged-in sandboxed users from fabricating fake peers
     if (!state.token) {
-        // Fallback for guest mode sandbox testing
-        state.friends.push({ name: formattedTargetHandle, avatar: "" });
-        localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
-        if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-        alert(`[Sandbox Preview] Handle "${formattedTargetHandle}" mapped locally to guest tracking array.`);
+        alert("Authentication Required: You must be logged in to a verified account to search and connect with other live Top Tens users.");
         return;
     }
 
     try {
-        // Execute dynamic network registration mapping across active accounts database
+        // Drop a direct query verification payload to your Cloudflare network layer
         const resp = await fetch(`${API_BASE}/api/friends/add`, {
             method: "POST",
             headers: { 
@@ -746,22 +742,32 @@ async function triggerFriendAdditionDialog() {
 
         const data = await resp.json();
 
-        if (resp.status === 200 || data.success) {
-            // Push updated object verified metadata node back to local collection stack cache
+        // STRICT GATEKEEPER: Only proceed if the server certifies this user actually exists in the DB
+        if (resp.status === 200 && data.success) {
+            // Verify that the backend passed back an actual valid profile match
+            const targetName = data.friendName || data.username;
+            
+            if (!targetName) {
+                alert("Server Validation Error: Account records corrupted. Unable to parse peer's Profile Name.");
+                return;
+            }
+
+            // Save the verified peer profile to the active tracking stack cache
             state.friends.push({ 
-                name: data.friendName || formattedTargetHandle, 
+                name: targetName, 
                 avatar: data.friendAvatar || "" 
             });
             localStorage.setItem("toptens_friends", JSON.stringify(state.friends));
             
             if (state.currentViewId === "view-friends-page") renderFriendsRosterStack();
-            alert(`Verified relationship connected successfully! Added profile: "${formattedTargetHandle}".`);
+            alert(`Success! Linked with verified Top Tens user: "${targetName}".`);
         } else {
-            alert(`Network synchronization rejected: ${data.error || "Profile handle could not be located in database master records."}`);
+            // Rejects input cleanly if handle doesn't exist on Cloudflare's master register table
+            alert(`User Not Found: "${formattedTargetHandle}" is not a registered Top Tens user. Please check the spelling of their Profile Name.`);
         }
     } catch (err) {
         console.error("Network error executing friend synchronization layer:", err);
-        alert("Unable to reach synchronization servers. Check your backend status pipelines.");
+        alert("Connection Failure: Unable to reach the Top Tens validation servers. Check backend network status pipelines.");
     }
 }
 
