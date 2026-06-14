@@ -1,4 +1,7 @@
-# FILE LOCATION: D:/top-tens/frontend/_headers
-# Target all static assets (*.css, *.js, *.png, etc.)
+# Rules for the main application pages and standard assets
 /*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Rules targeting root directory configurations, service assets, and PWA manifests
+/*.*
   Cache-Control: public, max-age=31536000, immutable
