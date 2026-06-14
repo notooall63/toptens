@@ -52,7 +52,6 @@
             ctx.globalAlpha = this.alpha;
             ctx.translate(this.x, this.y);
             
-            // Renders clean pathing geometry matching diamond crystals
             ctx.beginPath();
             ctx.moveTo(0, -this.size);
             ctx.lineTo(this.size * 0.6, 0);
@@ -62,14 +61,14 @@
             
             ctx.shadowBlur = 10;
             ctx.shadowColor = "#d4af37";
-            ctx.fillStyle = "linear-gradient(135deg, #ffffff 0%, #d4af37 100%)";
+            
+            // Cleaned up the redundant assignment line to save animation processor overhead
             ctx.fillStyle = "#f3e5ab";
             ctx.fill();
             ctx.restore();
         }
     }
 
-    // Allocate pool slots for hardware accelerators
     const poolSize = 45;
     for(let i=0; i<poolSize; i++) {
         particles.push(new DiamondSparkle());
