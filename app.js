@@ -396,17 +396,6 @@ function executeGlobalLogoutSequence() {
     }, 50);
 }
 
-    // 5. Update UI View components and drop the sliding drawers cleanly
-    updateProfileAvatarHeaderView();
-    collapseAllDrawers();
-    navigateToScreenView("view-landing-page", false);
-
-    // 6. Alert confirmation before the hard page refresh to clear asynchronous race conditions
-    setTimeout(() => {
-        window.location.reload();
-    }, 150);
-}
-
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
 async function pushCloudVaultSynchronization() {
     if (!state.user || !state.token) {
