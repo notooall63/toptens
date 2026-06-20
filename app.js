@@ -345,38 +345,56 @@ async function executeSignUpRegistrationRequest() {
 }
 
 function executeGlobalLogoutSequence() {
-    // 1. Explicitly break memory references by clearing all keys instantly
+    // 1. Instantly wipe out all browser session keys
     localStorage.clear();
-    
-    // 2. Extra Insurance: Explicitly destroy target token items to prevent cache preservation on quick reloads
     localStorage.removeItem("toptens_jwt_token");
     localStorage.removeItem("toptens_profile");
     localStorage.removeItem("toptens_categories");
     localStorage.removeItem("toptens_items");
     localStorage.removeItem("toptens_tier_upgrade");
 
-    // 3. Clear out the global tracking state parameters entirely
+    // 2. Force reset global tracking state registers to default baselines
     state.user = null;
     state.token = null;
     state.isTierUpgraded = false;
-    state.categories = [...window.DEFAULT_STOCK_CATEGORIES];
-    state.items = { ...window.DEFAULT_STOCK_ITEMS };
     state.friends = [];
     state.navigationHistoryStack = [];
     state.currentCategoryContextId = null;
     state.profileMetadata = { fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "" };
+    
+    // Explicitly restore stock fallbacks to current memory matrix
+    state.categories = window.DEFAULT_STOCK_CATEGORIES ? [...window.DEFAULT_STOCK_CATEGORIES] : [];
+    state.items = window.DEFAULT_STOCK_ITEMS ? { ...window.DEFAULT_STOCK_ITEMS } : {};
 
-    // 4. Scrub the email, password, and feedback message elements off the login panel
+    // 3. Destructive Form Level Scrubbing (Prevents browser auto-fill cache retention)
     const emailField = document.getElementById("auth-email-field");
     const passwordField = document.getElementById("auth-password-field");
     const feedbackBanner = document.getElementById("auth-status-feedback-display");
     
-    if (emailField) emailField.value = "";
-    if (passwordField) passwordField.value = "";
+    if (emailField) {
+        emailField.value = "";
+        emailField.setAttribute("value", "");
+    }
+    if (passwordField) {
+        passwordField.value = "";
+        passwordField.setAttribute("value", "");
+    }
     if (feedbackBanner) {
         feedbackBanner.className = "realtime-status-banner-box";
         feedbackBanner.innerText = "";
     }
+
+    // 4. Update core layout frames and shut open drawers
+    updateProfileAvatarHeaderView();
+    collapseAllDrawers();
+    navigateToScreenView("view-landing-page", false);
+
+    // 5. Hard break the browser loop to prevent async processes from restoring variables
+    setTimeout(() => {
+        // Appending a random query timestamp completely breaks browser auto-fill memory matching rules
+        window.location.href = window.location.origin + window.location.pathname + "?logout=" + Date.now();
+    }, 50);
+}
 
     // 5. Update UI View components and drop the sliding drawers cleanly
     updateProfileAvatarHeaderView();
