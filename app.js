@@ -204,7 +204,10 @@ function updateProfileAvatarHeaderView() {
 // CLOUD INTERFACE SESSION AUTHENTICATION HANDLING PIPELINES
 async function synchronizeSessionHandshake() {
     const token = localStorage.getItem("toptens_jwt_token");
-    if (!token) return;
+    if (!token || token === "null" || token === "undefined") {
+        // Enforce safe guest boundary if no valid token exists
+        return;
+    }
     
     try {
         const resp = await fetch(`${API_BASE}/api/auth/verify-session`, {
@@ -233,6 +236,8 @@ async function synchronizeSessionHandshake() {
                 console.warn("Unable to pull down synchronized cloud profile data.");
             }
         } else {
+            // Drop invalid token blocks entirely
+            localStorage.removeItem("toptens_jwt_token");
             executeGlobalLogoutSequence();
         }
     } catch (e) {
@@ -340,21 +345,28 @@ async function executeSignUpRegistrationRequest() {
 }
 
 function executeGlobalLogoutSequence() {
-    // 1. Wipe out everything in localStorage to prevent your data leaking into guest mode
+    // 1. Explicitly break memory references by clearing all keys instantly
     localStorage.clear();
+    
+    // 2. Extra Insurance: Explicitly destroy target token items to prevent cache preservation on quick reloads
+    localStorage.removeItem("toptens_jwt_token");
+    localStorage.removeItem("toptens_profile");
+    localStorage.removeItem("toptens_categories");
+    localStorage.removeItem("toptens_items");
+    localStorage.removeItem("toptens_tier_upgrade");
 
-    // 2. Clear out the global tracking state parameters entirely
+    // 3. Clear out the global tracking state parameters entirely
     state.user = null;
     state.token = null;
     state.isTierUpgraded = false;
-    state.categories = [];
-    state.items = {};
+    state.categories = [...window.DEFAULT_STOCK_CATEGORIES];
+    state.items = { ...window.DEFAULT_STOCK_ITEMS };
     state.friends = [];
     state.navigationHistoryStack = [];
     state.currentCategoryContextId = null;
     state.profileMetadata = { fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "" };
 
-    // 3. Scrub the email, password, and feedback message elements off the login panel
+    // 4. Scrub the email, password, and feedback message elements off the login panel
     const emailField = document.getElementById("auth-email-field");
     const passwordField = document.getElementById("auth-password-field");
     const feedbackBanner = document.getElementById("auth-status-feedback-display");
@@ -366,12 +378,15 @@ function executeGlobalLogoutSequence() {
         feedbackBanner.innerText = "";
     }
 
-    // 4. Safely close any sliding panels and snap the router back to the landing page
+    // 5. Update UI View components and drop the sliding drawers cleanly
+    updateProfileAvatarHeaderView();
     collapseAllDrawers();
     navigateToScreenView("view-landing-page", false);
 
-    // 5. Force a complete, hard browser refresh to kill all active script variables
-    window.location.reload();
+    // 6. Alert confirmation before the hard page refresh to clear asynchronous race conditions
+    setTimeout(() => {
+        window.location.reload();
+    }, 150);
 }
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
