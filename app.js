@@ -340,16 +340,38 @@ async function executeSignUpRegistrationRequest() {
 }
 
 function executeGlobalLogoutSequence() {
+    // 1. Wipe out everything in localStorage to prevent your data leaking into guest mode
+    localStorage.clear();
+
+    // 2. Clear out the global tracking state parameters entirely
     state.user = null;
     state.token = null;
-    localStorage.removeItem("toptens_jwt_token");
-    localStorage.removeItem("toptens_profile");
+    state.isTierUpgraded = false;
+    state.categories = [];
+    state.items = {};
+    state.friends = [];
+    state.navigationHistoryStack = [];
+    state.currentCategoryContextId = null;
     state.profileMetadata = { fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "" };
-    updateProfileAvatarHeaderView();
-    loadLocalSessionFallbackData();
+
+    // 3. Scrub the email, password, and feedback message elements off the login panel
+    const emailField = document.getElementById("auth-email-field");
+    const passwordField = document.getElementById("auth-password-field");
+    const feedbackBanner = document.getElementById("auth-status-feedback-display");
+    
+    if (emailField) emailField.value = "";
+    if (passwordField) passwordField.value = "";
+    if (feedbackBanner) {
+        feedbackBanner.className = "realtime-status-banner-box";
+        feedbackBanner.innerText = "";
+    }
+
+    // 4. Safely close any sliding panels and snap the router back to the landing page
     collapseAllDrawers();
     navigateToScreenView("view-landing-page", false);
-    state.navigationHistoryStack = [];
+
+    // 5. Force a complete, hard browser refresh to kill all active script variables
+    window.location.reload();
 }
 
 // STORAGE DATA METRIC TRANSFER ENGINE CLOSURES
