@@ -743,9 +743,44 @@ function renderFriendsRosterStack() {
         const row = document.createElement("div");
         row.className = "friend-row-strip";
 
-        // Read real metrics computed by the backend cluster nodes
-        const mutualCategories = friend.mutualCategories !== undefined ? friend.mutualCategories : 0;
-        const mutualItems = friend.mutualItems !== undefined ? friend.mutualItems : 0;
+        // Extract raw item data maps safely
+        const userItems = state.items || {};
+        const friendItems = friend.vaultData?.items || {};
+        const friendCategories = friend.vaultData?.categories || [];
+
+        // 1. Compute Live Mutual Categories Count
+        let mutualCategories = 0;
+        if (Array.isArray(state.categories) && friendCategories.length > 0) {
+            const userCatNames = state.categories.map(c => (c.name || '').trim().toLowerCase());
+            friendCategories.forEach(fCat => {
+                const fCatName = (fCat.name || '').trim().toLowerCase();
+                if (fCatName && userCatNames.includes(fCatName)) {
+                    mutualCategories++;
+                }
+            });
+        }
+
+        // 2. Compute Live Mutual Items Count
+        let mutualItems = 0;
+        Object.keys(userItems).forEach(catId => {
+            const userCatItems = userItems[catId] || [];
+            userCatItems.forEach(uItem => {
+                if (!uItem || !uItem.name) return;
+                
+                Object.keys(friendItems).forEach(fCatId => {
+                    const fCatItems = friendItems[fCatId] || [];
+                    if (fCatItems.some(fItem => fItem && fItem.name && fItem.name.trim().toLowerCase() === uItem.name.trim().toLowerCase())) {
+                        mutualItems++;
+                    }
+                });
+            });
+        });
+
+        // Fallback to saved counter handles if nested vault data isn't loaded yet
+        if (mutualItems === 0 && friend.mutualItemsCount !== undefined) {
+            mutualItems = friend.mutualItemsCount;
+        }
+
         const displayName = friend.fullname || friend.name || friend.username || "Anonymous Peer";
 
         row.innerHTML = `
