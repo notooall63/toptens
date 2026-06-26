@@ -283,6 +283,14 @@ async function executeSignInSessionRequest() {
             banner.innerText = "Session validated successfully.";
             
             await pullCloudVaultPayload();
+
+            // Force-sync stock defaults immediately if logging into a completely blank account profile vault
+            if (!state.categories || state.categories.length === 0) {
+                if (window.DEFAULT_STOCK_CATEGORIES) state.categories = [...window.DEFAULT_STOCK_CATEGORIES];
+                if (window.DEFAULT_STOCK_ITEMS) state.items = { ...window.DEFAULT_STOCK_ITEMS };
+                await pushCloudVaultSynchronization();
+            }
+
             setTimeout(() => {
                 collapseAllDrawers();
                 navigateToScreenView("view-categories-page");
@@ -942,7 +950,6 @@ function executeComparePipeline(categoryId, categoryTitle) {
         frCol.className = "matrix-column-node-sheet";
         frCol.innerHTML = `<h4 class="matrix-column-headline">${fr.name} Array</h4>`;
         
-        // Use real sync data if it exists; otherwise use mock structure details fallback rules
         const friendVaultItems = fr.vaultData?.items?.[categoryId] || [];
         
         if (friendVaultItems.length > 0) {
@@ -950,15 +957,8 @@ function executeComparePipeline(categoryId, categoryTitle) {
                 frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
             });
         } else {
-            // Simulates randomized structural offsets if no sync vault data matches this specific tracking register channel yet
-            const mockDerivatives = myItems.map(it => ({
-                rank: it.rank,
-                name: Math.random() > 0.5 ? it.name : `${it.name} Alternative Variant Node`
-            }));
-
-            mockDerivatives.forEach(it => {
-                frCol.innerHTML += `<div class="matrix-mini-row"><span class="matrix-mini-rank">#${it.rank}</span> ${it.name}</div>`;
-            });
+            // Scrubbed out fake Math.random() simulation to protect real data integrity
+            frCol.innerHTML += `<div class="matrix-mini-row" style="color:var(--app-text-muted); font-style:italic;">No data synced for this category.</div>`;
         }
         container.appendChild(frCol);
     });
