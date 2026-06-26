@@ -345,15 +345,10 @@ async function executeSignUpRegistrationRequest() {
 }
 
 function executeGlobalLogoutSequence() {
-    // 1. Instantly wipe out all browser session keys
+    // 1. Wipe out every single key from the browser storage completely
     localStorage.clear();
-    localStorage.removeItem("toptens_jwt_token");
-    localStorage.removeItem("toptens_profile");
-    localStorage.removeItem("toptens_categories");
-    localStorage.removeItem("toptens_items");
-    localStorage.removeItem("toptens_tier_upgrade");
 
-    // 2. Force reset global tracking state registers to default baselines
+    // 2. Clear out the global tracking state parameters entirely
     state.user = null;
     state.token = null;
     state.isTierUpgraded = false;
@@ -362,11 +357,11 @@ function executeGlobalLogoutSequence() {
     state.currentCategoryContextId = null;
     state.profileMetadata = { fullname: "", dob: "", hometown: "", vocation: "", email: "", recovery: "", avatar: "" };
     
-    // Explicitly restore stock fallbacks to current memory matrix
+    // 3. Reset categories and items to the default stock arrays in memory
     state.categories = window.DEFAULT_STOCK_CATEGORIES ? [...window.DEFAULT_STOCK_CATEGORIES] : [];
     state.items = window.DEFAULT_STOCK_ITEMS ? { ...window.DEFAULT_STOCK_ITEMS } : {};
 
-    // 3. Destructive Form Level Scrubbing (Prevents browser auto-fill cache retention)
+    // 4. Scrub the email, password text values, and status displays off the DOM inputs
     const emailField = document.getElementById("auth-email-field");
     const passwordField = document.getElementById("auth-password-field");
     const feedbackBanner = document.getElementById("auth-status-feedback-display");
@@ -384,14 +379,13 @@ function executeGlobalLogoutSequence() {
         feedbackBanner.innerText = "";
     }
 
-    // 4. Update core layout frames and shut open drawers
+    // 5. Force UI updates to render stock data, close panels, and return to landing screen
     updateProfileAvatarHeaderView();
     collapseAllDrawers();
     navigateToScreenView("view-landing-page", false);
 
-    // 5. Hard break the browser loop to prevent async processes from restoring variables
+    // 6. Force an immediate hard reload with a cache-busting timestamp tag to drop auto-fill retention
     setTimeout(() => {
-        // Appending a random query timestamp completely breaks browser auto-fill memory matching rules
         window.location.href = window.location.origin + window.location.pathname + "?logout=" + Date.now();
     }, 50);
 }
@@ -415,7 +409,7 @@ async function pushCloudVaultSynchronization() {
 
 async function pullCloudVaultPayload() {
     if (!state.token) return;
-    try {
+    try {f
         const resp = await fetch(`${API_BASE}/api/vault/pull`, {
             headers: { "Authorization": `Bearer ${state.token}` }
         });
