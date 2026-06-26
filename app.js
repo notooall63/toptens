@@ -218,6 +218,13 @@ async function synchronizeSessionHandshake() {
             state.user = data.user.email;
             state.token = token;
             await pullCloudVaultPayload();
+
+            // If the cloud vault backend returned empty configurations, force-sync the stock fallback data immediately
+            if (!state.categories || state.categories.length === 0) {
+                if (window.DEFAULT_STOCK_CATEGORIES) state.categories = [...window.DEFAULT_STOCK_CATEGORIES];
+                if (window.DEFAULT_STOCK_ITEMS) state.items = { ...window.DEFAULT_STOCK_ITEMS };
+                await pushCloudVaultSynchronization();
+            }
             
             // Sync profile data across devices during session handshake validation
             try {
