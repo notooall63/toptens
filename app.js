@@ -758,41 +758,60 @@ function renderFriendsRosterStack() {
         const row = document.createElement("div");
         row.className = "friend-row-strip";
 
-        // Extract raw item data maps safely
         const userItems = state.items || {};
         const friendItems = friend.vaultData?.items || {};
         const friendCategories = friend.vaultData?.categories || [];
 
-        // 1. Compute Live Mutual Categories Count
+        // 1. Compute Strict Unique Mutual Categories
         let mutualCategories = 0;
         if (Array.isArray(state.categories) && friendCategories.length > 0) {
-            const userCatNames = state.categories.map(c => (c.name || '').trim().toLowerCase());
+            const userCatNames = new Set(
+                state.categories
+                    .map(c => (c && c.name ? c.name.trim().toLowerCase() : ''))
+                    .filter(name => name !== '')
+            );
+            
             friendCategories.forEach(fCat => {
-                const fCatName = (fCat.name || '').trim().toLowerCase();
-                if (fCatName && userCatNames.includes(fCatName)) {
+                const fCatName = (fCat && fCat.name) ? fCat.name.trim().toLowerCase() : '';
+                if (fCatName && userCatNames.has(fCatName)) {
                     mutualCategories++;
                 }
             });
         }
 
-        // 2. Compute Live Mutual Items Count
-        let mutualItems = 0;
+        // 2. Compute Strict Unique Mutual Items (Eliminating loop order skew)
+        const userItemNamesSet = new Set();
         Object.keys(userItems).forEach(catId => {
             const userCatItems = userItems[catId] || [];
             userCatItems.forEach(uItem => {
-                if (!uItem || !uItem.name) return;
-                
-                Object.keys(friendItems).forEach(fCatId => {
-                    const fCatItems = friendItems[fCatId] || [];
-                    if (fCatItems.some(fItem => fItem && fItem.name && fItem.name.trim().toLowerCase() === uItem.name.trim().toLowerCase())) {
-                        mutualItems++;
-                    }
-                });
+                if (uItem && uItem.name) {
+                    const normalized = uItem.name.trim().toLowerCase();
+                    if (normalized) userItemNamesSet.add(normalized);
+                }
             });
         });
 
-        // Fallback to saved counter handles if nested vault data isn't loaded yet
-        if (mutualItems === 0 && friend.mutualItemsCount !== undefined) {
+        const friendItemNamesSet = new Set();
+        Object.keys(friendItems).forEach(fCatId => {
+            const fCatItems = friendItems[fCatId] || [];
+            fCatItems.forEach(fItem => {
+                if (fItem && fItem.name) {
+                    const normalized = fItem.name.trim().toLowerCase();
+                    if (normalized) friendItemNamesSet.add(normalized);
+                }
+            });
+        });
+
+        // Intersect sets to find exact shared values
+        let mutualItems = 0;
+        userItemNamesSet.forEach(uName => {
+            if (friendItemNamesSet.has(uName)) {
+                mutualItems++;
+            }
+        });
+
+        // Fallback to static counters if the live profile arrays are not loaded
+        if (mutualItems === 0 && mutualCategories === 0 && friend.mutualItemsCount !== undefined) {
             mutualItems = friend.mutualItemsCount;
         }
 
