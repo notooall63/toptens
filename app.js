@@ -732,18 +732,24 @@ function deleteItemFromInventoryMatrix(itemId) {
 // PAGE 4 ENGINE: VERIFIED FRIENDS COMPARTMENT MATRIX CONTROLLERS
 function renderFriendsRosterStack() {
     const container = document.getElementById("friends-rows-stack-container");
+    if (!container) return;
     container.innerHTML = "";
+
+    if (!state.friends || !Array.isArray(state.friends)) {
+        state.friends = [];
+    }
 
     state.friends.forEach((friend, idx) => {
         const row = document.createElement("div");
         row.className = "friend-row-strip";
 
-        // Simulates common attribute map matches across data fields
-        const mutualCategories = Math.floor(Math.random() * 3) + 1;
-        const mutualItems = Math.floor(Math.random() * 7) + 3;
+        // Read real metrics computed by the backend cluster nodes
+        const mutualCategories = friend.mutualCategories !== undefined ? friend.mutualCategories : 0;
+        const mutualItems = friend.mutualItems !== undefined ? friend.mutualItems : 0;
+        const displayName = friend.fullname || friend.name || friend.username || "Anonymous Peer";
 
         row.innerHTML = `
-            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${friend.name}</div>
+            <div class="item-core-title" style="font-family:monospace; color:var(--app-burnished-gold); font-size:1.1rem;">${displayName}</div>
             <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Categories: ${mutualCategories}</div>
             <div style="font-size:0.85rem; color:var(--app-text-muted);">Mutual Items: ${mutualItems}</div>
             <div class="circular-media-thumbnail" style="background-image:url('${friend.avatar || 'AppIconTopTens.png'}');"></div>
